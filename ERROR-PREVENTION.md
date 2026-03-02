@@ -79,4 +79,47 @@ CREATE POLICY "Users can read own data" ON [table]
 
 ---
 
+## PostgreSQL: Cannot Change RPC Return Type via CREATE OR REPLACE
+
+**Symptom:** Migration fails with `ERROR: cannot change return type of existing function` when adding columns to a `RETURNS TABLE(...)` RPC.
+
+**Root cause:** `CREATE OR REPLACE FUNCTION` can only modify the function body — not its signature. Adding or removing columns from `RETURNS TABLE(...)` is a return type change, which PostgreSQL forbids.
+
+**Fix:**
+
+```sql
+-- DROP required before changing return type:
+DROP FUNCTION IF EXISTS my_rpc_name();
+CREATE OR REPLACE FUNCTION my_rpc_name()
+RETURNS TABLE (col1 text, col2 bigint, col3 numeric)  -- new signature
+...
+```
+
+**Prevention:** Whenever you add/remove columns from a `RETURNS TABLE(...)` function in a migration, prefix with `DROP FUNCTION IF EXISTS`. The `IF EXISTS` makes it safe for fresh installs.
+
+---
+
+## PostgREST: Server max_rows Silently Caps Python Row Fetches
+
+**Symptom:** A Python-side count/aggregate that fetches rows from PostgREST returns a suspiciously round number (e.g., exactly 1000). No error is raised — the response is silently truncated.
+
+**Root cause:** PostgREST enforces a server-side `max_rows` ceiling (default 1000) that overrides the client's `.limit()`. You cannot request more rows than the server allows.
+
+**Fix:** Use a Postgres-side aggregate RPC instead of fetching rows to Python:
+
+```sql
+CREATE OR REPLACE FUNCTION my_count()
+RETURNS bigint LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
+AS $$ SELECT COUNT(DISTINCT shop_id) FROM shop_tags; $$;
+```
+
+```python
+result = db.rpc("my_count", {}).execute()
+count = int(result.data or 0)
+```
+
+**Prevention:** Never fetch rows to Python for aggregation (COUNT, SUM, DISTINCT). Use an RPC for any aggregate that might exceed 1000 rows.
+
+---
+
 _Add entries here as you discover them._
