@@ -364,20 +364,23 @@ describe('admin/shops/import/check-urls route', () => {
 
 describe('admin/shops/import/google-takeout route', () => {
   it('admin uploads valid takeout file and it is forwarded to backend', async () => {
-    const mockFetch = vi.fn().mockResolvedValue(
-      new Response('{"imported":1}', { status: 202 })
-    );
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValue(new Response('{"imported":1}', { status: 202 }));
     vi.stubGlobal('fetch', mockFetch);
 
     const body = new Uint8Array([1, 2, 3]);
-    const req = new Request('http://localhost/api/admin/shops/import/google-takeout', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'multipart/form-data; boundary=abc',
-        Authorization: 'Bearer token',
-      },
-      body,
-    });
+    const req = new Request(
+      'http://localhost/api/admin/shops/import/google-takeout',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'multipart/form-data; boundary=abc',
+          Authorization: 'Bearer token',
+        },
+        body,
+      }
+    );
 
     const res = await importGoogleTakeoutPOST(req);
 
@@ -391,11 +394,14 @@ describe('admin/shops/import/google-takeout route', () => {
 
   it('admin uploading a file over 10MB receives a 413 response', async () => {
     const oversizedBody = new Uint8Array(10 * 1024 * 1024 + 1);
-    const req = new Request('http://localhost/api/admin/shops/import/google-takeout', {
-      method: 'POST',
-      headers: { 'Content-Length': String(oversizedBody.byteLength) },
-      body: oversizedBody,
-    });
+    const req = new Request(
+      'http://localhost/api/admin/shops/import/google-takeout',
+      {
+        method: 'POST',
+        headers: { 'Content-Length': String(oversizedBody.byteLength) },
+        body: oversizedBody,
+      }
+    );
 
     const res = await importGoogleTakeoutPOST(req);
     expect(res.status).toBe(413);
