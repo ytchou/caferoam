@@ -361,8 +361,8 @@ Core infrastructure everything else depends on. No user-facing product yet.
 
 **Chunk 3 — Frontend Infrastructure (Wave 5):**
 
-- [ ] Admin middleware guard (server-side `is_admin` check)
-- [ ] Admin proxy routes (shops, jobs, taxonomy)
+- [x] Admin middleware guard (server-side `is_admin` check)
+- [x] Admin proxy routes (shops, jobs, taxonomy)
 
 **Chunk 4 — Frontend Pages (Wave 6):**
 

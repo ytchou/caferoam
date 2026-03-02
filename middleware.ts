@@ -66,6 +66,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Admin routes — require admin flag
+  if (pathname.startsWith('/admin')) {
+    const isAdmin = appMetadata.is_admin === true;
+    if (!isAdmin) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/';
+      return NextResponse.redirect(url);
+    }
+  }
+
   // Authenticated + consented — pass through
   return supabaseResponse;
 }
