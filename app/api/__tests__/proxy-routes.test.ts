@@ -15,7 +15,10 @@ import { POST as cancelJobPOST } from '../admin/pipeline/jobs/[id]/cancel/route'
 import { GET as pipelineOverviewGET } from '../admin/pipeline/overview/route';
 import { POST as rejectPOST } from '../admin/pipeline/reject/[id]/route';
 import { POST as retryPOST } from '../admin/pipeline/retry/[id]/route';
-import { GET as adminShopsGET, POST as adminShopsPOST } from '../admin/shops/route';
+import {
+  GET as adminShopsGET,
+  POST as adminShopsPOST,
+} from '../admin/shops/route';
 import {
   GET as adminShopGET,
   PUT as adminShopPUT,
