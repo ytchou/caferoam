@@ -1,6 +1,6 @@
 # Technical Specification: CafeRoam (啡遊)
 
-> Last updated: 2026-02-24
+> Last updated: 2026-03-02
 > For complete product requirements: see PRD.md
 
 ---
@@ -39,11 +39,12 @@
 | Provider abstractions | LLMProvider, EmbeddingsProvider, EmailProvider, MapsProvider, AnalyticsProvider (Python Protocol classes)                                 | 1     |
 | Admin/ops             | Internal data quality dashboard, manual enrichment and verification UI                                                                    | 1     |
 | Background workers    | FastAPI embedded workers (APScheduler): enrichment, embedding refresh, weekly email cron                                                  | 1     |
-| Shop directory        | List view + map view toggle, geolocation, multi-dimension filters                                                                         | 2     |
-| Semantic search       | pgvector similarity + taxonomy boost, chatbox UI on landing page                                                                          | 2     |
+| Shop directory        | Mobile list view + mobile/desktop map view; responsive layouts at ≥1024px; geolocation; multi-dimension filters                           | 2     |
+| Semantic search       | pgvector similarity + taxonomy boost; AI search bar with suggestion chips and mode chips on Home and Map screens                          | 2     |
 | User lists            | Create/edit/delete (max 3), add/remove shops                                                                                              | 2     |
-| Check-in system       | Photo upload, optional text + menu photo, stamp generation                                                                                | 2     |
-| User profile          | Private profile page: check-in history, stamps earned, lists                                                                              | 2     |
+| Check-in system       | Standalone check-in page; photo upload (required), text note (optional), menu photo (optional); stamp generation; unlocks review          | 2     |
+| Reviews               | Check-in-gated reviews: star rating + text, one review per user per shop, visible to logged-in users on Shop Detail page                  | 2     |
+| User profile          | Private profile page: check-in history, stamp collection, lists                                                                           | 2     |
 | Retention             | Weekly curated email (fixed schedule), stamp collection display                                                                           | 3     |
 
 ---
@@ -124,7 +125,7 @@ Things that must exist for this product to ship. If any of these slip, the timel
 - **Error tracking:** Sentry — captures frontend + API route errors. Alert on new error types. Free tier sufficient at launch.
 - **Logging:** Railway built-in log viewer for app and worker logs. Structured JSON logs.
 - **Uptime monitoring:** Better Stack — 30-second checks on production URLs. Slack/Discord + email alerts on downtime. Public status page.
-- **Analytics:** PostHog via IAnalyticsProvider. Tracks: search queries (anonymized), filter usage, check-in events, WAU, funnel from landing → auth → search. Never log user PII in analytics events.
+- **Analytics:** PostHog via IAnalyticsProvider. Seven instrumented events (defined in `docs/designs/ux/metrics.md`): `search_submitted` (query_text, query_type, mode_chip_active, result_count), `shop_detail_viewed` (shop_id, referrer, session_search_query), `shop_url_copied` (shop_id, copy_method), `checkin_completed` (shop_id, is_first_checkin_at_shop, has_text_note, has_menu_photo), `profile_stamps_viewed` (stamp_count), `filter_applied` (filter_type, filter_value), `session_start` (days_since_first_session, previous_sessions). `query_type` classification runs server-side. Never log user PII in analytics events.
 - **Alerting:** Sentry (new errors, email), Better Stack (downtime, Slack/Discord), Railway (worker crash logs).
 
 ---
@@ -182,3 +183,7 @@ pnpm setup                     # Runs all steps automatically
 - **PDPA data deletion:** Account deletion must cascade all personal data: check-in photos (Supabase Storage), text notes, lists, stamps, profile data. Must complete within 30 days of request. Non-negotiable — must be built before launch.
 - **Provider abstraction:** Business logic never imports provider SDKs directly. All external services accessed via Python Protocol classes in `backend/providers/`.
 - **Taxonomy is canonical:** Filter UI options and LLM enrichment prompts both derive from the taxonomy table. Adding a new tag to the taxonomy automatically makes it available in filters and future enrichment runs.
+- **Check-in page is standalone:** The check-in flow lives at `/checkin/[shopId]` — a separate page, not a tab on Shop Detail. Reached via the "打卡記錄 Check In →" button on Shop Detail. This applies on both mobile and desktop.
+- **Reviews are check-in-gated:** A user can leave a star rating + text review only after completing at least one check-in at that shop. Reviews are optional — a check-in with no review is valid. One review per user per shop (latest overwrites previous). Reviews are visible to logged-in users only on Shop Detail.
+- **Check-in social visibility:** On Shop Detail, unauthenticated visitors see only the total check-in count and one representative photo. Logged-in users see the full Recent Check-ins strip (photo thumbnails with @username and date). Review text is never shown to unauthenticated visitors.
+- **Responsive layouts (UX-defined):** Two distinct layout sets exist. Mobile (< 1024px): Home (terracotta search-hero with suggestion chips), Map (full-bleed + glassmorphism overlay), Shop Detail (single-column scroll). Desktop (≥ 1024px): Home (search-first landing, centered search bar, no hero map), Map (full-viewport map + floating card), Shop Detail (2-column: content left / photo carousel + map + CTA right). See `docs/designs/ux/DESIGN_HANDOFF.md` for approved screenshots and layout intent.

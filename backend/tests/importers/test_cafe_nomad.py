@@ -89,8 +89,10 @@ def _build_mock_db(insert_side_effects: list | None = None) -> MagicMock:
         data=[]
     )
     # existing_cafenomad_ids (not_.is_ query) — return empty list
-    db.table.return_value.select.return_value.not_.is_.return_value.execute.return_value = MagicMock(  # noqa: E501
-        data=[]
+    db.table.return_value.select.return_value.not_.is_.return_value.execute.return_value = (
+        MagicMock(  # noqa: E501
+            data=[]
+        )
     )
     if insert_side_effects is not None:
         db.table.return_value.insert.side_effect = insert_side_effects
@@ -171,7 +173,10 @@ async def test_cafenomad_imported_shops_are_staged_for_url_validation():
     inserted_data = insert_call.args[0]
     assert inserted_data["processing_status"] == "pending_url_check"
     assert "google_maps_url" in inserted_data
-    assert "maps.google.com/maps/search" in inserted_data["google_maps_url"] or "google.com/maps/search" in inserted_data["google_maps_url"]
+    assert (
+        "maps.google.com/maps/search" in inserted_data["google_maps_url"]
+        or "google.com/maps/search" in inserted_data["google_maps_url"]
+    )
 
 
 @pytest.mark.asyncio

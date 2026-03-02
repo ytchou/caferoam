@@ -3,6 +3,7 @@ from typing import Any, cast
 
 from supabase import Client
 
+from core.db import first
 from models.types import Job, JobStatus, JobType
 
 
@@ -37,7 +38,7 @@ class JobQueue:
             .execute()
         )
         rows = cast("list[dict[str, Any]]", response.data)
-        return str(rows[0]["id"])
+        return str(first(rows, "enqueue job")["id"])
 
     async def claim(self, job_type: JobType | None = None) -> Job | None:
         """Atomically claim the next pending job using FOR UPDATE SKIP LOCKED.
@@ -63,7 +64,7 @@ class JobQueue:
         if not response.data:
             return None
         rows = cast("list[dict[str, Any]]", response.data)
-        return Job(**rows[0])
+        return Job(**first(rows, "claim job"))
 
     async def complete(self, job_id: str, result: dict[str, Any] | None = None) -> None:
         """Mark a job as completed."""

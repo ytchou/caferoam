@@ -223,9 +223,7 @@ async def bulk_approve(
             .limit(200)
             .execute()
         )
-        shops_to_approve = [
-            row["id"] for row in cast("list[dict[str, Any]]", resp.data or [])
-        ]
+        shops_to_approve = [row["id"] for row in cast("list[dict[str, Any]]", resp.data or [])]
 
     if not shops_to_approve:
         return {"approved": 0, "queued": 0}

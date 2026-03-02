@@ -1,7 +1,7 @@
 from typing import Any, cast
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
 from api.deps import require_admin
 from db.supabase_client import get_service_role_client

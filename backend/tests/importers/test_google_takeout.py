@@ -235,9 +235,7 @@ async def test_takeout_import_continues_when_one_shop_fails_to_insert():
     second_insert.execute.return_value = MagicMock(data=[{"id": "shop-2"}])
     db.table.return_value.insert.side_effect = [first_insert, second_insert]
 
-    result = await import_takeout_to_queue(
-        _GEOJSON_TWO_PLACES, db, bounds=_GREATER_TAIPEI_BOUNDS
-    )
+    result = await import_takeout_to_queue(_GEOJSON_TWO_PLACES, db, bounds=_GREATER_TAIPEI_BOUNDS)
 
     assert result["imported"] == 1
 
@@ -248,8 +246,6 @@ async def test_takeout_import_reports_zero_when_all_inserts_fail():
     db = _build_mock_db_no_existing()
     db.table.return_value.insert.return_value.execute.side_effect = Exception("DB unavailable")
 
-    result = await import_takeout_to_queue(
-        _GEOJSON_TAIPEI, db, bounds=_GREATER_TAIPEI_BOUNDS
-    )
+    result = await import_takeout_to_queue(_GEOJSON_TAIPEI, db, bounds=_GREATER_TAIPEI_BOUNDS)
 
     assert result["imported"] == 0

@@ -2,6 +2,7 @@ from typing import Any, cast
 
 from supabase import Client
 
+from core.db import first
 from models.types import CheckIn
 
 
@@ -30,7 +31,7 @@ class CheckInService:
         }
         response = self._db.table("check_ins").insert(checkin_data).execute()
         rows = cast("list[dict[str, Any]]", response.data)
-        return CheckIn(**rows[0])
+        return CheckIn(**first(rows, "create check-in"))
 
     async def get_by_user(self, user_id: str) -> list[CheckIn]:
         response = (

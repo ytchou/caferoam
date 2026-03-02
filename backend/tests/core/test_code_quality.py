@@ -6,6 +6,7 @@ test. Use first(response.data, "context") from core.db instead.
 To exempt a line that is genuinely safe (e.g. an external API contract guarantees
 a non-empty response), add an inline comment: # safe: <reason>
 """
+
 import re
 from pathlib import Path
 

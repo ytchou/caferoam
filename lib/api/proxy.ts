@@ -1,6 +1,7 @@
 // Exported for file-upload proxies (e.g. google-takeout) that cannot use proxyToBackend
 // because they need to buffer and size-check multipart bodies before forwarding.
-export const BACKEND_URL = process.env.BACKEND_INTERNAL_URL || 'http://localhost:8000';
+export const BACKEND_URL =
+  process.env.BACKEND_INTERNAL_URL || 'http://localhost:8000';
 
 export async function proxyToBackend(
   request: Request,

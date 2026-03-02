@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from supabase import Client
 
 from api.deps import get_current_user, get_user_db
+from core.db import first
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -32,7 +33,7 @@ async def record_consent(
             .execute()
         )
         return existing.data
-    return response.data[0]
+    return first(response.data, "record consent")
 
 
 @router.delete("/account")
@@ -62,7 +63,7 @@ async def delete_account(
             .execute()
         )
         return existing.data
-    return response.data[0]
+    return first(response.data, "delete account")
 
 
 @router.post("/cancel-deletion")
@@ -92,4 +93,4 @@ async def cancel_deletion(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to cancel deletion",
         )
-    return response.data[0]
+    return first(response.data, "cancel deletion")

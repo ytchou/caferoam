@@ -17,7 +17,7 @@ class OpenAIEmbeddingsAdapter:
 
     async def embed(self, text: str) -> list[float]:
         response = await self._client.embeddings.create(model=self._model, input=text)
-        return response.data[0].embedding
+        return response.data[0].embedding  # safe: OpenAI guarantees data[0] on success
 
     async def embed_batch(self, texts: list[str]) -> list[list[float]]:
         response = await self._client.embeddings.create(model=self._model, input=texts)

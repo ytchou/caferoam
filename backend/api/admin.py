@@ -5,6 +5,7 @@ import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.deps import require_admin
+from core.db import first
 from db.supabase_client import get_service_role_client
 from middleware.admin_audit import log_admin_action
 
@@ -79,7 +80,7 @@ async def retry_job(
     if not job_response.data:
         raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
 
-    job_status = cast("list[dict[str, Any]]", job_response.data)[0]["status"]
+    job_status = first(cast("list[dict[str, Any]]", job_response.data), "fetch job")["status"]
     if job_status not in ("failed", "dead_letter"):
         raise HTTPException(
             status_code=409,
@@ -122,7 +123,9 @@ async def approve_submission(
     if not sub_response.data:
         raise HTTPException(status_code=404, detail=f"Submission {submission_id} not found")
 
-    sub_status = cast("list[dict[str, Any]]", sub_response.data)[0]["status"]
+    sub_status = first(cast("list[dict[str, Any]]", sub_response.data), "fetch submission")[
+        "status"
+    ]
     if sub_status not in ("pending", "processing"):
         raise HTTPException(
             status_code=409,
@@ -165,7 +168,7 @@ async def reject_submission(
     )
     if not sub_response.data:
         raise HTTPException(status_code=404, detail=f"Submission {submission_id} not found")
-    sub_data = cast("dict[str, Any]", sub_response.data[0])
+    sub_data = first(cast("list[dict[str, Any]]", sub_response.data), "fetch submission")
     sub_status = sub_data.get("status")
     shop_id = sub_data.get("shop_id")
 
@@ -232,7 +235,7 @@ async def cancel_job(
     if not job_response.data:
         raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
 
-    job_status = cast("list[dict[str, Any]]", job_response.data)[0]["status"]
+    job_status = first(cast("list[dict[str, Any]]", job_response.data), "fetch job")["status"]
     if job_status not in ("pending", "claimed"):
         raise HTTPException(
             status_code=409,

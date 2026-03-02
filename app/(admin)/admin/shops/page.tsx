@@ -34,7 +34,9 @@ interface ImportSummary {
   region: string;
 }
 
-const REGIONS = [{ value: 'greater_taipei', label: 'Greater Taipei (大台北)' }] as const;
+const REGIONS = [
+  { value: 'greater_taipei', label: 'Greater Taipei (大台北)' },
+] as const;
 
 const STATUS_OPTIONS = [
   'all',
@@ -81,14 +83,18 @@ export default function AdminShopsList() {
   const [createLoading, setCreateLoading] = useState(false);
 
   // Import section state
-  const [selectedRegion, setSelectedRegion] = useState<string>(REGIONS[0].value);
+  const [selectedRegion, setSelectedRegion] = useState<string>(
+    REGIONS[0].value
+  );
   const [importingCafeNomad, setImportingCafeNomad] = useState(false);
   const [importingTakeout, setImportingTakeout] = useState(false);
   const [checkingUrls, setCheckingUrls] = useState(false);
   const takeoutFileRef = useRef<HTMLInputElement>(null);
 
   // Bulk approve state
-  const [selectedShopIds, setSelectedShopIds] = useState<Set<string>>(new Set());
+  const [selectedShopIds, setSelectedShopIds] = useState<Set<string>>(
+    new Set()
+  );
   const [approvingBulk, setApprovingBulk] = useState(false);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -308,9 +314,7 @@ export default function AdminShopsList() {
         toast.error('Session expired — please refresh the page');
         return;
       }
-      const body = approveAll
-        ? {}
-        : { shop_ids: Array.from(selectedShopIds) };
+      const body = approveAll ? {} : { shop_ids: Array.from(selectedShopIds) };
 
       const res = await fetch('/api/admin/shops/bulk-approve', {
         method: 'POST',
@@ -325,7 +329,9 @@ export default function AdminShopsList() {
         toast.error(data.detail || 'Bulk approve failed');
         return;
       }
-      toast.success(`Approved ${data.approved} shops, queued ${data.queued} scrape jobs`);
+      toast.success(
+        `Approved ${data.approved} shops, queued ${data.queued} scrape jobs`
+      );
       setSelectedShopIds(new Set());
       fetchShops(appliedSearch, statusFilter, sourceFilter, offset);
     } catch {
@@ -406,7 +412,7 @@ export default function AdminShopsList() {
       </div>
 
       {/* Import Section */}
-      <div className="rounded-lg border p-4 space-y-3">
+      <div className="space-y-3 rounded-lg border p-4">
         <h2 className="text-sm font-semibold text-gray-700">Import Shops</h2>
         <div className="flex flex-wrap items-center gap-3">
           <div>
@@ -611,7 +617,7 @@ export default function AdminShopsList() {
             <thead>
               <tr className="border-b text-gray-500">
                 {isReviewFilter && (
-                  <th className="pb-2 pr-2">
+                  <th className="pr-2 pb-2">
                     <input
                       type="checkbox"
                       aria-label="Select all"

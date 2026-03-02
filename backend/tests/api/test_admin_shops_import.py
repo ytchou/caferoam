@@ -26,9 +26,7 @@ def _admin_patches(extra: list | None = None):
     from contextlib import ExitStack
 
     stack = ExitStack()
-    stack.enter_context(
-        patch("api.deps.settings", **{"admin_user_ids": [_ADMIN_ID]})
-    )
+    stack.enter_context(patch("api.deps.settings", **{"admin_user_ids": [_ADMIN_ID]}))
     if extra:
         for p in extra:
             stack.enter_context(p)
@@ -172,7 +170,13 @@ class TestGoogleTakeoutImport:
             mock_settings.admin_user_ids = [_ADMIN_ID]
             response = client.post(
                 "/admin/shops/import/google-takeout",
-                files={"file": ("saved_places.json", BytesIO(self._valid_geojson()), "application/json")},  # noqa: E501
+                files={
+                    "file": (
+                        "saved_places.json",
+                        BytesIO(self._valid_geojson()),
+                        "application/json",
+                    )
+                },  # noqa: E501
                 data={"region": "greater_taipei"},
             )
 

@@ -3,6 +3,7 @@ from typing import Any, cast
 from postgrest.exceptions import APIError
 from supabase import Client
 
+from core.db import first
 from models.types import List, ListItem
 
 
@@ -30,7 +31,7 @@ class ListsService:
                 raise ValueError("Maximum of 3 lists allowed") from None
             raise
         rows = cast("list[dict[str, Any]]", response.data)
-        return List(**rows[0])
+        return List(**first(rows, "create list"))
 
     async def delete(self, list_id: str) -> None:
         """Delete a list. RLS ensures only the owner can delete.
@@ -48,7 +49,7 @@ class ListsService:
             self._db.table("list_items").insert({"list_id": list_id, "shop_id": shop_id}).execute()
         )
         rows = cast("list[dict[str, Any]]", response.data)
-        return ListItem(**rows[0])
+        return ListItem(**first(rows, "add shop to list"))
 
     async def remove_shop(self, list_id: str, shop_id: str) -> None:
         """Remove a shop from a list. RLS enforces ownership via parent list.

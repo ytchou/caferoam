@@ -24,6 +24,35 @@ Known errors, their symptoms, causes, and fixes. Add an entry every time you hit
 
 ---
 
+## Cross-Language API Contract Drift (TypeScript ↔ Python)
+
+**Symptom:** Frontend shows `undefined` for all shop fields; API calls return 404, 405, or 422; a count is always 0 even though data exists.
+
+**Root cause:** TypeScript frontend and Python backend developed in parallel without a shared type system. Common divergences: (1) response shape (nested vs flat), (2) missing proxy routes, (3) HTTP method mismatch (PATCH vs PUT), (4) query param name mismatch (`q` vs `query`), (5) wrong RPC return field names.
+
+**Fix:** Match each `fetch()` call against the FastAPI route: verify URL, method, query params, response shape. Create missing proxy routes immediately.
+
+**Prevention:**
+- When writing any `fetch()` call, immediately open the corresponding FastAPI route handler and cross-check: URL, HTTP method, query param names, JSON response shape
+- Front-end test mocks must match the actual backend response shape — not an assumed shape
+- Missing proxy route = 404 at runtime. Create `app/api/admin/X/route.ts` alongside the backend endpoint
+
+---
+
+## Test Mock Path Drift After Module Refactoring
+
+**Symptom:** Tests that patched `api.module_name.settings` suddenly fail (AttributeError or 403) after extracting logic to `api/deps.py`.
+
+**Root cause:** `unittest.mock.patch("api.X.settings")` patches the name where it is **used**, not where it is **defined**. After moving shared dependencies to `deps.py`, `settings` is no longer imported in `api/X.py`.
+
+**Fix:** Update all patch paths from `api.X.settings` → `api.deps.settings`.
+
+**Prevention:**
+- After any `deps.py` extraction, grep for `patch("api.<old_module>.settings")` across all test files and update the path
+- Prefer `app.dependency_overrides[require_admin] = lambda: {"id": "admin-id"}` over patching settings — it's immune to module path changes
+
+---
+
 ## Supabase Migration Out of Sync
 
 **Symptom:** `supabase db push` fails with "migration already applied" or schema drift errors.

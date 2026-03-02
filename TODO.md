@@ -377,6 +377,44 @@ Core infrastructure everything else depends on. No user-facing product yet.
 
 - [x] Full verification (pytest, vitest, ruff, mypy, pnpm build)
 
+### Admin Import Triggers
+
+> **Design Doc:** [docs/designs/2026-03-02-admin-import-triggers-design.md](docs/designs/2026-03-02-admin-import-triggers-design.md)
+
+**Chunk 1 — Region Config + Pre-Filter Pipeline (Wave 1):**
+
+- [x] Shared region config (`backend/core/regions.py`): GeoBounds, Region, REGIONS dict with Greater Taipei
+- [x] Pre-filter module: URL validation, fuzzy dedup (Levenshtein + coords), known-failed check, name validation
+- [x] Pre-filter tests (TDD for each filter step)
+
+**Chunk 2 — Importer Updates (Wave 2):**
+
+- [x] Update `google_takeout.py`: accept GeoBounds, run pre-filter, mark `pending_url_check`
+- [x] Update `cafe_nomad.py`: accept Region, dynamic Cafe Nomad API URL, run pre-filter
+- [x] Update importer tests for new params
+
+**Chunk 3 — Backend Routes + URL Checker (Wave 3):**
+
+- [x] `POST /admin/shops/import/cafe-nomad` with region param
+- [x] `POST /admin/shops/import/google-takeout` with multipart file upload
+- [x] `POST /admin/shops/bulk-approve` (max 50/batch, staggered priority)
+- [x] `POST /admin/shops/import/check-urls` (background URL validation batch)
+- [x] Background URL checker worker (5 concurrent, 1s batch delay)
+- [x] Route tests with TDD
+
+**Chunk 4 — Frontend (Wave 4):**
+
+- [x] Next.js proxy routes (4 new routes, including custom multipart proxy for Google Takeout)
+- [x] Admin shops page: region dropdown, import buttons, Check URLs button
+- [x] Admin shops page: bulk approve UI (checkbox selection + approve action)
+- [x] Add `pending_url_check` and `pending_review` to status filters
+
+**Chunk 5 — Verification (Wave 5):**
+
+- [x] All backend tests pass (pytest)
+- [x] ruff + mypy pass
+- [x] Frontend type-check + build pass
+
 ### Test Improvement (Phase 0 + 1)
 
 > **Design Doc:** [docs/designs/2026-02-27-test-improvement-design.md](docs/designs/2026-02-27-test-improvement-design.md)
@@ -403,6 +441,36 @@ Core infrastructure everything else depends on. No user-facing product yet.
 - [ ] Lists page tests (blocked until lists CRUD feature)
 - [ ] Search page tests (blocked until semantic search UI)
 - [ ] Profile page tests (blocked until profile page)
+
+### Data Seeding — Get Shops Into Supabase
+
+This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shops to unblock Phase 2 dev immediately; full pipeline reaches the 200+ shop target.
+
+**Chunk 1 — Local environment:**
+
+- [ ] Run `supabase start` and confirm Studio accessible at http://localhost:54323
+- [ ] Run `supabase db push` and confirm all migrations applied (check for errors in output)
+- [ ] Confirm `supabase/migrations/20260302000003_tagged_shop_count_rpc.sql` is the latest — `supabase db diff` should show no pending changes
+- [ ] Set required env vars in `backend/.env`: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `APIFY_API_TOKEN`
+
+**Chunk 2 — Full pipeline: import via Google Takeout + reach 200+ shops:**
+
+> Requires a Google Takeout export of your saved places. The importer reads the GeoJSON, inserts shops as `pending`, and queues SCRAPE_SHOP jobs. The worker chain then handles SCRAPE → ENRICH → EMBED → PUBLISH automatically.
+
+- [ ] Export Google Maps saved places: Google Account → Data & Privacy → Download your data → select "Saved" → export as JSON → unzip and locate `Takeout/Maps/Saved Places.json`
+- [ ] Write `backend/scripts/run_takeout_import.py`:
+  - Accept GeoJSON file path as CLI arg (`sys.argv[1]`)
+  - Load and parse the file
+  - Call `import_takeout_to_queue(geojson, db, queue)` from `importers/google_takeout.py`
+  - Print count of shops queued
+- [ ] Start backend: `cd backend && uvicorn main:app --reload --port 8000`
+- [ ] Run import: `cd backend && uv run python scripts/run_takeout_import.py /path/to/Saved\ Places.json`
+- [ ] Confirm SCRAPE_SHOP jobs queued — check `/admin/jobs` or `GET /admin/pipeline/jobs?status=pending`
+- [ ] Let worker run (APScheduler fires every 30s) — monitor progress in admin dashboard
+- [ ] Pipeline chain completes: SCRAPE_SHOP → ENRICH_SHOP → EMBED_SHOP → PUBLISH_SHOP
+- [ ] Verify: `SELECT COUNT(*) FROM shops WHERE processing_status = 'live'` ≥ 200
+- [ ] Verify: dead-letter queue empty or investigated (`GET /admin/pipeline/dead-letter`)
+- [ ] Spot-check search quality: run 5 queries from `scripts/prebuild/data-pipeline/pass5-search-test.ts` against the live API
 
 **Phase 1 is done when:** 200+ shops are live in the database with taxonomy tags and embeddings. Auth works end-to-end including PDPA consent and account deletion. Admin can add and edit shop data. `git clone` → running app in under 15 minutes.
 

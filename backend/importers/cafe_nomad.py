@@ -92,10 +92,7 @@ async def fetch_and_import_cafenomad(
 
     # Pre-fetch existing cafenomad_ids to avoid per-shop duplicate check
     existing_ids_resp = (
-        db.table("shops")
-        .select("cafenomad_id")
-        .not_.is_("cafenomad_id", "null")
-        .execute()
+        db.table("shops").select("cafenomad_id").not_.is_("cafenomad_id", "null").execute()
     )
     existing_cafenomad_ids: set[str] = {
         row["cafenomad_id"] for row in (existing_ids_resp.data or [])

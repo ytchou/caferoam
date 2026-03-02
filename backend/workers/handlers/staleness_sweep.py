@@ -5,6 +5,7 @@ from typing import Any, cast
 import structlog
 from supabase import Client
 
+from core.db import first
 from models.types import JobType
 from providers.scraper.interface import ScraperProvider
 from workers.queue import JobQueue
@@ -69,7 +70,11 @@ async def handle_smart_staleness_sweep(
             .limit(1)
             .execute()
         )
-        latest_stored = stored_reviews.data[0]["published_at"] if stored_reviews.data else None  # type: ignore[index,call-overload]
+        latest_stored = (
+            first(stored_reviews.data, "latest stored review")["published_at"]
+            if stored_reviews.data
+            else None
+        )  # type: ignore[call-overload]
 
         # Quick-scrape reviews only from Google Maps
         try:

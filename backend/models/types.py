@@ -201,12 +201,15 @@ class Job(BaseModel):
 
 class ProcessingStatus(StrEnum):
     PENDING = "pending"
+    PENDING_URL_CHECK = "pending_url_check"
+    PENDING_REVIEW = "pending_review"
     SCRAPING = "scraping"
     ENRICHING = "enriching"
     EMBEDDING = "embedding"
     PUBLISHING = "publishing"
     LIVE = "live"
     FAILED = "failed"
+    FILTERED_DEAD_URL = "filtered_dead_url"
 
 
 class ShopSubmission(BaseModel):

@@ -8,6 +8,7 @@ from pydantic import BaseModel, field_validator
 from supabase import Client
 
 from api.deps import get_current_user, get_user_db
+from core.db import first
 from db.supabase_client import get_service_role_client
 from models.types import JobType
 from workers.queue import JobQueue
@@ -77,7 +78,7 @@ async def submit_shop(
             ) from e
         raise
     sub_data = cast("list[dict[str, Any]]", sub_response.data)
-    submission_id = sub_data[0]["id"]
+    submission_id = first(sub_data, "create submission")["id"]
 
     # Create pending shop + enqueue job atomically (compensate on failure)
     svc_db = get_service_role_client()
@@ -99,7 +100,7 @@ async def submit_shop(
             .execute()
         )
         shop_data = cast("list[dict[str, Any]]", shop_response.data)
-        shop_id = shop_data[0]["id"]
+        shop_id = first(shop_data, "create shop")["id"]
 
         queue = JobQueue(db=svc_db)
         await queue.enqueue(
