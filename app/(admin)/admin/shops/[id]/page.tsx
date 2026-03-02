@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 
 interface ModeScores {
@@ -47,10 +48,8 @@ export default function AdminShopDetail() {
     latitude: '',
     longitude: '',
   });
-  const [editError, setEditError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState<string | null>(null);
-  const [actionStatus, setActionStatus] = useState<string | null>(null);
   const tokenRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -88,7 +87,7 @@ export default function AdminShopDetail() {
   async function handleEnqueue(jobType: string) {
     const token = tokenRef.current;
     if (!token) return;
-    setActionStatus(`Enqueuing ${jobType}...`);
+    const toastId = toast.loading(`Enqueuing ${jobType}...`);
     try {
       const res = await fetch(`/api/admin/shops/${id}/enqueue`, {
         method: 'POST',
@@ -100,12 +99,12 @@ export default function AdminShopDetail() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setActionStatus(`Error: ${body.detail || 'Failed to enqueue'}`);
+        toast.error(body.detail || 'Failed to enqueue', { id: toastId });
         return;
       }
-      setActionStatus(`${jobType} job enqueued`);
+      toast.success(`${jobType} job enqueued`, { id: toastId });
     } catch {
-      setActionStatus('Network error');
+      toast.error('Network error', { id: toastId });
     }
   }
 
@@ -120,7 +119,7 @@ export default function AdminShopDetail() {
       )
     )
       return;
-    setActionStatus(`Setting status to ${newStatus}...`);
+    const toastId = toast.loading(`Setting status to ${newStatus}...`);
     try {
       const res = await fetch(`/api/admin/shops/${id}`, {
         method: 'PUT',
@@ -132,14 +131,14 @@ export default function AdminShopDetail() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setActionStatus(`Error: ${body.detail || 'Failed to update status'}`);
+        toast.error(body.detail || 'Failed to update status', { id: toastId });
         return;
       }
       const updated = await res.json();
       setShop((prev) => (prev ? { ...prev, ...updated } : null));
-      setActionStatus(`Status set to ${newStatus}`);
+      toast.success(`Status set to ${newStatus}`, { id: toastId });
     } catch {
-      setActionStatus('Network error');
+      toast.error('Network error', { id: toastId });
     }
   }
 
@@ -173,12 +172,11 @@ export default function AdminShopDetail() {
   async function handleSaveEdit() {
     const token = tokenRef.current;
     if (!token) return;
-    setEditError(null);
 
     const lat = parseFloat(editForm.latitude);
     const lng = parseFloat(editForm.longitude);
     if (isNaN(lat) || isNaN(lng)) {
-      setEditError('Latitude and longitude must be valid numbers');
+      toast.error('Latitude and longitude must be valid numbers');
       return;
     }
 
@@ -200,12 +198,13 @@ export default function AdminShopDetail() {
         const updated = await res.json();
         setShop((prev) => (prev ? { ...prev, ...updated } : null));
         setEditing(false);
+        toast.success('Changes saved');
       } else {
         const body = await res.json().catch(() => ({}));
-        setEditError(body.detail || 'Failed to save changes');
+        toast.error(body.detail || 'Failed to save changes');
       }
     } catch {
-      setEditError('Network error');
+      toast.error('Network error');
     }
   }
 
@@ -328,9 +327,6 @@ export default function AdminShopDetail() {
                 />
               </div>
             </div>
-            {editError && (
-              <p className="mt-2 text-sm text-red-600">{editError}</p>
-            )}
             <button
               onClick={handleSaveEdit}
               className="mt-3 rounded bg-blue-600 px-4 py-1 text-sm text-white hover:bg-blue-700"
@@ -476,10 +472,6 @@ export default function AdminShopDetail() {
             <span className="text-sm text-gray-600">{searchResult}</span>
           )}
         </div>
-
-        {actionStatus && (
-          <p className="mt-2 text-sm text-gray-600">{actionStatus}</p>
-        )}
       </section>
     </div>
   );

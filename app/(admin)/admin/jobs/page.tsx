@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment, useEffect, useState, useCallback, useRef } from 'react';
+import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 
 interface Job {
@@ -48,7 +49,6 @@ const PAGE_SIZE = 20;
 export default function AdminJobsPage() {
   const [data, setData] = useState<JobsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -103,7 +103,6 @@ export default function AdminJobsPage() {
   async function handleCancel(jobId: string) {
     if (!tokenRef.current) return;
     if (!window.confirm('Cancel this job? This cannot be undone.')) return;
-    setActionError(null);
     try {
       const res = await fetch(`/api/admin/pipeline/jobs/${jobId}/cancel`, {
         method: 'POST',
@@ -111,18 +110,18 @@ export default function AdminJobsPage() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setActionError(body.detail || 'Failed to cancel job');
+        toast.error(body.detail || 'Failed to cancel job');
         return;
       }
+      toast.success('Job cancelled');
       fetchJobs(tokenRef.current, page, statusFilter, typeFilter);
     } catch {
-      setActionError('Network error');
+      toast.error('Network error');
     }
   }
 
   async function handleRetry(jobId: string) {
     if (!tokenRef.current) return;
-    setActionError(null);
     try {
       const res = await fetch(`/api/admin/pipeline/retry/${jobId}`, {
         method: 'POST',
@@ -130,12 +129,13 @@ export default function AdminJobsPage() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setActionError(body.detail || 'Failed to retry job');
+        toast.error(body.detail || 'Failed to retry job');
         return;
       }
+      toast.success('Job queued for retry');
       fetchJobs(tokenRef.current, page, statusFilter, typeFilter);
     } catch {
-      setActionError('Network error');
+      toast.error('Network error');
     }
   }
 
@@ -191,15 +191,6 @@ export default function AdminJobsPage() {
           </select>
         </label>
       </div>
-
-      {actionError && (
-        <p
-          role="alert"
-          className="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700"
-        >
-          {actionError}
-        </p>
-      )}
 
       <table className="w-full text-left text-sm">
         <thead>

@@ -44,10 +44,27 @@ function confidenceColor(value: number): string {
   return 'text-yellow-600';
 }
 
+type SortKey = keyof Pick<
+  TagFrequency,
+  'tag_id' | 'dimension' | 'shop_count' | 'avg_confidence'
+>;
+type SortDir = 'asc' | 'desc';
+
 export default function TaxonomyPage() {
   const [data, setData] = useState<TaxonomyStats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sortKey, setSortKey] = useState<SortKey>('shop_count');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  function handleSort(key: SortKey) {
+    if (key === sortKey) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('desc');
+    }
+  }
 
   useEffect(() => {
     async function load() {
@@ -83,6 +100,13 @@ export default function TaxonomyPage() {
 
   const missingCoverage =
     data.shops_missing_tags + data.shops_missing_embeddings;
+
+  const sortedTags = [...data.tag_frequency].sort((a, b) => {
+    const av = a[sortKey] ?? '';
+    const bv = b[sortKey] ?? '';
+    const cmp = av < bv ? -1 : av > bv ? 1 : 0;
+    return sortDir === 'asc' ? cmp : -cmp;
+  });
 
   return (
     <div className="space-y-8">
@@ -120,14 +144,31 @@ export default function TaxonomyPage() {
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b text-gray-500">
-              <th className="pb-2">Tag ID</th>
-              <th className="pb-2">Dimension</th>
-              <th className="pb-2">Shop Count</th>
-              <th className="pb-2">Avg Confidence</th>
+              {(
+                [
+                  ['tag_id', 'Tag ID'],
+                  ['dimension', 'Dimension'],
+                  ['shop_count', 'Shop Count'],
+                  ['avg_confidence', 'Avg Confidence'],
+                ] as [SortKey, string][]
+              ).map(([key, label]) => (
+                <th
+                  key={key}
+                  className="cursor-pointer pb-2 select-none hover:text-gray-800"
+                  onClick={() => handleSort(key)}
+                >
+                  {label}
+                  {sortKey === key && (
+                    <span className="ml-1 text-xs">
+                      {sortDir === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {data.tag_frequency.map((tag) => (
+            {sortedTags.map((tag) => (
               <tr key={tag.tag_id} className="border-b">
                 <td className="py-2">{tag.tag_id}</td>
                 <td className="py-2 text-gray-500">{tag.dimension}</td>

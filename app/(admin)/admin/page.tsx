@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 
 interface Submission {
   id: string;
   google_maps_url: string;
   status: string;
+  submitted_by: string | null;
   created_at: string;
 }
 
@@ -19,7 +21,6 @@ interface PipelineOverview {
 export default function AdminDashboard() {
   const [data, setData] = useState<PipelineOverview | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const tokenRef = useRef<string | null>(null);
 
@@ -62,7 +63,6 @@ export default function AdminDashboard() {
       )
     )
       return;
-    setActionError(null);
     try {
       const res = await fetch(`/api/admin/pipeline/${action}/${submissionId}`, {
         method: 'POST',
@@ -70,12 +70,13 @@ export default function AdminDashboard() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setActionError(body.detail || `Failed to ${action} submission`);
+        toast.error(body.detail || `Failed to ${action} submission`);
         return;
       }
+      toast.success(`Submission ${action}d`);
       fetchOverview(tokenRef.current);
     } catch {
-      setActionError('Network error');
+      toast.error('Network error');
     }
   }
 
@@ -118,14 +119,6 @@ export default function AdminDashboard() {
 
       <section>
         <h2 className="mb-4 text-lg font-semibold">Recent Submissions</h2>
-        {actionError && (
-          <p
-            role="alert"
-            className="mb-3 rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700"
-          >
-            {actionError}
-          </p>
-        )}
         {data.recent_submissions.length === 0 ? (
           <p className="text-gray-500">No submissions yet.</p>
         ) : (
@@ -133,6 +126,7 @@ export default function AdminDashboard() {
             <thead>
               <tr className="border-b text-gray-500">
                 <th className="pb-2">URL</th>
+                <th className="pb-2">Submitted By</th>
                 <th className="pb-2">Status</th>
                 <th className="pb-2">Date</th>
                 <th className="pb-2">Actions</th>
@@ -143,6 +137,9 @@ export default function AdminDashboard() {
                 <tr key={sub.id} className="border-b">
                   <td className="max-w-xs truncate py-2">
                     {sub.google_maps_url}
+                  </td>
+                  <td className="py-2 text-gray-500">
+                    {sub.submitted_by ?? '—'}
                   </td>
                   <td className="py-2">
                     <span

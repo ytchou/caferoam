@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 
 interface Shop {
@@ -11,6 +12,8 @@ interface Shop {
   processing_status: string;
   source: string;
   enriched_at: string | null;
+  tag_count: number;
+  has_embedding: boolean;
 }
 
 interface ShopsResponse {
@@ -47,7 +50,6 @@ export default function AdminShopsList() {
   const [error, setError] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -141,14 +143,13 @@ export default function AdminShopsList() {
   async function handleCreateShop(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setCreateLoading(true);
-    setCreateError(null);
 
     const formData = new FormData(e.currentTarget);
     const latitude = parseFloat(formData.get('latitude') as string);
     const longitude = parseFloat(formData.get('longitude') as string);
 
     if (isNaN(latitude) || isNaN(longitude)) {
-      setCreateError('Latitude and longitude must be valid numbers');
+      toast.error('Latitude and longitude must be valid numbers');
       setCreateLoading(false);
       return;
     }
@@ -177,14 +178,15 @@ export default function AdminShopsList() {
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setCreateError(body.detail || 'Failed to create shop');
+        toast.error(body.detail || 'Failed to create shop');
         return;
       }
 
+      toast.success('Shop created');
       setShowCreateForm(false);
       fetchShops(appliedSearch, statusFilter, sourceFilter, offset);
     } catch {
-      setCreateError('Network error');
+      toast.error('Network error');
     } finally {
       setCreateLoading(false);
     }
@@ -269,7 +271,6 @@ export default function AdminShopsList() {
               />
             </div>
           </div>
-          {createError && <p className="text-sm text-red-600">{createError}</p>}
           <button
             type="submit"
             disabled={createLoading}
@@ -331,6 +332,8 @@ export default function AdminShopsList() {
                 <th className="pb-2">Address</th>
                 <th className="pb-2">Status</th>
                 <th className="pb-2">Source</th>
+                <th className="pb-2">Tags</th>
+                <th className="pb-2">Embedding</th>
                 <th className="pb-2">Enriched</th>
               </tr>
             </thead>
@@ -345,6 +348,18 @@ export default function AdminShopsList() {
                   <td className="py-2 text-gray-600">{shop.address}</td>
                   <td className="py-2">{shop.processing_status}</td>
                   <td className="py-2 text-gray-500">{shop.source}</td>
+                  <td className="py-2 text-gray-500">{shop.tag_count}</td>
+                  <td className="py-2 text-gray-500">
+                    {shop.has_embedding ? (
+                      <span className="rounded bg-green-100 px-1.5 py-0.5 text-xs text-green-700">
+                        yes
+                      </span>
+                    ) : (
+                      <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">
+                        no
+                      </span>
+                    )}
+                  </td>
                   <td className="py-2 text-gray-500">
                     {shop.enriched_at
                       ? new Date(shop.enriched_at).toLocaleDateString()
@@ -354,7 +369,7 @@ export default function AdminShopsList() {
               ))}
               {!loading && shops.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-gray-400">
+                  <td colSpan={7} className="py-8 text-center text-gray-400">
                     No shops found
                   </td>
                 </tr>

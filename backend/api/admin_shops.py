@@ -52,7 +52,10 @@ async def list_shops(
 ) -> dict[str, Any]:
     """List all shops with optional filters."""
     db = get_service_role_client()
-    query = db.table("shops").select("*", count="exact")
+    query = db.table("shops").select(
+        "id, name, address, processing_status, source, enriched_at, embedding, shop_tags(count)",
+        count="exact",
+    )
 
     if processing_status:
         query = query.eq("processing_status", processing_status)
@@ -65,10 +68,13 @@ async def list_shops(
     query = query.order("created_at", desc=True).range(offset, offset + limit - 1)
     response = query.execute()
 
-    return {
-        "shops": cast("list[dict[str, Any]]", response.data),
-        "total": response.count or 0,
-    }
+    shops = []
+    for row in cast("list[dict[str, Any]]", response.data):
+        row["has_embedding"] = row.pop("embedding") is not None
+        row["tag_count"] = row.pop("shop_tags", [{}])[0].get("count", 0)
+        shops.append(row)
+
+    return {"shops": shops, "total": response.count or 0}
 
 
 @router.post("/", status_code=201)
