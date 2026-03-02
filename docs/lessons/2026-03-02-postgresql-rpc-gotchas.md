@@ -10,6 +10,7 @@
 **Root cause:** `CREATE OR REPLACE FUNCTION` can only modify the function body — not its signature (argument types or return type). Adding columns to a `RETURNS TABLE(...)` is a return type change.
 
 **Fix:** Drop the old function before re-creating it:
+
 ```sql
 -- DROP required: PostgreSQL forbids changing return type via CREATE OR REPLACE.
 DROP FUNCTION IF EXISTS function_name();
@@ -29,6 +30,7 @@ RETURNS TABLE (col1 type1, col2 type2, col3 type3)  -- new columns added
 **Root cause:** PostgREST enforces `max_rows` on the server as a safety ceiling. The Python client's `.limit()` sets the client's requested limit but cannot exceed the server's maximum. When the actual row count exceeds `max_rows`, the truncation is silent.
 
 **Fix:** Never count or aggregate rows by fetching them in Python from PostgREST. Use a Postgres-side aggregate function:
+
 ```sql
 CREATE OR REPLACE FUNCTION my_count_rpc()
 RETURNS bigint
@@ -37,6 +39,7 @@ AS $$
     SELECT COUNT(DISTINCT shop_id) FROM shop_tags;
 $$;
 ```
+
 Then call `db.rpc("my_count_rpc", {}).execute()` in Python.
 
 **Prevention:** Any time you need a COUNT, SUM, or DISTINCT count from a large table, use an RPC. Do not fetch rows to Python for aggregation — you cannot guarantee the full dataset was returned.
