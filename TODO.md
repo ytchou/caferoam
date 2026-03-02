@@ -342,9 +342,40 @@ Core infrastructure everything else depends on. No user-facing product yet.
 - [x] Full test suite verification (backend + frontend)
 - [x] Better Stack setup guide (manual external configuration)
 
-**Deferred:**
+### Admin Dashboard
 
-- [ ] Admin/ops tooling: internal dashboard for data quality review and manual shop enrichment
+> **Design Doc:** [docs/designs/2026-03-02-admin-dashboard-design.md](docs/designs/2026-03-02-admin-dashboard-design.md)
+> **Plan:** [docs/plans/2026-03-02-admin-dashboard-plan.md](docs/plans/2026-03-02-admin-dashboard-plan.md)
+
+**Chunk 1 — DB + Audit (Wave 1-2):**
+
+- [ ] DB migration: `manually_edited_at` column + `admin_audit_logs` table + low-confidence RPC
+- [ ] Audit log utility (`log_admin_action`) with TDD
+
+**Chunk 2 — Backend API (Wave 3):**
+
+- [ ] Admin shops router: list, create, detail, update, enqueue, search-rank with TDD
+- [ ] Admin jobs router: list all + cancel endpoint with TDD
+- [ ] Admin taxonomy router: coverage stats endpoint with TDD
+- [ ] Backend verification (pytest, ruff, mypy)
+
+**Chunk 3 — Frontend Infrastructure (Wave 5):**
+
+- [ ] Admin middleware guard (server-side `is_admin` check)
+- [ ] Admin proxy routes (shops, jobs, taxonomy)
+
+**Chunk 4 — Frontend Pages (Wave 6):**
+
+- [ ] Admin layout (sidebar nav + breadcrumbs)
+- [ ] Dashboard page (pipeline overview, job counts, recent submissions)
+- [ ] Shops list page (search, filter, create)
+- [ ] Shop detail page (enrichment viewer, tags, photos, pipeline replay actions)
+- [ ] Jobs page (queue browser, retry, cancel)
+- [ ] Taxonomy page (coverage stats, tag frequency, low-confidence shops)
+
+**Chunk 5 — Verification (Wave 7):**
+
+- [ ] Full verification (pytest, vitest, ruff, mypy, pnpm build)
 
 ### Test Improvement (Phase 0 + 1)
 
@@ -381,17 +412,25 @@ Core infrastructure everything else depends on. No user-facing product yet.
 
 The minimum that makes CafeRoam useful to a real user.
 
-### Shop Discovery
+> **UX reference:** All approved mockups in `docs/designs/ux/screenshots/`. Layout intent in `docs/designs/ux/DESIGN_HANDOFF.md`. Personas and friction points in `docs/designs/ux/personas.md` and `journeys.md`. PostHog events in `docs/designs/ux/metrics.md`.
 
-- [ ] Shop directory: list view (cards) + map view (Mapbox pins) with toggle
+### Shop Discovery & Directory
+
+- [ ] Mobile Home screen: terracotta search-hero, AI search bar with sparkle icon, suggestion chips (巴斯克蛋糕/適合工作/安靜一點/我附近), mode chips (工作/放鬆/社交/精品), filter pills row (`search-v3-approved.png`)
+- [ ] Desktop Home screen: search-first landing, centered hero search bar, suggestion chips, 3-column editorial cards grid, "View on map →" link — ≥1024px only (`home-desktop-v2-approved.png`)
+- [ ] Mobile Map screen: full-bleed Mapbox, glassmorphism search + filter overlay, terracotta pins, bottom mini card on pin select (`map-v1-approved.png`)
+- [ ] Desktop Map screen: full-viewport map, floating glassmorphism nav, filter pills, bottom-left floating shop card, "List View" toggle (`map-desktop-v1-approved.png`)
+- [ ] Shop Detail (mobile): single-column scroll — hero photo, shop identity, attribute chips, curated description, menu highlights, Recent Check-ins photo strip (auth-gated), reviews (auth-gated), map thumbnail, sticky "Check In →" bar (`shop-detail-v3-approved.png`)
+- [ ] Shop Detail (desktop): 2-column — left scrollable content, right sticky column (photo carousel + map + CTA) (`shop-detail-desktop-v2-approved.png`)
 - [ ] Geolocation: "nearby me" — requests location permission, filters shops by proximity
-- [ ] Multi-dimension filters: functionality, time, ambience, mode (all powered by taxonomy)
-- [ ] Shop detail pages with shareable URLs
+- [ ] Multi-dimension filters: functionality, time, ambience, mode (all powered by taxonomy); opens bottom-sheet on mobile
 
 ### Semantic Search
 
-- [ ] Semantic search: pgvector + taxonomy boost, ChatGPT-style chatbox on landing page
+- [ ] AI search bar: natural language queries, suggestion chips pre-fill search, mode chips apply semantic filter
+- [ ] pgvector + taxonomy boost search results, ranked list
 - [ ] Auth gate on semantic search: prompt login when unauthenticated user submits query
+- [ ] `search_submitted` PostHog event: query_text, query_type (server-side classified), mode_chip_active, result_count
 
 ### User Lists
 
@@ -399,20 +438,41 @@ The minimum that makes CafeRoam useful to a real user.
 
 ### Check-in & Stamps
 
-- [ ] Check-in system: photo upload (required), text note (optional), menu photo (optional)
+- [ ] Check-in page (`/checkin/[shopId]`): standalone page, NOT a tab on Shop Detail
+- [ ] Check-in form: photo upload (required), text note (optional), menu photo (optional)
 - [ ] Menu photo pipeline: optional check-in menu photo → enrichment worker queue
 - [ ] Stamp/collectible: one stamp design per shop, earned on check-in
+- [ ] `checkin_completed` PostHog event: shop_id, is_first_checkin_at_shop, has_text_note, has_menu_photo
+
+### Reviews
+
+- [ ] Review system: star rating + text, available only after at least one check-in at that shop
+- [ ] One review per user per shop (latest overwrites); reviews visible to logged-in users only on Shop Detail
+- [ ] Review DB table + API routes (`GET /shops/:id/reviews`, `POST /shops/:id/reviews`)
+- [ ] Check-in count + single representative photo visible to unauthenticated visitors on Shop Detail (full strip + @username shown to logged-in users only)
 
 ### User Profile
 
 - [ ] Private user profile page: check-in history, stamp collection, lists
+- [ ] `profile_stamps_viewed` PostHog event: stamp_count
+
+### Analytics Instrumentation
+
+- [ ] `shop_detail_viewed` event: shop_id, referrer (search/map_pin/direct), session_search_query
+- [ ] `shop_url_copied` event: shop_id, copy_method (native_share/clipboard)
+- [ ] `filter_applied` event: filter_type, filter_value
+- [ ] `session_start` event: days_since_first_session, previous_sessions
+- [ ] Server-side `query_type` classification (item_specific / specialty_coffee / general) — never exposed client-side
 
 ### Performance
 
-- [ ] Mobile-first UI polish — design and test at 390px width first
-- [ ] Core Web Vitals pass: LCP < 2.5s, CLS < 0.1
+- [ ] Mobile-first UI: design and test at 390px width first
+- [ ] Desktop breakpoint: ≥1024px — two distinct layout systems, not just stretched mobile
+- [ ] Map performance: lazy-load Mapbox, viewport-only pins, static Mapbox image for Shop Detail map thumbnail
+- [ ] Core Web Vitals: LCP < 2.5s, CLS < 0.1
+- [ ] `backdrop-filter: blur()` fallback for glassmorphism on Android
 
-**Phase 2 is done when:** A non-team beta user can sign up, complete the PDPA consent flow, search semantically, find a coffee shop, check in with a photo, earn a stamp, and view their profile — all without assistance.
+**Phase 2 is done when:** A non-team beta user can sign up, complete the PDPA consent flow, search semantically, find a coffee shop, check in with a photo, earn a stamp, leave a review, and view their profile — all without assistance. PostHog Live Events confirms all 7 instrumented events fire correctly.
 
 ---
 
@@ -471,7 +531,6 @@ Explicitly cut from V1. Revisit after Phase 3 validation data is in hand.
 
 - [ ] Public user profiles + social check-in feed
 - [ ] Shareable curated lists (Letterboxd model: "My top 5 study cafes in Da'an")
-- [ ] Comment and review system
 - [ ] Community data contributions (flag outdated info, add new shops)
 
 ### Monetization & Business
