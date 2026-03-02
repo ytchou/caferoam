@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 
 from api.admin import router as admin_router
 from api.admin_shops import router as admin_shops_router
+from api.admin_taxonomy import router as admin_taxonomy_router
 from api.auth import router as auth_router
 from api.checkins import router as checkins_router
 from api.feed import router as feed_router
@@ -114,3 +115,4 @@ app.include_router(feed_router)
 app.include_router(submissions_router)
 app.include_router(admin_router)
 app.include_router(admin_shops_router)
+app.include_router(admin_taxonomy_router)

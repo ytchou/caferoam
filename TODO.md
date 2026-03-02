@@ -356,7 +356,7 @@ Core infrastructure everything else depends on. No user-facing product yet.
 
 - [x] Admin shops router: list, create, detail, update, enqueue, search-rank with TDD
 - [x] Admin jobs router: list all + cancel endpoint with TDD
-- [ ] Admin taxonomy router: coverage stats endpoint with TDD
+- [x] Admin taxonomy router: coverage stats endpoint with TDD
 - [ ] Backend verification (pytest, ruff, mypy)
 
 **Chunk 3 — Frontend Infrastructure (Wave 5):**
