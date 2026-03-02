@@ -11,7 +11,7 @@ interface ModeScores {
 }
 
 interface Tag {
-  tag: string;
+  tag_id: string;
   confidence: number;
 }
 
@@ -42,6 +42,7 @@ export default function AdminShopDetail() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: '', address: '', latitude: '', longitude: '' });
+  const [editError, setEditError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState<string | null>(null);
   const [actionStatus, setActionStatus] = useState<string | null>(null);
@@ -63,13 +64,14 @@ export default function AdminShopDetail() {
         setLoading(false);
         return;
       }
-      const data = await res.json();
-      setShop(data);
+      // Backend returns { shop: {...}, tags: [...], photos: [...] }
+      const { shop: shopData, tags, photos } = await res.json();
+      setShop({ ...shopData, tags, photos });
       setEditForm({
-        name: data.name,
-        address: data.address,
-        latitude: String(data.latitude),
-        longitude: String(data.longitude),
+        name: shopData.name,
+        address: shopData.address,
+        latitude: String(shopData.latitude),
+        longitude: String(shopData.longitude),
       });
       setLoading(false);
     }
@@ -84,25 +86,52 @@ export default function AdminShopDetail() {
     return session?.access_token;
   }
 
-  async function handleEnqueue(taskType: string) {
+  async function handleEnqueue(jobType: string) {
     const token = await getToken();
     if (!token) return;
-    setActionStatus(`Enqueuing ${taskType}...`);
+    setActionStatus(`Enqueuing ${jobType}...`);
     try {
-      const res = await fetch('/api/admin/pipeline/enqueue', {
+      const res = await fetch(`/api/admin/shops/${id}/enqueue`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ task_type: taskType, shop_id: id }),
+        body: JSON.stringify({ job_type: jobType }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         setActionStatus(`Error: ${body.detail || 'Failed to enqueue'}`);
         return;
       }
-      setActionStatus(`${taskType} job enqueued`);
+      setActionStatus(`${jobType} job enqueued`);
+    } catch {
+      setActionStatus('Network error');
+    }
+  }
+
+  async function handleToggleLive() {
+    const token = await getToken();
+    if (!token || !shop) return;
+    const newStatus = shop.processing_status === 'live' ? 'pending' : 'live';
+    setActionStatus(`Setting status to ${newStatus}...`);
+    try {
+      const res = await fetch(`/api/admin/shops/${id}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ processing_status: newStatus }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setActionStatus(`Error: ${body.detail || 'Failed to update status'}`);
+        return;
+      }
+      const updated = await res.json();
+      setShop((prev) => (prev ? { ...prev, ...updated } : null));
+      setActionStatus(`Status set to ${newStatus}`);
     } catch {
       setActionStatus('Network error');
     }
@@ -115,7 +144,7 @@ export default function AdminShopDetail() {
     setSearchResult('Searching...');
     try {
       const res = await fetch(
-        `/api/admin/shops/${id}/search-rank?q=${encodeURIComponent(searchQuery)}`,
+        `/api/admin/shops/${id}/search-rank?query=${encodeURIComponent(searchQuery)}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (!res.ok) {
@@ -132,23 +161,39 @@ export default function AdminShopDetail() {
   async function handleSaveEdit() {
     const token = await getToken();
     if (!token) return;
-    const res = await fetch(`/api/admin/shops/${id}`, {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: editForm.name,
-        address: editForm.address,
-        latitude: parseFloat(editForm.latitude),
-        longitude: parseFloat(editForm.longitude),
-      }),
-    });
-    if (res.ok) {
-      const updated = await res.json();
-      setShop(updated);
-      setEditing(false);
+    setEditError(null);
+
+    const lat = parseFloat(editForm.latitude);
+    const lng = parseFloat(editForm.longitude);
+    if (isNaN(lat) || isNaN(lng)) {
+      setEditError('Latitude and longitude must be valid numbers');
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/admin/shops/${id}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: editForm.name,
+          address: editForm.address,
+          latitude: lat,
+          longitude: lng,
+        }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setShop((prev) => (prev ? { ...prev, ...updated } : null));
+        setEditing(false);
+      } else {
+        const body = await res.json().catch(() => ({}));
+        setEditError(body.detail || 'Failed to save changes');
+      }
+    } catch {
+      setEditError('Network error');
     }
   }
 
@@ -257,6 +302,7 @@ export default function AdminShopDetail() {
                 />
               </div>
             </div>
+            {editError && <p className="mt-2 text-sm text-red-600">{editError}</p>}
             <button
               onClick={handleSaveEdit}
               className="mt-3 rounded bg-blue-600 px-4 py-1 text-sm text-white hover:bg-blue-700"
@@ -305,8 +351,8 @@ export default function AdminShopDetail() {
           <h2 className="mb-4 text-lg font-semibold">Tags</h2>
           <div className="space-y-2">
             {shop.tags.map((t) => (
-              <div key={t.tag} className="flex items-center gap-3">
-                <span className="w-40 text-sm">{t.tag}</span>
+              <div key={t.tag_id} className="flex items-center gap-3">
+                <span className="w-40 text-sm">{t.tag_id}</span>
                 <div className="h-3 flex-1 rounded bg-gray-200">
                   <div
                     className={`h-3 rounded ${confidenceColor(t.confidence)}`}
@@ -369,6 +415,16 @@ export default function AdminShopDetail() {
             className="rounded border px-3 py-1 text-sm hover:bg-gray-50"
           >
             Re-scrape
+          </button>
+          <button
+            onClick={handleToggleLive}
+            className={`rounded border px-3 py-1 text-sm ${
+              shop.processing_status === 'live'
+                ? 'border-red-300 text-red-600 hover:bg-red-50'
+                : 'border-green-300 text-green-600 hover:bg-green-50'
+            }`}
+          >
+            {shop.processing_status === 'live' ? 'Unpublish' : 'Set Live'}
           </button>
         </div>
 

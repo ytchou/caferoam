@@ -15,8 +15,8 @@ interface LowConfidenceShop {
 }
 
 interface MissingEmbeddingShop {
-  shop_id: string;
-  shop_name: string;
+  id: string;
+  name: string;
   processing_status: string;
 }
 
@@ -161,10 +161,10 @@ export default function TaxonomyPage() {
           <ul className="space-y-2">
             {data.missing_embeddings.map((shop) => (
               <li
-                key={shop.shop_id}
+                key={shop.id}
                 className="flex items-center justify-between rounded border px-4 py-2"
               >
-                <span>{shop.shop_name}</span>
+                <span>{shop.name}</span>
                 <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
                   {shop.processing_status}
                 </span>

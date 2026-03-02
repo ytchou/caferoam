@@ -29,10 +29,13 @@ async def taxonomy_stats(
     total_resp = db.table("shops").select("id", count="exact").execute()
     total_shops = total_resp.count or 0
 
-    # Tag frequency via RPC
+    # Tag frequency via RPC (returns {tag_id, shop_count} rows)
     tagged_resp = db.rpc("shop_tag_counts", {}).execute()
     tag_frequency = cast("list[dict[str, Any]]", tagged_resp.data or [])
-    unique_tagged_shops = len({row.get("shop_id") for row in tag_frequency if row.get("shop_id")})
+
+    # Count distinct shops with at least one tag via a separate query
+    tagged_shops_resp = db.table("shop_tags").select("shop_id").execute()
+    unique_tagged_shops = len({row["shop_id"] for row in (tagged_shops_resp.data or []) if row.get("shop_id")})
 
     # Shops with embeddings
     embedded_resp = (
