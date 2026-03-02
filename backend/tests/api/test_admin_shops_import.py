@@ -305,7 +305,7 @@ class TestBulkApprove:
     def test_bulk_approve_empty_list_returns_zeros(self):
         """Bulk approve with no matching shops returns zeros."""
         mock_db = MagicMock()
-        mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = (
+        mock_db.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value = (  # noqa: E501
             MagicMock(data=[])
         )
 

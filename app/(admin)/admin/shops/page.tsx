@@ -358,6 +358,11 @@ export default function AdminShopsList() {
 
     try {
       const token = await getAuthToken();
+      if (!token) {
+        toast.error('Session expired — please refresh the page');
+        setCreateLoading(false);
+        return;
+      }
       const res = await fetch('/api/admin/shops', {
         method: 'POST',
         headers: {
