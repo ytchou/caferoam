@@ -129,8 +129,7 @@ describe('AdminShopDetail', () => {
   it('shows error state when the shop detail API returns an error', async () => {
     mockFetch.mockResolvedValue({
       ok: false,
-      json: () =>
-        Promise.resolve({ detail: 'Shop not found' }),
+      json: () => Promise.resolve({ detail: 'Shop not found' }),
     });
 
     render(<AdminShopDetail />);

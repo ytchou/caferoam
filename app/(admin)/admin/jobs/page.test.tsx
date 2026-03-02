@@ -66,8 +66,7 @@ describe('AdminJobsPage', () => {
         priority: 5,
         attempts: 3,
         created_at: '2026-02-28T14:00:00.000Z',
-        error:
-          'OpenAI API rate limit exceeded. Please retry after 60 seconds.',
+        error: 'OpenAI API rate limit exceeded. Please retry after 60 seconds.',
         payload: { shop_id: 'shop-g7h8i9', model: 'text-embedding-3-small' },
       },
       {
@@ -156,8 +155,7 @@ describe('AdminJobsPage', () => {
   it('shows error alert when the pipeline jobs API returns a failure', async () => {
     mockFetch.mockResolvedValue({
       ok: false,
-      json: () =>
-        Promise.resolve({ detail: 'Forbidden: admin role required' }),
+      json: () => Promise.resolve({ detail: 'Forbidden: admin role required' }),
     });
 
     render(<AdminJobsPage />);

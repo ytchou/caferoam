@@ -118,8 +118,7 @@ describe('AdminShopsList', () => {
   it('shows error state when the shops API returns an error', async () => {
     mockFetch.mockResolvedValue({
       ok: false,
-      json: () =>
-        Promise.resolve({ detail: 'Forbidden: admin role required' }),
+      json: () => Promise.resolve({ detail: 'Forbidden: admin role required' }),
     });
 
     render(<AdminShopsList />);

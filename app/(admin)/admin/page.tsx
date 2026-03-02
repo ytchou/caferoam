@@ -50,7 +50,10 @@ export default function AdminDashboard() {
     load();
   }, [fetchOverview]);
 
-  async function handleSubmissionAction(submissionId: string, action: 'approve' | 'reject') {
+  async function handleSubmissionAction(
+    submissionId: string,
+    action: 'approve' | 'reject'
+  ) {
     if (!tokenRef.current) return;
     setActionError(null);
     try {
@@ -90,7 +93,9 @@ export default function AdminDashboard() {
           {statuses.map((status) => (
             <div key={status} className="rounded-lg border p-4">
               <p className="text-sm text-gray-500">{status}</p>
-              <p className="text-2xl font-bold">{data.job_counts[status] || 0}</p>
+              <p className="text-2xl font-bold">
+                {data.job_counts[status] || 0}
+              </p>
             </div>
           ))}
         </div>
@@ -107,7 +112,10 @@ export default function AdminDashboard() {
       <section>
         <h2 className="mb-4 text-lg font-semibold">Recent Submissions</h2>
         {actionError && (
-          <p role="alert" className="mb-3 rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p
+            role="alert"
+            className="mb-3 rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700"
+          >
             {actionError}
           </p>
         )}
@@ -126,7 +134,9 @@ export default function AdminDashboard() {
             <tbody>
               {data.recent_submissions.map((sub) => (
                 <tr key={sub.id} className="border-b">
-                  <td className="max-w-xs truncate py-2">{sub.google_maps_url}</td>
+                  <td className="max-w-xs truncate py-2">
+                    {sub.google_maps_url}
+                  </td>
                   <td className="py-2">
                     <span
                       className={`rounded px-2 py-0.5 text-xs ${
@@ -144,18 +154,23 @@ export default function AdminDashboard() {
                     {new Date(sub.created_at).toLocaleDateString()}
                   </td>
                   <td className="py-2">
-                    {(sub.status === 'pending' || sub.status === 'processing') && (
+                    {(sub.status === 'pending' ||
+                      sub.status === 'processing') && (
                       <div className="flex gap-2">
                         <button
                           type="button"
-                          onClick={() => handleSubmissionAction(sub.id, 'approve')}
+                          onClick={() =>
+                            handleSubmissionAction(sub.id, 'approve')
+                          }
                           className="rounded bg-green-50 px-2 py-1 text-xs text-green-700 hover:bg-green-100"
                         >
                           Approve
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleSubmissionAction(sub.id, 'reject')}
+                          onClick={() =>
+                            handleSubmissionAction(sub.id, 'reject')
+                          }
                           className="rounded bg-red-50 px-2 py-1 text-xs text-red-600 hover:bg-red-100"
                         >
                           Reject

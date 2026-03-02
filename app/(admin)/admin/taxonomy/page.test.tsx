@@ -32,9 +32,24 @@ function makeTaxonomyStats(overrides: Record<string, unknown> = {}) {
     shops_missing_tags: 12,
     shops_missing_embeddings: 14,
     tag_frequency: [
-      { tag_id: 'wifi', shop_count: 35, avg_confidence: 0.78, dimension: 'functionality' },
-      { tag_id: 'power_outlets', shop_count: 28, avg_confidence: 0.71, dimension: 'functionality' },
-      { tag_id: 'quiet', shop_count: 22, avg_confidence: 0.65, dimension: 'ambience' },
+      {
+        tag_id: 'wifi',
+        shop_count: 35,
+        avg_confidence: 0.78,
+        dimension: 'functionality',
+      },
+      {
+        tag_id: 'power_outlets',
+        shop_count: 28,
+        avg_confidence: 0.71,
+        dimension: 'functionality',
+      },
+      {
+        tag_id: 'quiet',
+        shop_count: 22,
+        avg_confidence: 0.65,
+        dimension: 'ambience',
+      },
     ],
     low_confidence_shops: [
       {
@@ -147,8 +162,7 @@ describe('TaxonomyPage', () => {
   it('shows error state when the taxonomy stats API returns an error', async () => {
     mockFetch.mockResolvedValue({
       ok: false,
-      json: () =>
-        Promise.resolve({ detail: 'Forbidden: admin role required' }),
+      json: () => Promise.resolve({ detail: 'Forbidden: admin role required' }),
     });
 
     render(<TaxonomyPage />);

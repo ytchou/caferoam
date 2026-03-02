@@ -91,20 +91,25 @@ Browse and manage all shops regardless of processing status.
 Full enrichment viewer with pipeline replay actions.
 
 **Identity section:**
+
 - Name, address, coordinates, hours, source, processing_status
 - Inline edit for identity fields (saves via `PUT /admin/shops/{id}`)
 
 **Enrichment section:**
+
 - AI-generated summary, mode scores (work/rest/social/specialty as bar chart), last enriched timestamp
 
 **Tags section:**
+
 - All tags with confidence scores, sorted by confidence descending
 - Visual: horizontal confidence bar per tag (0.0–1.0)
 
 **Photos section:**
+
 - Grid of shop_photos with category labels (exterior, interior, menu, etc.)
 
 **Actions bar:**
+
 - "Re-enrich" — enqueues `ENRICH_SHOP` job
 - "Re-embed" — enqueues `GENERATE_EMBEDDING` job
 - "Re-scrape" — enqueues `SCRAPE_SHOP` job
@@ -141,41 +146,41 @@ Data quality overview for the enrichment pipeline.
 
 ### Admin Shops Router (`/admin/shops`)
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/admin/shops` | GET | All shops (any processing_status), search by name, filter by status/source. Paginated. |
-| `/admin/shops` | POST | Manual shop creation (name, google_maps_url, source=manual). Sets processing_status=pending. |
-| `/admin/shops/{id}` | GET | Full shop detail including tags, photos, mode_scores. |
-| `/admin/shops/{id}` | PUT | Update shop identity fields. Sets `manually_edited_at` timestamp. |
-| `/admin/shops/{id}/enqueue` | POST | Enqueue a job (body: `{job_type: "ENRICH_SHOP"|"GENERATE_EMBEDDING"|"SCRAPE_SHOP"}`). Idempotent: if a pending job of that type already exists for this shop, returns 409. |
-| `/admin/shops/{id}/search-rank` | GET | Query param: `?query=...`. Runs search, returns this shop's rank position + total results. |
+| Endpoint                        | Method | Purpose                                                                                      |
+| ------------------------------- | ------ | -------------------------------------------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------ |
+| `/admin/shops`                  | GET    | All shops (any processing_status), search by name, filter by status/source. Paginated.       |
+| `/admin/shops`                  | POST   | Manual shop creation (name, google_maps_url, source=manual). Sets processing_status=pending. |
+| `/admin/shops/{id}`             | GET    | Full shop detail including tags, photos, mode_scores.                                        |
+| `/admin/shops/{id}`             | PUT    | Update shop identity fields. Sets `manually_edited_at` timestamp.                            |
+| `/admin/shops/{id}/enqueue`     | POST   | Enqueue a job (body: `{job_type: "ENRICH_SHOP"                                               | "GENERATE_EMBEDDING" | "SCRAPE_SHOP"}`). Idempotent: if a pending job of that type already exists for this shop, returns 409. |
+| `/admin/shops/{id}/search-rank` | GET    | Query param: `?query=...`. Runs search, returns this shop's rank position + total results.   |
 
 ### Admin Jobs Router (extend existing `/admin/pipeline`)
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/admin/pipeline/jobs` | GET | All jobs, filter by `job_type` and `status`. Paginated. |
-| `/admin/pipeline/jobs/{id}/cancel` | POST | Cancel pending/claimed job (sets status=dead_letter with reason "Cancelled by admin"). |
+| Endpoint                           | Method | Purpose                                                                                |
+| ---------------------------------- | ------ | -------------------------------------------------------------------------------------- |
+| `/admin/pipeline/jobs`             | GET    | All jobs, filter by `job_type` and `status`. Paginated.                                |
+| `/admin/pipeline/jobs/{id}/cancel` | POST   | Cancel pending/claimed job (sets status=dead_letter with reason "Cancelled by admin"). |
 
 ### Admin Taxonomy Router (`/admin/taxonomy`)
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/admin/taxonomy/stats` | GET | Coverage stats + tag frequency + low-confidence shops + missing-embedding shops. |
+| Endpoint                | Method | Purpose                                                                          |
+| ----------------------- | ------ | -------------------------------------------------------------------------------- |
+| `/admin/taxonomy/stats` | GET    | Coverage stats + tag frequency + low-confidence shops + missing-embedding shops. |
 
 ## Audit Logging
 
 All successful admin write operations (POST, PUT, DELETE) are logged to an `admin_audit_logs` table:
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | uuid | PK |
-| admin_user_id | uuid | Who performed the action |
-| action | text | Endpoint path + method (e.g., "POST /admin/shops/abc/enqueue") |
-| target_type | text | "shop", "job", "submission" |
-| target_id | text | ID of the affected resource |
-| payload | jsonb | Request body (for create/update) or action details |
-| created_at | timestamptz | When |
+| Column        | Type        | Description                                                    |
+| ------------- | ----------- | -------------------------------------------------------------- |
+| id            | uuid        | PK                                                             |
+| admin_user_id | uuid        | Who performed the action                                       |
+| action        | text        | Endpoint path + method (e.g., "POST /admin/shops/abc/enqueue") |
+| target_type   | text        | "shop", "job", "submission"                                    |
+| target_id     | text        | ID of the affected resource                                    |
+| payload       | jsonb       | Request body (for create/update) or action details             |
+| created_at    | timestamptz | When                                                           |
 
 Implemented as a FastAPI middleware or decorator on admin routers — not per-endpoint boilerplate.
 
@@ -229,11 +234,13 @@ All proxies follow existing pattern: forward Authorization header, stream respon
 ## Testing Strategy
 
 **Backend (pytest):**
+
 - All new admin endpoints: CRUD operations, enqueue logic (including idempotency), taxonomy stats aggregation, search-rank query
 - Audit logging: verify logs are written for write operations
 - Follow existing `test_admin.py` pattern with `_require_admin` dependency override
 
 **Frontend (vitest):**
+
 - Admin page components render correct data states: loading, empty, populated, error
 - Action buttons trigger correct API calls with correct params
 - Confirmation dialogs block destructive actions until confirmed

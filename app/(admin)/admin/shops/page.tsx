@@ -18,8 +18,20 @@ interface ShopsResponse {
   total: number;
 }
 
-const STATUS_OPTIONS = ['all', 'pending', 'enriched', 'live', 'failed'] as const;
-const SOURCE_OPTIONS = ['all', 'cafe_nomad', 'manual', 'google_takeout', 'user_submission'] as const;
+const STATUS_OPTIONS = [
+  'all',
+  'pending',
+  'enriched',
+  'live',
+  'failed',
+] as const;
+const SOURCE_OPTIONS = [
+  'all',
+  'cafe_nomad',
+  'manual',
+  'google_takeout',
+  'user_submission',
+] as const;
 const PAGE_SIZE = 20;
 
 export default function AdminShopsList() {
@@ -40,7 +52,12 @@ export default function AdminShopsList() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchShops = useCallback(
-    async (searchTerm: string, status: string, source: string, currentOffset: number) => {
+    async (
+      searchTerm: string,
+      status: string,
+      source: string,
+      currentOffset: number
+    ) => {
       setLoading(true);
       setError(null);
 
@@ -252,9 +269,7 @@ export default function AdminShopsList() {
               />
             </div>
           </div>
-          {createError && (
-            <p className="text-sm text-red-600">{createError}</p>
-          )}
+          {createError && <p className="text-sm text-red-600">{createError}</p>}
           <button
             type="submit"
             disabled={createLoading}
@@ -299,7 +314,10 @@ export default function AdminShopsList() {
       </div>
 
       {error && (
-        <div role="alert" className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700">
+        <div
+          role="alert"
+          className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700"
+        >
           {error}
         </div>
       )}
@@ -328,7 +346,9 @@ export default function AdminShopsList() {
                   <td className="py-2">{shop.processing_status}</td>
                   <td className="py-2 text-gray-500">{shop.source}</td>
                   <td className="py-2 text-gray-500">
-                    {shop.enriched_at ? new Date(shop.enriched_at).toLocaleDateString() : '—'}
+                    {shop.enriched_at
+                      ? new Date(shop.enriched_at).toLocaleDateString()
+                      : '—'}
                   </td>
                 </tr>
               ))}

@@ -19,6 +19,7 @@
 ## Task 1: DB Migration — `manually_edited_at` + `admin_audit_logs`
 
 **Files:**
+
 - Create: `supabase/migrations/20260302000001_admin_dashboard.sql`
 
 **Step 1: Write migration**
@@ -61,6 +62,7 @@ git commit -m "feat(db): add manually_edited_at + admin_audit_logs table"
 ## Task 2: Backend — Admin Audit Logging Middleware
 
 **Files:**
+
 - Create: `backend/middleware/admin_audit.py`
 - Create: `backend/tests/middleware/test_admin_audit.py`
 - Modify: `backend/main.py` (mount middleware)
@@ -293,6 +295,7 @@ git commit -m "feat(admin): audit log utility for admin write operations"
 ## Task 3: Backend — Admin Shops Router (CRUD + Enqueue + Search-Rank)
 
 **Files:**
+
 - Create: `backend/api/admin_shops.py`
 - Create: `backend/tests/api/test_admin_shops.py`
 - Modify: `backend/main.py` (mount router)
@@ -775,6 +778,7 @@ async def search_rank(
 **Step 4: Mount router in main.py**
 
 Add to `backend/main.py`:
+
 ```python
 from api.admin_shops import router as admin_shops_router
 # ... after existing admin_router mount:
@@ -803,6 +807,7 @@ git commit -m "feat(admin): shop CRUD + enqueue + search-rank endpoints"
 ## Task 4: Backend — Admin Jobs Router (List + Cancel)
 
 **Files:**
+
 - Modify: `backend/api/admin.py` (add jobs list + cancel endpoints)
 - Modify: `backend/tests/api/test_admin.py` (add tests)
 
@@ -975,6 +980,7 @@ git commit -m "feat(admin): jobs list + cancel endpoints"
 ## Task 5: Backend — Admin Taxonomy Stats Endpoint
 
 **Files:**
+
 - Create: `backend/api/admin_taxonomy.py`
 - Create: `backend/tests/api/test_admin_taxonomy.py`
 - Modify: `backend/main.py` (mount router)
@@ -1143,6 +1149,7 @@ $$;
 **Step 5: Mount router in main.py**
 
 Add to `backend/main.py`:
+
 ```python
 from api.admin_taxonomy import router as admin_taxonomy_router
 app.include_router(admin_taxonomy_router)
@@ -1188,6 +1195,7 @@ Expected: Clean (or existing known issues only)
 ## Task 7: Frontend — Admin Middleware + Proxy Routes
 
 **Files:**
+
 - Modify: `middleware.ts` (add admin route guard)
 - Create: `app/api/admin/shops/route.ts`
 - Create: `app/api/admin/shops/[id]/route.ts`
@@ -1260,6 +1268,7 @@ export async function PUT(
 ```
 
 Create all remaining proxy routes following the same pattern:
+
 - `app/api/admin/shops/[id]/enqueue/route.ts` — POST
 - `app/api/admin/shops/[id]/search-rank/route.ts` — GET
 - `app/api/admin/pipeline/jobs/route.ts` — GET
@@ -1283,6 +1292,7 @@ git commit -m "feat(admin): middleware guard + proxy routes for admin API"
 ## Task 8: Frontend — Admin Layout + Dashboard Page
 
 **Files:**
+
 - Create: `app/(admin)/layout.tsx`
 - Create: `app/(admin)/page.tsx`
 - Create: `app/(admin)/page.test.tsx`
@@ -1541,6 +1551,7 @@ git commit -m "feat(admin): dashboard layout + pipeline overview page"
 ## Task 9: Frontend — Shops List Page
 
 **Files:**
+
 - Create: `app/(admin)/shops/page.tsx`
 - Create: `app/(admin)/shops/page.test.tsx`
 
@@ -1563,6 +1574,7 @@ git commit -m "feat(admin): shops list page with search + create"
 ## Task 10: Frontend — Shop Detail Page
 
 **Files:**
+
 - Create: `app/(admin)/shops/[id]/page.tsx`
 - Create: `app/(admin)/shops/[id]/page.test.tsx`
 
@@ -1585,6 +1597,7 @@ git commit -m "feat(admin): shop detail page with enrichment viewer + actions"
 ## Task 11: Frontend — Jobs Page
 
 **Files:**
+
 - Create: `app/(admin)/jobs/page.tsx`
 - Create: `app/(admin)/jobs/page.test.tsx`
 
@@ -1607,6 +1620,7 @@ git commit -m "feat(admin): jobs queue browser page"
 ## Task 12: Frontend — Taxonomy Page
 
 **Files:**
+
 - Create: `app/(admin)/taxonomy/page.tsx`
 - Create: `app/(admin)/taxonomy/page.test.tsx`
 
@@ -1714,23 +1728,29 @@ graph TD
 ```
 
 **Wave 1** (no dependencies):
+
 - Task 1: DB migration
 
 **Wave 2** (depends on Wave 1):
+
 - Task 2: Audit log utility ← Task 1
 
 **Wave 3** (parallel — depends on Wave 2):
+
 - Task 3: Admin shops router ← Task 2
 - Task 4: Admin jobs router ← Task 2
 - Task 5: Admin taxonomy router ← Task 1
 
 **Wave 4** (depends on Wave 3):
+
 - Task 6: Backend verification ← Tasks 3, 4, 5
 
 **Wave 5** (depends on Wave 4):
+
 - Task 7: Frontend middleware + proxy routes ← Task 6
 
 **Wave 6** (parallel — depends on Wave 5):
+
 - Task 8: Dashboard page ← Task 7
 - Task 9: Shops list page ← Task 7
 - Task 10: Shop detail page ← Task 7
@@ -1738,4 +1758,5 @@ graph TD
 - Task 12: Taxonomy page ← Task 7
 
 **Wave 7** (depends on Wave 6):
+
 - Task 13: Full verification ← Tasks 8-12

@@ -169,7 +169,9 @@ async def enqueue_job(
 ) -> dict[str, Any]:
     """Manually enqueue a pipeline job for a shop."""
     if body.job_type not in (JobType.ENRICH_SHOP, JobType.GENERATE_EMBEDDING, JobType.SCRAPE_SHOP):
-        raise HTTPException(status_code=400, detail=f"Cannot manually enqueue {body.job_type.value}")
+        raise HTTPException(
+            status_code=400, detail=f"Cannot manually enqueue {body.job_type.value}"
+        )
 
     db = get_service_role_client()
 

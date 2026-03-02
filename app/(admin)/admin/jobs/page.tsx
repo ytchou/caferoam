@@ -57,7 +57,12 @@ export default function AdminJobsPage() {
   const tokenRef = useRef<string | null>(null);
 
   const fetchJobs = useCallback(
-    async (token: string, currentPage: number, status: string, jobType: string) => {
+    async (
+      token: string,
+      currentPage: number,
+      status: string,
+      jobType: string
+    ) => {
       const params = new URLSearchParams({
         offset: String((currentPage - 1) * PAGE_SIZE),
         limit: String(PAGE_SIZE),
@@ -187,7 +192,10 @@ export default function AdminJobsPage() {
       </div>
 
       {actionError && (
-        <p role="alert" className="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p
+          role="alert"
+          className="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700"
+        >
           {actionError}
         </p>
       )}
@@ -245,7 +253,8 @@ export default function AdminJobsPage() {
                       Cancel
                     </button>
                   )}
-                  {(job.status === 'failed' || job.status === 'dead_letter') && (
+                  {(job.status === 'failed' ||
+                    job.status === 'dead_letter') && (
                     <button
                       type="button"
                       onClick={(e) => {

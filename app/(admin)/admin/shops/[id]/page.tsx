@@ -41,7 +41,12 @@ export default function AdminShopDetail() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ name: '', address: '', latitude: '', longitude: '' });
+  const [editForm, setEditForm] = useState({
+    name: '',
+    address: '',
+    latitude: '',
+    longitude: '',
+  });
   const [editError, setEditError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState<string | null>(null);
@@ -155,7 +160,9 @@ export default function AdminShopDetail() {
       if (data.found) {
         setSearchResult(`Rank: ${data.rank} of ${data.total_results}`);
       } else {
-        setSearchResult(`Not ranked (checked top ${data.total_results} results)`);
+        setSearchResult(
+          `Not ranked (checked top ${data.total_results} results)`
+        );
       }
     } catch {
       setSearchResult('Network error');
@@ -258,26 +265,36 @@ export default function AdminShopDetail() {
           <div className="mt-4 rounded border bg-gray-50 p-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="edit-name" className="block text-sm font-medium">
+                <label
+                  htmlFor="edit-name"
+                  className="block text-sm font-medium"
+                >
                   Name
                 </label>
                 <input
                   id="edit-name"
                   type="text"
                   value={editForm.name}
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, name: e.target.value })
+                  }
                   className="mt-1 w-full rounded border px-2 py-1 text-sm"
                 />
               </div>
               <div>
-                <label htmlFor="edit-address" className="block text-sm font-medium">
+                <label
+                  htmlFor="edit-address"
+                  className="block text-sm font-medium"
+                >
                   Address
                 </label>
                 <input
                   id="edit-address"
                   type="text"
                   value={editForm.address}
-                  onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, address: e.target.value })
+                  }
                   className="mt-1 w-full rounded border px-2 py-1 text-sm"
                 />
               </div>
@@ -289,7 +306,9 @@ export default function AdminShopDetail() {
                   id="edit-lat"
                   type="text"
                   value={editForm.latitude}
-                  onChange={(e) => setEditForm({ ...editForm, latitude: e.target.value })}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, latitude: e.target.value })
+                  }
                   className="mt-1 w-full rounded border px-2 py-1 text-sm"
                 />
               </div>
@@ -301,12 +320,16 @@ export default function AdminShopDetail() {
                   id="edit-lng"
                   type="text"
                   value={editForm.longitude}
-                  onChange={(e) => setEditForm({ ...editForm, longitude: e.target.value })}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, longitude: e.target.value })
+                  }
                   className="mt-1 w-full rounded border px-2 py-1 text-sm"
                 />
               </div>
             </div>
-            {editError && <p className="mt-2 text-sm text-red-600">{editError}</p>}
+            {editError && (
+              <p className="mt-2 text-sm text-red-600">{editError}</p>
+            )}
             <button
               onClick={handleSaveEdit}
               className="mt-3 rounded bg-blue-600 px-4 py-1 text-sm text-white hover:bg-blue-700"
@@ -327,7 +350,9 @@ export default function AdminShopDetail() {
           <div className="space-y-3">
             {(['work', 'rest', 'social'] as const).map((mode) => (
               <div key={mode} className="flex items-center gap-3">
-                <span className="w-14 text-sm font-medium capitalize">{mode}</span>
+                <span className="w-14 text-sm font-medium capitalize">
+                  {mode}
+                </span>
                 <div className="h-4 flex-1 rounded bg-gray-200">
                   <div
                     className={`h-4 rounded ${

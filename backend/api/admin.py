@@ -106,7 +106,9 @@ async def approve_submission(
     """Approve a submission — marks it live and records the review timestamp."""
     db = get_service_role_client()
 
-    sub_response = db.table("shop_submissions").select("id, status").eq("id", submission_id).execute()
+    sub_response = (
+        db.table("shop_submissions").select("id, status").eq("id", submission_id).execute()
+    )
     if not sub_response.data:
         raise HTTPException(status_code=404, detail=f"Submission {submission_id} not found")
 

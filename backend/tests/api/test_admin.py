@@ -207,8 +207,8 @@ class TestAdminJobCancel:
             mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = (
                 MagicMock(data=[{"id": "job-1", "status": "pending"}])
             )
-            mock_db.table.return_value.update.return_value.eq.return_value.in_.return_value.execute.return_value = (
-                MagicMock(data=[{"id": "job-1", "status": "dead_letter"}])
+            mock_db.table.return_value.update.return_value.eq.return_value.in_.return_value.execute.return_value = MagicMock(
+                data=[{"id": "job-1", "status": "dead_letter"}]
             )
             with (
                 patch("api.admin.get_service_role_client", return_value=mock_db),

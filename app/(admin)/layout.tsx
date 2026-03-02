@@ -10,7 +10,11 @@ const NAV_ITEMS = [
   { href: '/admin/taxonomy', label: 'Taxonomy' },
 ];
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
 
   return (

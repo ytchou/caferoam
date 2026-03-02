@@ -81,7 +81,8 @@ export default function TaxonomyPage() {
     );
   if (!data) return null;
 
-  const missingCoverage = data.shops_missing_tags + data.shops_missing_embeddings;
+  const missingCoverage =
+    data.shops_missing_tags + data.shops_missing_embeddings;
 
   return (
     <div className="space-y-8">
@@ -131,7 +132,9 @@ export default function TaxonomyPage() {
                 <td className="py-2">{tag.tag_id}</td>
                 <td className="py-2 text-gray-500">{tag.dimension}</td>
                 <td className="py-2">{tag.shop_count}</td>
-                <td className="py-2">{tag.avg_confidence?.toFixed(2) ?? '—'}</td>
+                <td className="py-2">
+                  {tag.avg_confidence?.toFixed(2) ?? '—'}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -150,7 +153,9 @@ export default function TaxonomyPage() {
                 className="flex items-center justify-between rounded border px-4 py-2"
               >
                 <span>{shop.name}</span>
-                <span className={`font-mono text-sm ${confidenceColor(shop.max_confidence)}`}>
+                <span
+                  className={`font-mono text-sm ${confidenceColor(shop.max_confidence)}`}
+                >
                   {shop.max_confidence.toFixed(2)}
                 </span>
               </li>

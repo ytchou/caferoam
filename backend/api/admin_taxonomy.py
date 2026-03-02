@@ -30,7 +30,9 @@ async def taxonomy_stats(
     # PostgREST defaults to 1000-row limit — use explicit limit to avoid silent truncation.
     # TODO: replace with a COUNT(DISTINCT shop_id) RPC when the catalog exceeds ~10k shops.
     tagged_shops_resp = db.table("shop_tags").select("shop_id").limit(100_000).execute()
-    unique_tagged_shops = len({row["shop_id"] for row in (tagged_shops_resp.data or []) if row.get("shop_id")})
+    unique_tagged_shops = len(
+        {row["shop_id"] for row in (tagged_shops_resp.data or []) if row.get("shop_id")}
+    )
 
     # Shops with embeddings
     embedded_resp = (
