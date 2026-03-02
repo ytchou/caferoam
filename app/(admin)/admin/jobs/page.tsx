@@ -235,6 +235,7 @@ export default function AdminJobsPage() {
                 <td className="py-2">
                   {(job.status === 'pending' || job.status === 'claimed') && (
                     <button
+                      type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleCancel(job.id);
@@ -246,6 +247,7 @@ export default function AdminJobsPage() {
                   )}
                   {(job.status === 'failed' || job.status === 'dead_letter') && (
                     <button
+                      type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleRetry(job.id);

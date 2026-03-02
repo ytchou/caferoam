@@ -39,8 +39,12 @@ async def taxonomy_stats(
     shops_with_embeddings = embedded_resp.count or 0
 
     # Low-confidence shops (max confidence < 0.5)
+    # RPC returns shop_id/shop_name — normalize to id/name for consistency with missing_embeddings.
     low_conf_resp = db.rpc("shops_with_low_confidence_tags", {}).execute()
-    low_confidence_shops = cast("list[dict[str, Any]]", low_conf_resp.data or [])
+    low_confidence_shops = [
+        {"id": row["shop_id"], "name": row["shop_name"], "max_confidence": row["max_confidence"]}
+        for row in (low_conf_resp.data or [])
+    ]
 
     # Shops missing embeddings
     missing_embed_resp = (

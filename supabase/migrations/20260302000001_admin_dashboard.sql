@@ -31,3 +31,7 @@ AS $$
     ORDER BY MAX(st.confidence) ASC
     LIMIT 50;
 $$;
+
+-- SECURITY DEFINER — revoke public execute so only service role can call directly.
+-- Authenticated users access this data only through the admin API endpoint.
+REVOKE EXECUTE ON FUNCTION shops_with_low_confidence_tags() FROM PUBLIC;

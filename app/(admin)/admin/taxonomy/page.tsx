@@ -11,8 +11,8 @@ interface TagFrequency {
 }
 
 interface LowConfidenceShop {
-  shop_id: string;
-  shop_name: string;
+  id: string;
+  name: string;
   max_confidence: number;
 }
 
@@ -146,10 +146,10 @@ export default function TaxonomyPage() {
           <ul className="space-y-2">
             {data.low_confidence_shops.map((shop) => (
               <li
-                key={shop.shop_id}
+                key={shop.id}
                 className="flex items-center justify-between rounded border px-4 py-2"
               >
-                <span>{shop.shop_name}</span>
+                <span>{shop.name}</span>
                 <span className={`font-mono text-sm ${confidenceColor(shop.max_confidence)}`}>
                   {shop.max_confidence.toFixed(2)}
                 </span>

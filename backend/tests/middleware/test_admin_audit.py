@@ -4,8 +4,8 @@ from middleware.admin_audit import log_admin_action
 
 
 class TestAdminAuditLog:
-    def test_logs_action_to_database(self):
-        """log_admin_action inserts a row into admin_audit_logs."""
+    def test_every_admin_action_is_recorded_for_audit_trail(self):
+        """Given a valid admin action, it is persisted to the audit log."""
         mock_db = MagicMock()
         with patch("middleware.admin_audit.get_service_role_client", return_value=mock_db):
             log_admin_action(

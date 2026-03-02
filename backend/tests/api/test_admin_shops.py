@@ -13,7 +13,7 @@ test_app = FastAPI()
 test_app.include_router(router)
 client = TestClient(test_app)
 
-_ADMIN_ID = "admin-user-id"
+_ADMIN_ID = "a7f3c2e1-4b58-4d9a-8c6e-123456789abc"
 
 
 def _admin_user():

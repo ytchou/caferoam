@@ -38,7 +38,7 @@ class UpdateShopRequest(BaseModel):
 
 
 class EnqueueRequest(BaseModel):
-    job_type: str
+    job_type: JobType
 
 
 @router.get("/")
@@ -59,7 +59,8 @@ async def list_shops(
     if source:
         query = query.eq("source", source)
     if search:
-        query = query.ilike("name", f"%{search}%")
+        escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        query = query.ilike("name", f"%{escaped}%")
 
     query = query.order("created_at", desc=True).range(offset, offset + limit - 1)
     response = query.execute()
@@ -167,20 +168,15 @@ async def enqueue_job(
     user: dict[str, Any] = Depends(require_admin),  # noqa: B008
 ) -> dict[str, Any]:
     """Manually enqueue a pipeline job for a shop."""
-    try:
-        job_type = JobType(body.job_type)
-    except ValueError:
-        raise HTTPException(status_code=400, detail=f"Invalid job_type: {body.job_type}") from None
-
-    if job_type not in (JobType.ENRICH_SHOP, JobType.GENERATE_EMBEDDING, JobType.SCRAPE_SHOP):
-        raise HTTPException(status_code=400, detail=f"Cannot manually enqueue {body.job_type}")
+    if body.job_type not in (JobType.ENRICH_SHOP, JobType.GENERATE_EMBEDDING, JobType.SCRAPE_SHOP):
+        raise HTTPException(status_code=400, detail=f"Cannot manually enqueue {body.job_type.value}")
 
     db = get_service_role_client()
 
     existing = (
         db.table("job_queue")
         .select("id")
-        .eq("job_type", job_type.value)
+        .eq("job_type", body.job_type.value)
         .eq("status", JobStatus.PENDING.value)
         .eq("payload->>shop_id", shop_id)
         .execute()
@@ -188,12 +184,12 @@ async def enqueue_job(
     if existing.data:
         raise HTTPException(
             status_code=409,
-            detail=f"A pending {body.job_type} job already exists for shop {shop_id}",
+            detail=f"A pending {body.job_type.value} job already exists for shop {shop_id}",
         )
 
     # scrape_shop handler requires google_maps_url in payload — fetch it from the shop row
     payload: dict[str, Any] = {"shop_id": shop_id}
-    if job_type == JobType.SCRAPE_SHOP:
+    if body.job_type == JobType.SCRAPE_SHOP:
         shop_row = db.table("shops").select("google_maps_url").eq("id", shop_id).single().execute()
         if not shop_row.data or not shop_row.data.get("google_maps_url"):
             raise HTTPException(
@@ -204,7 +200,7 @@ async def enqueue_job(
 
     queue = JobQueue(db=db)
     job_id = await queue.enqueue(
-        job_type=job_type,
+        job_type=body.job_type,
         payload=payload,
         priority=5,
     )
@@ -213,9 +209,9 @@ async def enqueue_job(
         action=f"POST /admin/shops/{shop_id}/enqueue",
         target_type="job",
         target_id=job_id,
-        payload={"job_type": body.job_type, "shop_id": shop_id},
+        payload={"job_type": body.job_type.value, "shop_id": shop_id},
     )
-    return {"job_id": job_id, "job_type": body.job_type}
+    return {"job_id": job_id, "job_type": body.job_type.value}
 
 
 @router.get("/{shop_id}/search-rank")

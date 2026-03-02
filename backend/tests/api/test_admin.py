@@ -7,7 +7,7 @@ from main import app
 
 client = TestClient(app)
 
-_ADMIN_ID = "admin-user-id"
+_ADMIN_ID = "a7f3c2e1-4b58-4d9a-8c6e-123456789abc"
 
 
 def _admin_user():
@@ -77,7 +77,7 @@ def test_retrying_failed_job_re_enqueues_it():
         app.dependency_overrides.clear()
 
 
-def test_retrying_nonexistent_job_returns_404():
+def test_admin_gets_not_found_error_when_retrying_a_job_that_does_not_exist():
     app.dependency_overrides[get_current_user] = _admin_user
     try:
         mock_db = MagicMock()
@@ -95,7 +95,7 @@ def test_retrying_nonexistent_job_returns_404():
         app.dependency_overrides.clear()
 
 
-def test_retrying_completed_job_returns_409():
+def test_admin_cannot_retry_a_job_that_has_already_completed():
     app.dependency_overrides[get_current_user] = _admin_user
     try:
         mock_db = MagicMock()

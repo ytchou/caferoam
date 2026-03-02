@@ -38,13 +38,13 @@ function makeTaxonomyStats(overrides: Record<string, unknown> = {}) {
     ],
     low_confidence_shops: [
       {
-        shop_id: 'shop-lc1',
-        shop_name: '小破爛咖啡',
+        id: 'shop-lc1',
+        name: '小破爛咖啡',
         max_confidence: 0.32,
       },
       {
-        shop_id: 'shop-lc2',
-        shop_name: '路易莎民生店',
+        id: 'shop-lc2',
+        name: '路易莎民生店',
         max_confidence: 0.45,
       },
     ],
