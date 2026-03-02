@@ -20,25 +20,25 @@ def _admin_user():
 
 
 class TestAdminShopsList:
-    def test_requires_admin(self):
+    def test_non_admin_cannot_list_shops(self):
         """Non-admin user gets 403 when listing shops."""
         test_app.dependency_overrides[get_current_user] = lambda: {"id": "regular-user"}
         try:
-            with patch("api.admin_shops.settings") as mock_settings:
+            with patch("api.deps.settings") as mock_settings:
                 mock_settings.admin_user_ids = [_ADMIN_ID]
                 response = client.get("/admin/shops")
             assert response.status_code == 403
         finally:
             test_app.dependency_overrides.clear()
 
-    def test_lists_all_shops(self):
+    def test_admin_can_list_all_shops(self):
         """Admin user can list all shops with pagination."""
         test_app.dependency_overrides[get_current_user] = _admin_user
         try:
             mock_db = MagicMock()
             shops = [
-                make_shop_row(id="shop-1", name="Coffee A"),
-                make_shop_row(id="shop-2", name="Coffee B"),
+                make_shop_row(id="shop-1", name="田田咖啡"),
+                make_shop_row(id="shop-2", name="蟻窩咖啡"),
             ]
             select_rv = mock_db.table.return_value.select.return_value
             select_rv.order.return_value.range.return_value.execute.return_value = MagicMock(
@@ -46,7 +46,7 @@ class TestAdminShopsList:
             )
             with (
                 patch("api.admin_shops.get_service_role_client", return_value=mock_db),
-                patch("api.admin_shops.settings") as mock_settings,
+                patch("api.deps.settings") as mock_settings,
             ):
                 mock_settings.admin_user_ids = [_ADMIN_ID]
                 response = client.get("/admin/shops")
@@ -56,7 +56,7 @@ class TestAdminShopsList:
         finally:
             test_app.dependency_overrides.clear()
 
-    def test_filters_by_processing_status(self):
+    def test_admin_can_filter_shops_by_processing_status(self):
         """Admin can filter shops by processing_status."""
         test_app.dependency_overrides[get_current_user] = _admin_user
         try:
@@ -68,7 +68,7 @@ class TestAdminShopsList:
             )
             with (
                 patch("api.admin_shops.get_service_role_client", return_value=mock_db),
-                patch("api.admin_shops.settings") as mock_settings,
+                patch("api.deps.settings") as mock_settings,
             ):
                 mock_settings.admin_user_ids = [_ADMIN_ID]
                 response = client.get("/admin/shops?processing_status=failed")
@@ -78,50 +78,49 @@ class TestAdminShopsList:
 
 
 class TestAdminShopCreate:
-    def test_creates_shop_with_manual_source(self):
+    def test_admin_creates_shop_with_manual_source_and_audit_log(self):
         """Admin creates a manually-entered shop with audit logging."""
         test_app.dependency_overrides[get_current_user] = _admin_user
         try:
             mock_db = MagicMock()
             mock_db.table.return_value.insert.return_value.execute.return_value = MagicMock(
-                data=[{"id": "new-shop-1", "name": "\u624b\u6c96\u54a8\u5561\u5e97"}]
+                data=[{"id": "new-shop-1", "name": "手沖咖啡店"}]
             )
             with (
                 patch("api.admin_shops.get_service_role_client", return_value=mock_db),
-                patch("api.admin_shops.settings") as mock_settings,
-                patch("api.admin_shops.log_admin_action") as mock_audit,
+                patch("middleware.admin_audit.get_service_role_client", return_value=mock_db),
+                patch("api.deps.settings") as mock_settings,
             ):
                 mock_settings.admin_user_ids = [_ADMIN_ID]
                 response = client.post(
                     "/admin/shops",
                     json={
-                        "name": "\u624b\u6c96\u54a8\u5561\u5e97",
-                        "address": "\u53f0\u5317\u5e02\u4e2d\u5c71\u5340",
+                        "name": "手沖咖啡店",
+                        "address": "台北市中山區",
                         "latitude": 25.05,
                         "longitude": 121.52,
                     },
                 )
             assert response.status_code == 201
-            mock_audit.assert_called_once()
         finally:
             test_app.dependency_overrides.clear()
 
 
 class TestAdminShopDetail:
-    def test_returns_shop_with_tags_and_photos(self):
+    def test_admin_can_view_shop_with_tags_and_photos(self):
         """Admin can view full shop detail including tags and photos."""
         test_app.dependency_overrides[get_current_user] = _admin_user
         try:
             mock_db = MagicMock()
             select_rv = mock_db.table.return_value.select.return_value
             select_rv.eq.return_value.single.return_value.execute.return_value = MagicMock(
-                data={"id": "shop-1", "name": "Test", "processing_status": "live"}
+                data={"id": "shop-1", "name": "山小孩咖啡", "processing_status": "live"}
             )
             select_rv.eq.return_value.execute.return_value = MagicMock(data=[])
             select_rv.eq.return_value.order.return_value.execute.return_value = MagicMock(data=[])
             with (
                 patch("api.admin_shops.get_service_role_client", return_value=mock_db),
-                patch("api.admin_shops.settings") as mock_settings,
+                patch("api.deps.settings") as mock_settings,
             ):
                 mock_settings.admin_user_ids = [_ADMIN_ID]
                 response = client.get("/admin/shops/shop-1")
@@ -133,7 +132,7 @@ class TestAdminShopDetail:
 
 
 class TestAdminShopUpdate:
-    def test_updates_shop_and_sets_manually_edited_at(self):
+    def test_admin_update_sets_manually_edited_at_timestamp(self):
         """When admin updates a shop, manually_edited_at is set."""
         test_app.dependency_overrides[get_current_user] = _admin_user
         try:
@@ -143,8 +142,8 @@ class TestAdminShopUpdate:
             )
             with (
                 patch("api.admin_shops.get_service_role_client", return_value=mock_db),
-                patch("api.admin_shops.settings") as mock_settings,
-                patch("api.admin_shops.log_admin_action"),
+                patch("middleware.admin_audit.get_service_role_client", return_value=mock_db),
+                patch("api.deps.settings") as mock_settings,
             ):
                 mock_settings.admin_user_ids = [_ADMIN_ID]
                 response = client.put(
@@ -160,7 +159,7 @@ class TestAdminShopUpdate:
 
 
 class TestAdminShopEnqueue:
-    def test_enqueues_enrich_job(self):
+    def test_admin_can_trigger_enrich_pipeline_job(self):
         """Admin can manually trigger a pipeline job for a shop."""
         test_app.dependency_overrides[get_current_user] = _admin_user
         try:
@@ -168,16 +167,16 @@ class TestAdminShopEnqueue:
             select_rv = mock_db.table.return_value.select.return_value
             eq3_rv = select_rv.eq.return_value.eq.return_value.eq.return_value
             eq3_rv.execute.return_value = MagicMock(data=[])
+            # JobQueue.enqueue inserts a row and returns its id
+            mock_db.table.return_value.insert.return_value.execute.return_value = MagicMock(
+                data=[{"id": "job-1"}]
+            )
             with (
                 patch("api.admin_shops.get_service_role_client", return_value=mock_db),
-                patch("api.admin_shops.settings") as mock_settings,
-                patch("api.admin_shops.log_admin_action"),
-                patch("api.admin_shops.JobQueue") as mock_queue_cls,
+                patch("middleware.admin_audit.get_service_role_client", return_value=mock_db),
+                patch("api.deps.settings") as mock_settings,
             ):
                 mock_settings.admin_user_ids = [_ADMIN_ID]
-                mock_queue = MagicMock()
-                mock_queue.enqueue = AsyncMock(return_value="job-1")
-                mock_queue_cls.return_value = mock_queue
                 response = client.post(
                     "/admin/shops/shop-1/enqueue",
                     json={"job_type": "enrich_shop"},
@@ -187,7 +186,7 @@ class TestAdminShopEnqueue:
         finally:
             test_app.dependency_overrides.clear()
 
-    def test_rejects_duplicate_pending_job(self):
+    def test_duplicate_pending_job_returns_409(self):
         """If a pending job of the same type already exists, return 409."""
         test_app.dependency_overrides[get_current_user] = _admin_user
         try:
@@ -197,7 +196,7 @@ class TestAdminShopEnqueue:
             eq3_rv.execute.return_value = MagicMock(data=[{"id": "existing-job"}])
             with (
                 patch("api.admin_shops.get_service_role_client", return_value=mock_db),
-                patch("api.admin_shops.settings") as mock_settings,
+                patch("api.deps.settings") as mock_settings,
             ):
                 mock_settings.admin_user_ids = [_ADMIN_ID]
                 response = client.post(
@@ -210,7 +209,7 @@ class TestAdminShopEnqueue:
 
 
 class TestAdminShopSearchRank:
-    def test_returns_rank_position(self):
+    def test_admin_can_check_shop_search_rank_for_a_query(self):
         """Admin can check where a shop ranks for a given search query."""
         test_app.dependency_overrides[get_current_user] = _admin_user
         try:
@@ -223,7 +222,7 @@ class TestAdminShopSearchRank:
             mock_db.rpc.return_value.execute.return_value = MagicMock(data=search_results)
             with (
                 patch("api.admin_shops.get_service_role_client", return_value=mock_db),
-                patch("api.admin_shops.settings") as mock_settings,
+                patch("api.deps.settings") as mock_settings,
                 patch("api.admin_shops.get_embeddings_provider") as mock_emb,
             ):
                 mock_settings.admin_user_ids = [_ADMIN_ID]

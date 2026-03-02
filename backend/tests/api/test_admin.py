@@ -14,19 +14,19 @@ def _admin_user():
     return {"id": _ADMIN_ID}
 
 
-def test_admin_overview_requires_auth():
+def test_unauthenticated_user_cannot_access_pipeline_overview():
     response = client.get("/admin/pipeline/overview")
     assert response.status_code in (401, 403)
 
 
-def test_admin_overview_requires_admin_role():
+def test_non_admin_user_is_blocked_from_pipeline_overview():
     """Non-admin users should get 403."""
     app.dependency_overrides[get_current_user] = lambda: {"id": "regular-user"}
     try:
         mock_db = MagicMock()
         with (
             patch("api.admin.get_service_role_client", return_value=mock_db),
-            patch("api.admin.settings") as mock_settings,
+            patch("api.deps.settings") as mock_settings,
         ):
             mock_settings.admin_user_ids = [_ADMIN_ID]
             response = client.get("/admin/pipeline/overview")
@@ -35,7 +35,7 @@ def test_admin_overview_requires_admin_role():
         app.dependency_overrides.clear()
 
 
-def test_admin_overview_returns_counts():
+def test_admin_sees_job_counts_and_recent_submissions():
     app.dependency_overrides[get_current_user] = _admin_user
     try:
         mock_db = MagicMock()
@@ -45,7 +45,7 @@ def test_admin_overview_returns_counts():
         mock_order.limit.return_value.execute.return_value = MagicMock(data=[])
         with (
             patch("api.admin.get_service_role_client", return_value=mock_db),
-            patch("api.admin.settings") as mock_settings,
+            patch("api.deps.settings") as mock_settings,
         ):
             mock_settings.admin_user_ids = [_ADMIN_ID]
             response = client.get("/admin/pipeline/overview")
@@ -57,7 +57,7 @@ def test_admin_overview_returns_counts():
         app.dependency_overrides.clear()
 
 
-def test_retry_job_success():
+def test_retrying_failed_job_re_enqueues_it():
     app.dependency_overrides[get_current_user] = _admin_user
     try:
         mock_db = MagicMock()
@@ -66,7 +66,8 @@ def test_retry_job_success():
         )
         with (
             patch("api.admin.get_service_role_client", return_value=mock_db),
-            patch("api.admin.settings") as mock_settings,
+            patch("middleware.admin_audit.get_service_role_client", return_value=mock_db),
+            patch("api.deps.settings") as mock_settings,
         ):
             mock_settings.admin_user_ids = [_ADMIN_ID]
             response = client.post("/admin/pipeline/retry/job-1")
@@ -76,7 +77,7 @@ def test_retry_job_success():
         app.dependency_overrides.clear()
 
 
-def test_retry_job_not_found():
+def test_retrying_nonexistent_job_returns_404():
     app.dependency_overrides[get_current_user] = _admin_user
     try:
         mock_db = MagicMock()
@@ -85,7 +86,7 @@ def test_retry_job_not_found():
         )
         with (
             patch("api.admin.get_service_role_client", return_value=mock_db),
-            patch("api.admin.settings") as mock_settings,
+            patch("api.deps.settings") as mock_settings,
         ):
             mock_settings.admin_user_ids = [_ADMIN_ID]
             response = client.post("/admin/pipeline/retry/missing-job")
@@ -94,7 +95,7 @@ def test_retry_job_not_found():
         app.dependency_overrides.clear()
 
 
-def test_retry_job_not_retryable():
+def test_retrying_completed_job_returns_409():
     app.dependency_overrides[get_current_user] = _admin_user
     try:
         mock_db = MagicMock()
@@ -103,7 +104,7 @@ def test_retry_job_not_retryable():
         )
         with (
             patch("api.admin.get_service_role_client", return_value=mock_db),
-            patch("api.admin.settings") as mock_settings,
+            patch("api.deps.settings") as mock_settings,
         ):
             mock_settings.admin_user_ids = [_ADMIN_ID]
             response = client.post("/admin/pipeline/retry/job-2")
@@ -112,7 +113,7 @@ def test_retry_job_not_retryable():
         app.dependency_overrides.clear()
 
 
-def test_reject_submission_success():
+def test_rejecting_submission_removes_the_associated_shop():
     app.dependency_overrides[get_current_user] = _admin_user
     try:
         mock_db = MagicMock()
@@ -121,7 +122,8 @@ def test_reject_submission_success():
         )
         with (
             patch("api.admin.get_service_role_client", return_value=mock_db),
-            patch("api.admin.settings") as mock_settings,
+            patch("middleware.admin_audit.get_service_role_client", return_value=mock_db),
+            patch("api.deps.settings") as mock_settings,
         ):
             mock_settings.admin_user_ids = [_ADMIN_ID]
             response = client.post("/admin/pipeline/reject/sub-1")
@@ -133,7 +135,7 @@ def test_reject_submission_success():
         app.dependency_overrides.clear()
 
 
-def test_reject_submission_not_found():
+def test_rejecting_nonexistent_submission_returns_404():
     app.dependency_overrides[get_current_user] = _admin_user
     try:
         mock_db = MagicMock()
@@ -142,7 +144,7 @@ def test_reject_submission_not_found():
         )
         with (
             patch("api.admin.get_service_role_client", return_value=mock_db),
-            patch("api.admin.settings") as mock_settings,
+            patch("api.deps.settings") as mock_settings,
         ):
             mock_settings.admin_user_ids = [_ADMIN_ID]
             response = client.post("/admin/pipeline/reject/missing-sub")
@@ -152,7 +154,7 @@ def test_reject_submission_not_found():
 
 
 class TestAdminJobsList:
-    def test_lists_all_jobs(self):
+    def test_admin_can_list_all_jobs_with_pagination(self):
         """Admin can list all jobs with pagination."""
         app.dependency_overrides[get_current_user] = _admin_user
         try:
@@ -164,7 +166,7 @@ class TestAdminJobsList:
             )
             with (
                 patch("api.admin.get_service_role_client", return_value=mock_db),
-                patch("api.admin.settings") as mock_settings,
+                patch("api.deps.settings") as mock_settings,
             ):
                 mock_settings.admin_user_ids = [_ADMIN_ID]
                 response = client.get("/admin/pipeline/jobs")
@@ -174,7 +176,7 @@ class TestAdminJobsList:
         finally:
             app.dependency_overrides.clear()
 
-    def test_filters_by_status_and_type(self):
+    def test_admin_can_filter_jobs_by_status_and_type(self):
         """Admin can filter jobs by status and job_type."""
         app.dependency_overrides[get_current_user] = _admin_user
         try:
@@ -187,7 +189,7 @@ class TestAdminJobsList:
             )
             with (
                 patch("api.admin.get_service_role_client", return_value=mock_db),
-                patch("api.admin.settings") as mock_settings,
+                patch("api.deps.settings") as mock_settings,
             ):
                 mock_settings.admin_user_ids = [_ADMIN_ID]
                 response = client.get("/admin/pipeline/jobs?status=failed&job_type=enrich_shop")
@@ -197,7 +199,7 @@ class TestAdminJobsList:
 
 
 class TestAdminJobCancel:
-    def test_cancels_pending_job(self):
+    def test_admin_can_cancel_a_pending_job(self):
         """Admin can cancel a pending job."""
         app.dependency_overrides[get_current_user] = _admin_user
         try:
@@ -205,10 +207,13 @@ class TestAdminJobCancel:
             mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = (
                 MagicMock(data=[{"id": "job-1", "status": "pending"}])
             )
+            mock_db.table.return_value.update.return_value.eq.return_value.in_.return_value.execute.return_value = (
+                MagicMock(data=[{"id": "job-1", "status": "dead_letter"}])
+            )
             with (
                 patch("api.admin.get_service_role_client", return_value=mock_db),
-                patch("api.admin.settings") as mock_settings,
-                patch("api.admin.log_admin_action"),
+                patch("middleware.admin_audit.get_service_role_client", return_value=mock_db),
+                patch("api.deps.settings") as mock_settings,
             ):
                 mock_settings.admin_user_ids = [_ADMIN_ID]
                 response = client.post("/admin/pipeline/jobs/job-1/cancel")
@@ -217,7 +222,7 @@ class TestAdminJobCancel:
         finally:
             app.dependency_overrides.clear()
 
-    def test_cannot_cancel_completed_job(self):
+    def test_completed_job_cannot_be_cancelled(self):
         """Completed jobs cannot be cancelled — returns 409."""
         app.dependency_overrides[get_current_user] = _admin_user
         try:
@@ -227,7 +232,7 @@ class TestAdminJobCancel:
             )
             with (
                 patch("api.admin.get_service_role_client", return_value=mock_db),
-                patch("api.admin.settings") as mock_settings,
+                patch("api.deps.settings") as mock_settings,
             ):
                 mock_settings.admin_user_ids = [_ADMIN_ID]
                 response = client.post("/admin/pipeline/jobs/job-1/cancel")

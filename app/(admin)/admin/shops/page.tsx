@@ -10,7 +10,7 @@ interface Shop {
   address: string;
   processing_status: string;
   source: string;
-  updated_at: string;
+  enriched_at: string | null;
 }
 
 interface ShopsResponse {
@@ -21,6 +21,7 @@ interface ShopsResponse {
 }
 
 const STATUS_OPTIONS = ['all', 'pending', 'enriched', 'live', 'failed'] as const;
+const SOURCE_OPTIONS = ['all', 'cafe_nomad', 'manual', 'google_takeout', 'user_submission'] as const;
 const PAGE_SIZE = 20;
 
 export default function AdminShopsList() {
@@ -31,6 +32,7 @@ export default function AdminShopsList() {
   const [search, setSearch] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [sourceFilter, setSourceFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -40,7 +42,7 @@ export default function AdminShopsList() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchShops = useCallback(
-    async (searchTerm: string, status: string, currentOffset: number) => {
+    async (searchTerm: string, status: string, source: string, currentOffset: number) => {
       setLoading(true);
       setError(null);
 
@@ -53,6 +55,7 @@ export default function AdminShopsList() {
         const params = new URLSearchParams();
         if (searchTerm) params.set('search', searchTerm);
         if (status !== 'all') params.set('processing_status', status);
+        if (source !== 'all') params.set('source', source);
         params.set('offset', String(currentOffset));
         params.set('limit', String(PAGE_SIZE));
 
@@ -84,8 +87,8 @@ export default function AdminShopsList() {
   );
 
   useEffect(() => {
-    fetchShops(appliedSearch, statusFilter, offset);
-  }, [fetchShops, appliedSearch, statusFilter, offset]);
+    fetchShops(appliedSearch, statusFilter, sourceFilter, offset);
+  }, [fetchShops, appliedSearch, statusFilter, sourceFilter, offset]);
 
   function handleSearchChange(value: string) {
     setSearch(value);
@@ -106,6 +109,11 @@ export default function AdminShopsList() {
 
   function handleStatusChange(value: string) {
     setStatusFilter(value);
+    setOffset(0);
+  }
+
+  function handleSourceChange(value: string) {
+    setSourceFilter(value);
     setOffset(0);
   }
 
@@ -144,7 +152,7 @@ export default function AdminShopsList() {
       }
 
       setShowCreateForm(false);
-      fetchShops(appliedSearch, statusFilter, offset);
+      fetchShops(appliedSearch, statusFilter, sourceFilter, offset);
     } catch {
       setCreateError('Network error');
     } finally {
@@ -264,6 +272,17 @@ export default function AdminShopsList() {
             </option>
           ))}
         </select>
+        <select
+          value={sourceFilter}
+          onChange={(e) => handleSourceChange(e.target.value)}
+          className="rounded border px-3 py-2 text-sm"
+        >
+          {SOURCE_OPTIONS.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
       </div>
 
       {error && (
@@ -281,7 +300,7 @@ export default function AdminShopsList() {
                 <th className="pb-2">Address</th>
                 <th className="pb-2">Status</th>
                 <th className="pb-2">Source</th>
-                <th className="pb-2">Updated</th>
+                <th className="pb-2">Enriched</th>
               </tr>
             </thead>
             <tbody>
@@ -296,7 +315,7 @@ export default function AdminShopsList() {
                   <td className="py-2">{shop.processing_status}</td>
                   <td className="py-2 text-gray-500">{shop.source}</td>
                   <td className="py-2 text-gray-500">
-                    {new Date(shop.updated_at).toLocaleDateString()}
+                    {shop.enriched_at ? new Date(shop.enriched_at).toLocaleDateString() : '—'}
                   </td>
                 </tr>
               ))}

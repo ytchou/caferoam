@@ -3,6 +3,7 @@ from typing import Any
 from fastapi import Depends, HTTPException, Request, status
 from supabase import Client
 
+from core.config import settings
 from db.supabase_client import get_user_client
 
 
@@ -44,6 +45,13 @@ async def get_current_user(token: str = Depends(_get_bearer_token)) -> dict[str,
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
         ) from None
+
+
+def require_admin(user: dict[str, Any] = Depends(get_current_user)) -> dict[str, Any]:  # noqa: B008
+    """Raise 403 if the authenticated user is not in the admin allowlist."""
+    if user["id"] not in settings.admin_user_ids:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return user
 
 
 async def get_optional_user(request: Request) -> dict[str, Any] | None:

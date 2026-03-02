@@ -15,6 +15,9 @@ CREATE TABLE admin_audit_logs (
 CREATE INDEX idx_admin_audit_logs_admin ON admin_audit_logs (admin_user_id, created_at DESC);
 CREATE INDEX idx_admin_audit_logs_target ON admin_audit_logs (target_type, target_id);
 
+-- RLS: enable with no permissive policies — only service role can access
+ALTER TABLE admin_audit_logs ENABLE ROW LEVEL SECURITY;
+
 -- shops_with_low_confidence_tags: shops where max tag confidence < 0.5
 CREATE OR REPLACE FUNCTION shops_with_low_confidence_tags()
 RETURNS TABLE (shop_id uuid, shop_name text, max_confidence numeric)

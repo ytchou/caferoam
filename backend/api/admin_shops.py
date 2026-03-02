@@ -5,23 +5,16 @@ import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
-from api.deps import get_current_user
-from core.config import settings
+from api.deps import require_admin
 from db.supabase_client import get_service_role_client
 from middleware.admin_audit import log_admin_action
-from models.types import JobStatus, JobType
+from models.types import JobStatus, JobType, ProcessingStatus
 from providers.embeddings import get_embeddings_provider
 from workers.queue import JobQueue
 
 logger = structlog.get_logger()
 
 router = APIRouter(prefix="/admin/shops", tags=["admin"])
-
-
-def _require_admin(user: dict[str, Any] = Depends(get_current_user)) -> dict[str, Any]:  # noqa: B008
-    if user["id"] not in settings.admin_user_ids:
-        raise HTTPException(status_code=403, detail="Admin access required")
-    return user
 
 
 class CreateShopRequest(BaseModel):
@@ -41,7 +34,7 @@ class UpdateShopRequest(BaseModel):
     website: str | None = None
     opening_hours: list[str] | None = None
     description: str | None = None
-    processing_status: str | None = None
+    processing_status: ProcessingStatus | None = None
 
 
 class EnqueueRequest(BaseModel):
@@ -55,7 +48,7 @@ async def list_shops(
     search: str | None = None,
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
-    user: dict[str, Any] = Depends(_require_admin),  # noqa: B008
+    user: dict[str, Any] = Depends(require_admin),  # noqa: B008
 ) -> dict[str, Any]:
     """List all shops with optional filters."""
     db = get_service_role_client()
@@ -80,7 +73,7 @@ async def list_shops(
 @router.post("/", status_code=201)
 async def create_shop(
     body: CreateShopRequest,
-    user: dict[str, Any] = Depends(_require_admin),  # noqa: B008
+    user: dict[str, Any] = Depends(require_admin),  # noqa: B008
 ) -> dict[str, Any]:
     """Manually create a shop."""
     db = get_service_role_client()
@@ -92,6 +85,7 @@ async def create_shop(
                 "address": body.address,
                 "latitude": body.latitude,
                 "longitude": body.longitude,
+                "google_maps_url": body.google_maps_url,
                 "source": "manual",
                 "processing_status": "pending",
                 "review_count": 0,
@@ -112,7 +106,7 @@ async def create_shop(
 @router.get("/{shop_id}")
 async def get_shop_detail(
     shop_id: str,
-    user: dict[str, Any] = Depends(_require_admin),  # noqa: B008
+    user: dict[str, Any] = Depends(require_admin),  # noqa: B008
 ) -> dict[str, Any]:
     """Full shop detail including tags, photos, and mode scores."""
     db = get_service_role_client()
@@ -141,7 +135,7 @@ async def get_shop_detail(
 async def update_shop(
     shop_id: str,
     body: UpdateShopRequest,
-    user: dict[str, Any] = Depends(_require_admin),  # noqa: B008
+    user: dict[str, Any] = Depends(require_admin),  # noqa: B008
 ) -> dict[str, Any]:
     """Update shop identity fields. Sets manually_edited_at timestamp."""
     updates = body.model_dump(exclude_none=True)
@@ -169,7 +163,7 @@ async def update_shop(
 async def enqueue_job(
     shop_id: str,
     body: EnqueueRequest,
-    user: dict[str, Any] = Depends(_require_admin),  # noqa: B008
+    user: dict[str, Any] = Depends(require_admin),  # noqa: B008
 ) -> dict[str, Any]:
     """Manually enqueue a pipeline job for a shop."""
     try:
@@ -216,7 +210,7 @@ async def enqueue_job(
 async def search_rank(
     shop_id: str,
     query: str = Query(..., min_length=1),
-    user: dict[str, Any] = Depends(_require_admin),  # noqa: B008
+    user: dict[str, Any] = Depends(require_admin),  # noqa: B008
 ) -> dict[str, Any]:
     """Run a search query and return where this shop ranks in results."""
     embeddings = get_embeddings_provider()

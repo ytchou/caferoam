@@ -17,8 +17,6 @@ interface Job {
 interface JobsResponse {
   jobs: Job[];
   total: number;
-  page: number;
-  page_size: number;
 }
 
 const STATUS_OPTIONS = [
@@ -60,8 +58,8 @@ export default function AdminJobsPage() {
   const fetchJobs = useCallback(
     async (token: string, currentPage: number, status: string, jobType: string) => {
       const params = new URLSearchParams({
-        page: String(currentPage),
-        page_size: String(PAGE_SIZE),
+        offset: String((currentPage - 1) * PAGE_SIZE),
+        limit: String(PAGE_SIZE),
       });
       if (status !== 'all') params.set('status', status);
       if (jobType !== 'all') params.set('job_type', jobType);
@@ -98,20 +96,38 @@ export default function AdminJobsPage() {
 
   async function handleCancel(jobId: string) {
     if (!tokenRef.current) return;
-    await fetch(`/api/admin/pipeline/jobs/${jobId}/cancel`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${tokenRef.current}` },
-    });
-    fetchJobs(tokenRef.current, page, statusFilter, typeFilter);
+    try {
+      const res = await fetch(`/api/admin/pipeline/jobs/${jobId}/cancel`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${tokenRef.current}` },
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError(body.detail || 'Failed to cancel job');
+        return;
+      }
+      fetchJobs(tokenRef.current, page, statusFilter, typeFilter);
+    } catch {
+      setError('Network error');
+    }
   }
 
   async function handleRetry(jobId: string) {
     if (!tokenRef.current) return;
-    await fetch(`/api/admin/pipeline/retry/${jobId}`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${tokenRef.current}` },
-    });
-    fetchJobs(tokenRef.current, page, statusFilter, typeFilter);
+    try {
+      const res = await fetch(`/api/admin/pipeline/retry/${jobId}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${tokenRef.current}` },
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError(body.detail || 'Failed to retry job');
+        return;
+      }
+      fetchJobs(tokenRef.current, page, statusFilter, typeFilter);
+    } catch {
+      setError('Network error');
+    }
   }
 
   if (loading) return <p>Loading...</p>;

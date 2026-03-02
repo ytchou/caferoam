@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
@@ -74,10 +74,9 @@ describe('AdminShopsList', () => {
     expect(
       screen.getByText('台北市大安區溫州街74巷5弄2號')
     ).toBeInTheDocument();
-    expect(screen.getByText('cafe_nomad')).toBeInTheDocument();
-    expect(screen.getByText('google_maps')).toBeInTheDocument();
-
     const table = screen.getByRole('table');
+    expect(within(table).getByText('cafe_nomad')).toBeInTheDocument();
+    expect(within(table).getByText('google_maps')).toBeInTheDocument();
     const rows = table.querySelectorAll('tbody tr');
     expect(rows).toHaveLength(2);
 

@@ -18,18 +18,18 @@ def _admin_user():
 
 
 class TestAdminTaxonomyStats:
-    def test_requires_admin(self):
+    def test_non_admin_cannot_access_taxonomy_stats(self):
         """Non-admin user gets 403 when accessing taxonomy stats."""
         test_app.dependency_overrides[get_current_user] = lambda: {"id": "regular-user"}
         try:
-            with patch("api.admin_taxonomy.settings") as mock_settings:
+            with patch("api.deps.settings") as mock_settings:
                 mock_settings.admin_user_ids = [_ADMIN_ID]
                 response = client.get("/admin/taxonomy/stats")
             assert response.status_code == 403
         finally:
             test_app.dependency_overrides.clear()
 
-    def test_returns_coverage_stats(self):
+    def test_admin_sees_taxonomy_coverage_stats(self):
         """Admin sees taxonomy coverage stats including tag frequency and low-confidence shops."""
         test_app.dependency_overrides[get_current_user] = _admin_user
         try:
@@ -58,7 +58,7 @@ class TestAdminTaxonomyStats:
 
             with (
                 patch("api.admin_taxonomy.get_service_role_client", return_value=mock_db),
-                patch("api.admin_taxonomy.settings") as mock_settings,
+                patch("api.deps.settings") as mock_settings,
             ):
                 mock_settings.admin_user_ids = [_ADMIN_ID]
                 response = client.get("/admin/taxonomy/stats")

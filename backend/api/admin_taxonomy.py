@@ -3,8 +3,7 @@ from typing import Any, cast
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.deps import get_current_user
-from core.config import settings
+from api.deps import require_admin
 from db.supabase_client import get_service_role_client
 
 logger = structlog.get_logger()
@@ -12,15 +11,9 @@ logger = structlog.get_logger()
 router = APIRouter(prefix="/admin/taxonomy", tags=["admin"])
 
 
-def _require_admin(user: dict[str, Any] = Depends(get_current_user)) -> dict[str, Any]:  # noqa: B008
-    if user["id"] not in settings.admin_user_ids:
-        raise HTTPException(status_code=403, detail="Admin access required")
-    return user
-
-
 @router.get("/stats")
 async def taxonomy_stats(
-    user: dict[str, Any] = Depends(_require_admin),  # noqa: B008
+    user: dict[str, Any] = Depends(require_admin),  # noqa: B008
 ) -> dict[str, Any]:
     """Taxonomy coverage and quality stats."""
     db = get_service_role_client()

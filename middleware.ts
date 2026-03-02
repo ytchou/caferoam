@@ -66,7 +66,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Admin routes — require admin flag
+  // Admin routes — require is_admin flag in JWT app_metadata.
+  // To grant admin access: in Supabase dashboard → Authentication → Users →
+  // select user → Edit → app_metadata → set {"is_admin": true}
+  // The backend _require_admin dependency also validates against settings.admin_user_ids.
   if (pathname.startsWith('/admin')) {
     const isAdmin = appMetadata.is_admin === true;
     if (!isAdmin) {

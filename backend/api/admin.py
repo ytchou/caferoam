@@ -3,8 +3,7 @@ from typing import Any, cast
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from api.deps import get_current_user
-from core.config import settings
+from api.deps import require_admin
 from db.supabase_client import get_service_role_client
 from middleware.admin_audit import log_admin_action
 
@@ -13,16 +12,9 @@ logger = structlog.get_logger()
 router = APIRouter(prefix="/admin/pipeline", tags=["admin"])
 
 
-def _require_admin(user: dict[str, Any] = Depends(get_current_user)) -> dict[str, Any]:  # noqa: B008
-    user_id = user["id"]
-    if user_id not in settings.admin_user_ids:
-        raise HTTPException(status_code=403, detail="Admin access required")
-    return user
-
-
 @router.get("/overview")
 async def pipeline_overview(
-    user: dict[str, Any] = Depends(_require_admin),  # noqa: B008
+    user: dict[str, Any] = Depends(require_admin),  # noqa: B008
 ) -> dict[str, Any]:
     """Job counts by status, recent submissions."""
     db = get_service_role_client()
@@ -46,7 +38,7 @@ async def pipeline_overview(
 @router.get("/submissions")
 async def list_submissions(
     status: str | None = None,
-    user: dict[str, Any] = Depends(_require_admin),  # noqa: B008
+    user: dict[str, Any] = Depends(require_admin),  # noqa: B008
 ) -> list[dict[str, Any]]:
     """List shop submissions, optionally filtered by status."""
     db = get_service_role_client()
@@ -59,7 +51,7 @@ async def list_submissions(
 
 @router.get("/dead-letter")
 async def dead_letter_jobs(
-    user: dict[str, Any] = Depends(_require_admin),  # noqa: B008
+    user: dict[str, Any] = Depends(require_admin),  # noqa: B008
 ) -> list[dict[str, Any]]:
     """Failed jobs for investigation."""
     db = get_service_role_client()
@@ -77,7 +69,7 @@ async def dead_letter_jobs(
 @router.post("/retry/{job_id}")
 async def retry_job(
     job_id: str,
-    user: dict[str, Any] = Depends(_require_admin),  # noqa: B008
+    user: dict[str, Any] = Depends(require_admin),  # noqa: B008
 ) -> dict[str, str]:
     """Manually retry a failed/dead-letter job."""
     db = get_service_role_client()
@@ -96,13 +88,19 @@ async def retry_job(
     db.table("job_queue").update({"status": "pending", "attempts": 0, "last_error": None}).eq(
         "id", job_id
     ).execute()
+    log_admin_action(
+        admin_user_id=user["id"],
+        action=f"POST /admin/pipeline/retry/{job_id}",
+        target_type="job",
+        target_id=job_id,
+    )
     return {"message": f"Job {job_id} re-queued"}
 
 
 @router.post("/reject/{submission_id}")
 async def reject_submission(
     submission_id: str,
-    user: dict[str, Any] = Depends(_require_admin),  # noqa: B008
+    user: dict[str, Any] = Depends(require_admin),  # noqa: B008
 ) -> dict[str, str]:
     """Reject a submission and remove the associated shop."""
     db = get_service_role_client()
@@ -125,6 +123,13 @@ async def reject_submission(
         ).execute()
         db.table("shops").delete().eq("id", shop_id).execute()
 
+    log_admin_action(
+        admin_user_id=user["id"],
+        action=f"POST /admin/pipeline/reject/{submission_id}",
+        target_type="submission",
+        target_id=submission_id,
+        payload={"shop_id": str(shop_id) if shop_id else None},
+    )
     return {"message": f"Submission {submission_id} rejected"}
 
 
@@ -134,7 +139,7 @@ async def list_jobs(
     job_type: str | None = None,
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
-    user: dict[str, Any] = Depends(_require_admin),  # noqa: B008
+    user: dict[str, Any] = Depends(require_admin),  # noqa: B008
 ) -> dict[str, Any]:
     """List all jobs with optional filters."""
     db = get_service_role_client()
@@ -154,10 +159,11 @@ async def list_jobs(
 @router.post("/jobs/{job_id}/cancel")
 async def cancel_job(
     job_id: str,
-    user: dict[str, Any] = Depends(_require_admin),  # noqa: B008
+    user: dict[str, Any] = Depends(require_admin),  # noqa: B008
 ) -> dict[str, str]:
     """Cancel a pending or claimed job."""
     db = get_service_role_client()
+
     job_response = db.table("job_queue").select("id, status").eq("id", job_id).execute()
     if not job_response.data:
         raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
@@ -169,12 +175,19 @@ async def cancel_job(
             detail=f"Job {job_id} cannot be cancelled (status: {job_status})",
         )
 
-    db.table("job_queue").update(
-        {
-            "status": "dead_letter",
-            "last_error": "Cancelled by admin",
-        }
-    ).eq("id", job_id).execute()
+    # Conditional update: only succeeds if job is still in a cancellable state
+    update_response = (
+        db.table("job_queue")
+        .update({"status": "dead_letter", "last_error": "Cancelled by admin"})
+        .eq("id", job_id)
+        .in_("status", ["pending", "claimed"])
+        .execute()
+    )
+    if not update_response.data:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Job {job_id} could not be cancelled — it may have already completed",
+        )
 
     log_admin_action(
         admin_user_id=user["id"],
