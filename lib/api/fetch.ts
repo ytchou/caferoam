@@ -1,5 +1,3 @@
-'use client';
-
 import { createClient } from '@/lib/supabase/client';
 
 export async function fetchWithAuth(url: string, init?: RequestInit) {

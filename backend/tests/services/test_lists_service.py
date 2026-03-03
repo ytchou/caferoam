@@ -264,48 +264,58 @@ class TestListsService:
 
     async def test_get_list_shops_returns_full_shop_data(self, lists_service, mock_supabase):
         """get_list_shops() returns full Shop objects for shops in an owned list."""
-        from datetime import datetime
-
-        shop_id = "a1b2c3d4-5678-90ab-cdef-1234567890ab"
-        list_id = "e3b0c442-e49b-441d-b22f-5a00bd8c3e1b"
-
-        lists_mock = MagicMock()
-        lists_mock.select.return_value.eq.return_value.execute.return_value.data = [{"id": list_id}]
-
-        items_mock = MagicMock()
-        items_mock.select.return_value.eq.return_value.execute.return_value.data = [
-            {
-                "shop_id": shop_id,
-                "added_at": datetime.now().isoformat(),
-                "shops": {
-                    "id": shop_id,
-                    "name": "山小孩咖啡",
-                    "address": "台北市大安區溫州街74巷5弄2號",
-                    "latitude": 25.0216,
-                    "longitude": 121.5312,
-                    "mrt": "台電大樓",
-                    "phone": None,
-                    "website": None,
-                    "opening_hours": None,
-                    "rating": 4.6,
-                    "review_count": 287,
-                    "price_range": "$$",
-                    "description": "安靜適合工作",
-                    "photo_urls": [],
-                    "menu_url": None,
-                    "taxonomy_tags": [],
-                    "mode_scores": None,
-                    "cafenomad_id": None,
-                    "google_place_id": None,
-                    "created_at": datetime.now().isoformat(),
-                    "updated_at": datetime.now().isoformat(),
-                },
-            }
-        ]
-
-        mock_supabase.table.side_effect = lambda name: lists_mock if name == "lists" else items_mock
-
-        results = await lists_service.get_list_shops(list_id=list_id)
+        now = datetime.now().isoformat()
+        mock_supabase.table = MagicMock(
+            return_value=MagicMock(
+                select=MagicMock(
+                    return_value=MagicMock(
+                        eq=MagicMock(
+                            return_value=MagicMock(
+                                execute=MagicMock(
+                                    return_value=MagicMock(
+                                        data=[
+                                            {
+                                                "id": LIST_ID,
+                                                "list_items": [
+                                                    {
+                                                        "shop_id": SHOP_ID_1,
+                                                        "added_at": now,
+                                                        "shops": {
+                                                            "id": SHOP_ID_1,
+                                                            "name": "山小孩咖啡",
+                                                            "address": "台北市大安區溫州街74巷5弄2號",
+                                                            "latitude": 25.0216,
+                                                            "longitude": 121.5312,
+                                                            "mrt": "台電大樓",
+                                                            "phone": None,
+                                                            "website": None,
+                                                            "opening_hours": None,
+                                                            "rating": 4.6,
+                                                            "review_count": 287,
+                                                            "price_range": "$$",
+                                                            "description": "安靜適合工作",
+                                                            "photo_urls": [],
+                                                            "menu_url": None,
+                                                            "taxonomy_tags": [],
+                                                            "mode_scores": None,
+                                                            "cafenomad_id": None,
+                                                            "google_place_id": None,
+                                                            "created_at": now,
+                                                            "updated_at": now,
+                                                        },
+                                                    }
+                                                ],
+                                            }
+                                        ]
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+        results = await lists_service.get_list_shops(list_id=LIST_ID)
         assert len(results) == 1
         assert results[0].name == "山小孩咖啡"
         assert results[0].latitude == 25.0216
@@ -314,13 +324,21 @@ class TestListsService:
         self, lists_service, mock_supabase
     ):
         """When a user requests a list they don't own, get_list_shops raises ValueError."""
-        list_id = "e3b0c442-e49b-441d-b22f-5a00bd8c3e1b"
-        lists_mock = MagicMock()
-        lists_mock.select.return_value.eq.return_value.execute.return_value.data = []
-        mock_supabase.table.side_effect = lambda name: lists_mock
-
+        mock_supabase.table = MagicMock(
+            return_value=MagicMock(
+                select=MagicMock(
+                    return_value=MagicMock(
+                        eq=MagicMock(
+                            return_value=MagicMock(
+                                execute=MagicMock(return_value=MagicMock(data=[]))
+                            )
+                        )
+                    )
+                )
+            )
+        )
         with pytest.raises(ValueError, match="not found or access denied"):
-            await lists_service.get_list_shops(list_id=list_id)
+            await lists_service.get_list_shops(list_id=LIST_ID)
 
     async def test_given_user_with_saved_shops_when_fetching_pins_returns_coordinates(
         self, lists_service, mock_supabase
