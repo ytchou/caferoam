@@ -67,6 +67,14 @@ class TestListsAPI:
         response = client.patch("/lists/list-1", json={"name": "   "})
         assert response.status_code == 400
 
+    def test_create_list_rejects_empty_name(self):
+        """Creating a list with a whitespace-only name returns 400."""
+        mock_db = MagicMock()
+        app.dependency_overrides[get_current_user] = lambda: {"id": _new_id()}
+        app.dependency_overrides[get_user_db] = lambda: mock_db
+        response = client.post("/lists/", json={"name": "   "})
+        assert response.status_code == 400
+
     def test_given_user_with_3_lists_when_creating_another_returns_400(self):
         """API returns 400 when the DB trigger fires a check_violation for the 3-list cap."""
         mock_db = MagicMock()

@@ -141,6 +141,26 @@ class TestListsService:
         result = await lists_service.add_shop(list_id=LIST_ID, shop_id=SHOP_ID_1)
         assert result.shop_id == SHOP_ID_1
 
+    async def test_given_shop_already_in_list_when_adding_again_raises_value_error(
+        self, lists_service, mock_supabase
+    ):
+        """Unique constraint violation (23505) from DB is surfaced as ValueError."""
+        mock_supabase.table = MagicMock(
+            return_value=MagicMock(
+                insert=MagicMock(
+                    return_value=MagicMock(
+                        execute=MagicMock(
+                            side_effect=APIError(
+                                {"message": "duplicate key value violates unique constraint", "code": "23505", "details": None, "hint": None}
+                            )
+                        )
+                    )
+                )
+            )
+        )
+        with pytest.raises(ValueError, match="already in this list"):
+            await lists_service.add_shop(list_id=LIST_ID, shop_id=SHOP_ID_1)
+
     async def test_given_owned_list_item_when_removing_shop_succeeds(
         self, lists_service, mock_supabase
     ):
@@ -360,7 +380,7 @@ class TestListsService:
                 )
             )
         )
-        results = await lists_service.get_pins(USER_ID)
+        results = await lists_service.get_pins()
         assert len(results) == 2
         assert results[0].lat == 25.0216
 

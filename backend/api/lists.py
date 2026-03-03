@@ -41,9 +41,11 @@ async def create_list(
     db: Client = Depends(get_user_db),  # noqa: B008
 ) -> dict[str, Any]:
     """Create a new list. Auth required. Max 3 lists per user."""
+    if not body.name.strip():
+        raise HTTPException(status_code=400, detail="List name cannot be empty")
     service = ListsService(db=db)
     try:
-        result = await service.create(user_id=user["id"], name=body.name)
+        result = await service.create(user_id=user["id"], name=body.name.strip())
         return result.model_dump()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from None
@@ -56,7 +58,7 @@ async def get_list_pins(
 ) -> list[dict[str, Any]]:
     """Get map pins (coordinates) for all shops in the user's lists."""
     service = ListsService(db=db)
-    results = await service.get_pins(user["id"])
+    results = await service.get_pins()
     return [r.model_dump() for r in results]
 
 

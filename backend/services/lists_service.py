@@ -64,10 +64,19 @@ class ListsService:
             raise ValueError("List not found or access denied")
 
     async def add_shop(self, list_id: str, shop_id: str) -> ListItem:
-        """Add a shop to a list. RLS enforces ownership via parent list."""
-        response = (
-            self._db.table("list_items").insert({"list_id": list_id, "shop_id": shop_id}).execute()
-        )
+        """Add a shop to a list. RLS enforces ownership via parent list.
+
+        Raises ValueError if the list is not found or the caller doesn't own it,
+        or if the shop is already in the list (unique constraint violation).
+        """
+        try:
+            response = (
+                self._db.table("list_items").insert({"list_id": list_id, "shop_id": shop_id}).execute()
+            )
+        except APIError as e:
+            if "23505" in str(e):
+                raise ValueError("Shop already in this list") from None
+            raise
         rows = cast("list[dict[str, Any]]", response.data)
         return ListItem(**first(rows, "add shop to list"))
 
@@ -92,7 +101,7 @@ class ListsService:
                 shops.append(Shop(**shop_data))
         return shops
 
-    async def get_pins(self, user_id: str) -> list[ListPin]:
+    async def get_pins(self) -> list[ListPin]:
         """Return coordinates for all shops across the user's lists.
         Uses a join query: list_items -> shops for lat/lng.
         RLS on list_items filters to the authenticated user's lists.
@@ -106,7 +115,11 @@ class ListsService:
         pins = []
         for row in rows:
             shop_data = row.get("shops", {})
-            if shop_data and shop_data.get("latitude") and shop_data.get("longitude"):
+            if (
+                shop_data
+                and shop_data.get("latitude") is not None
+                and shop_data.get("longitude") is not None
+            ):
                 pins.append(
                     ListPin(
                         list_id=row["list_id"],
