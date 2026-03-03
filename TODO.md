@@ -476,33 +476,45 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 
 ---
 
-## Phase 2: Core Product — Target: Week 2-3
+## Phase 2A: UGC Flows — No Data Required
 
-The minimum that makes CafeRoam useful to a real user.
+> Start immediately — no dependency on Phase 1 data gate.
+> These flows are self-contained: they need auth + DB schema, but not a populated shop corpus.
+> Use the 29 pre-built seed shops for integration testing.
 
 > **UX reference:** All approved mockups in `docs/designs/ux/screenshots/`. Layout intent in `docs/designs/ux/DESIGN_HANDOFF.md`. Personas and friction points in `docs/designs/ux/personas.md` and `journeys.md`. PostHog events in `docs/designs/ux/metrics.md`.
 
-### Shop Discovery & Directory
-
-- [ ] Mobile Home screen: terracotta search-hero, AI search bar with sparkle icon, suggestion chips (巴斯克蛋糕/適合工作/安靜一點/我附近), mode chips (工作/放鬆/社交/精品), filter pills row (`search-v3-approved.png`)
-- [ ] Desktop Home screen: search-first landing, centered hero search bar, suggestion chips, 3-column editorial cards grid, "View on map →" link — ≥1024px only (`home-desktop-v2-approved.png`)
-- [ ] Mobile Map screen: full-bleed Mapbox, glassmorphism search + filter overlay, terracotta pins, bottom mini card on pin select (`map-v1-approved.png`)
-- [ ] Desktop Map screen: full-viewport map, floating glassmorphism nav, filter pills, bottom-left floating shop card, "List View" toggle (`map-desktop-v1-approved.png`)
-- [ ] Shop Detail (mobile): single-column scroll — hero photo, shop identity, attribute chips, curated description, menu highlights, Recent Check-ins photo strip (auth-gated), reviews (auth-gated), map thumbnail, sticky "Check In →" bar (`shop-detail-v3-approved.png`)
-- [ ] Shop Detail (desktop): 2-column — left scrollable content, right sticky column (photo carousel + map + CTA) (`shop-detail-desktop-v2-approved.png`)
-- [ ] Geolocation: "nearby me" — requests location permission, filters shops by proximity
-- [ ] Multi-dimension filters: functionality, time, ambience, mode (all powered by taxonomy); opens bottom-sheet on mobile
-
-### Semantic Search
-
-- [ ] AI search bar: natural language queries, suggestion chips pre-fill search, mode chips apply semantic filter
-- [ ] pgvector + taxonomy boost search results, ranked list
-- [ ] Auth gate on semantic search: prompt login when unauthenticated user submits query
-- [ ] `search_submitted` PostHog event: query_text, query_type (server-side classified), mode_chip_active, result_count
-
 ### User Lists
+> **Design Doc:** [docs/designs/2026-03-03-user-lists-design.md](docs/designs/2026-03-03-user-lists-design.md)
+> **Plan:** [docs/plans/2026-03-03-user-lists-plan.md](docs/plans/2026-03-03-user-lists-plan.md)
 
-- [ ] User lists: create, rename, delete (max 3), add/remove shops
+**Wave 1 — Foundation:**
+- [ ] Install frontend deps (swr, vaul, react-map-gl, mapbox-gl)
+- [ ] Backend: enhance `get_by_user` to include list items
+
+**Wave 2 — Backend endpoints + Frontend primitives:**
+- [ ] Backend: `GET /lists/pins` endpoint
+- [ ] Backend: `GET /lists/{list_id}/shops` endpoint
+- [ ] Backend: `PATCH /lists/{list_id}` rename endpoint
+- [ ] Frontend types + factories update
+- [ ] Drawer UI component (vaul wrapper)
+
+**Wave 3 — Frontend core:**
+- [ ] Frontend API proxy routes (pins, shops, rename)
+- [ ] `useUserLists` SWR hook with derived state + optimistic mutations
+
+**Wave 4 — UI components:**
+- [ ] `BookmarkButton` component
+- [ ] `SaveToListSheet` bottom sheet
+- [ ] `RenameListDialog` component
+- [ ] `ListCard` component
+
+**Wave 5 — Pages:**
+- [ ] `/lists` page (list cards, create, rename, delete)
+- [ ] `/lists/[listId]` page (split map + shop list + hover highlight)
+
+**Wave 6 — Validation:**
+- [ ] Full test suite + type-check + lint pass
 
 ### Check-in & Stamps
 
@@ -524,13 +536,54 @@ The minimum that makes CafeRoam useful to a real user.
 - [ ] Private user profile page: check-in history, stamp collection, lists
 - [ ] `profile_stamps_viewed` PostHog event: stamp_count
 
-### Analytics Instrumentation
+### UGC Analytics Instrumentation
+
+- [ ] `checkin_completed` PostHog event: shop_id, is_first_checkin_at_shop, has_text_note, has_menu_photo
+- [ ] `profile_stamps_viewed` PostHog event: stamp_count
+- [ ] `session_start` event: days_since_first_session, previous_sessions
+
+### Unblock Phase 2B Test Coverage
+
+These page-level tests were blocked pending Phase 2 features — complete once features above are built:
+
+- [ ] Lists page tests (create, cap enforcement, add/remove shop)
+- [ ] Profile page tests (stamp collection, check-in history)
+
+**Phase 2A is done when:** A user can sign up, check in with a photo at a seed shop, earn a stamp, create a list, leave a review, and view their profile — all without a full shop corpus. PostHog confirms `checkin_completed`, `profile_stamps_viewed`, and `session_start` fire correctly.
+
+---
+
+## Phase 2B: Discovery & Search Flows — Requires 200+ Live Shops
+
+> Blocked on Phase 1 data gate: `SELECT COUNT(*) FROM shops WHERE processing_status = 'live'` ≥ 200.
+> Can be designed and partially scaffolded in parallel, but cannot be fully built or tested without real data.
+
+> **UX reference:** Same as Phase 2A above.
+
+### Shop Discovery & Directory
+
+- [ ] Mobile Home screen: terracotta search-hero, AI search bar with sparkle icon, suggestion chips (巴斯克蛋糕/適合工作/安靜一點/我附近), mode chips (工作/放鬆/社交/精品), filter pills row (`search-v3-approved.png`)
+- [ ] Desktop Home screen: search-first landing, centered hero search bar, suggestion chips, 3-column editorial cards grid, "View on map →" link — ≥1024px only (`home-desktop-v2-approved.png`)
+- [ ] Mobile Map screen: full-bleed Mapbox, glassmorphism search + filter overlay, terracotta pins, bottom mini card on pin select (`map-v1-approved.png`)
+- [ ] Desktop Map screen: full-viewport map, floating glassmorphism nav, filter pills, bottom-left floating shop card, "List View" toggle (`map-desktop-v1-approved.png`)
+- [ ] Shop Detail (mobile): single-column scroll — hero photo, shop identity, attribute chips, curated description, menu highlights, Recent Check-ins photo strip (auth-gated), reviews (auth-gated), map thumbnail, sticky "Check In →" bar (`shop-detail-v3-approved.png`)
+- [ ] Shop Detail (desktop): 2-column — left scrollable content, right sticky column (photo carousel + map + CTA) (`shop-detail-desktop-v2-approved.png`)
+- [ ] Geolocation: "nearby me" — requests location permission, filters shops by proximity
+- [ ] Multi-dimension filters: functionality, time, ambience, mode (all powered by taxonomy); opens bottom-sheet on mobile
+
+### Semantic Search
+
+- [ ] AI search bar: natural language queries, suggestion chips pre-fill search, mode chips apply semantic filter
+- [ ] pgvector + taxonomy boost search results, ranked list
+- [ ] Auth gate on semantic search: prompt login when unauthenticated user submits query
+- [ ] `search_submitted` PostHog event: query_text, query_type (server-side classified), mode_chip_active, result_count
+- [ ] Server-side `query_type` classification (item_specific / specialty_coffee / general) — never exposed client-side
+
+### Discovery Analytics Instrumentation
 
 - [ ] `shop_detail_viewed` event: shop_id, referrer (search/map_pin/direct), session_search_query
 - [ ] `shop_url_copied` event: shop_id, copy_method (native_share/clipboard)
 - [ ] `filter_applied` event: filter_type, filter_value
-- [ ] `session_start` event: days_since_first_session, previous_sessions
-- [ ] Server-side `query_type` classification (item_specific / specialty_coffee / general) — never exposed client-side
 
 ### Performance
 
@@ -540,7 +593,11 @@ The minimum that makes CafeRoam useful to a real user.
 - [ ] Core Web Vitals: LCP < 2.5s, CLS < 0.1
 - [ ] `backdrop-filter: blur()` fallback for glassmorphism on Android
 
-**Phase 2 is done when:** A non-team beta user can sign up, complete the PDPA consent flow, search semantically, find a coffee shop, check in with a photo, earn a stamp, leave a review, and view their profile — all without assistance. PostHog Live Events confirms all 7 instrumented events fire correctly.
+### Unblock Phase 2B Test Coverage
+
+- [ ] Search page tests (blocked until semantic search UI + real search results)
+
+**Phase 2B is done when:** A non-team beta user can sign up, complete the PDPA consent flow, search semantically, find a coffee shop, check in with a photo, earn a stamp, leave a review, and view their profile — all without assistance. PostHog Live Events confirms all 7 instrumented events fire correctly.
 
 ---
 
