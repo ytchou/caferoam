@@ -8,7 +8,7 @@ import { ListCard } from '@/components/lists/list-card';
 import { RenameListDialog } from '@/components/lists/rename-list-dialog';
 
 export default function ListsPage() {
-  const { lists, isLoading, createList, deleteList } = useUserLists();
+  const { lists, isLoading, createList, deleteList, renameList } = useUserLists();
   const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
   const [newListName, setNewListName] = useState('');
 
@@ -93,12 +93,15 @@ export default function ListsPage() {
         </div>
       )}
 
+      {/* TODO: add mini map here once Mapbox pin integration is ready */}
+
       {renaming && (
         <RenameListDialog
           listId={renaming.id}
           currentName={renaming.name}
           open={!!renaming}
           onOpenChange={(open) => !open && setRenaming(null)}
+          onRename={renameList}
         />
       )}
     </div>

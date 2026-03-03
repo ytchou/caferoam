@@ -11,7 +11,7 @@ export async function fetchWithAuth(url: string, init?: RequestInit) {
     headers: {
       ...init?.headers,
       Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
     },
   });
   if (!res.ok) {

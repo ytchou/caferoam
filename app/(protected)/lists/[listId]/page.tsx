@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Pencil, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -23,7 +24,7 @@ interface ShopData {
 export default function ListDetailPage() {
   const { listId } = useParams<{ listId: string }>();
   const router = useRouter();
-  const { lists, removeShop, deleteList } = useUserLists();
+  const { lists, removeShop, deleteList, renameList } = useUserLists();
   const list = lists.find((l) => l.id === listId);
 
   const [shops, setShops] = useState<ShopData[]>([]);
@@ -130,7 +131,9 @@ export default function ListDetailPage() {
                 }`}
               >
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-medium text-gray-900">{shop.name}</h3>
+                  <Link href={`/shops/${shop.id}`}>
+                    <h3 className="font-medium text-gray-900 hover:underline">{shop.name}</h3>
+                  </Link>
                   <p className="mt-0.5 text-sm text-gray-500">
                     {shop.rating && `★ ${shop.rating}`}
                     {shop.address && ` · ${shop.address}`}
@@ -155,6 +158,7 @@ export default function ListDetailPage() {
           currentName={list.name}
           open={renaming}
           onOpenChange={setRenaming}
+          onRename={renameList}
         />
       )}
     </div>

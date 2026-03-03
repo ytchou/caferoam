@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { useUserLists } from '@/lib/hooks/use-user-lists';
 
 interface RenameListDialogProps {
   listId: string;
   currentName: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onRename: (listId: string, name: string) => Promise<void>;
 }
 
 export function RenameListDialog({
@@ -16,8 +16,8 @@ export function RenameListDialog({
   currentName,
   open,
   onOpenChange,
+  onRename,
 }: RenameListDialogProps) {
-  const { renameList } = useUserLists();
   const [name, setName] = useState(currentName);
   const [saving, setSaving] = useState(false);
 
@@ -35,7 +35,7 @@ export function RenameListDialog({
     }
     setSaving(true);
     try {
-      await renameList(listId, name.trim());
+      await onRename(listId, name.trim());
       onOpenChange(false);
     } catch {
       toast.error('Failed to rename list');
