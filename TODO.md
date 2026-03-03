@@ -489,7 +489,7 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 > **Plan:** [docs/plans/2026-03-03-user-lists-plan.md](docs/plans/2026-03-03-user-lists-plan.md)
 
 **Wave 1 — Foundation:**
-- [ ] Install frontend deps (swr, vaul, react-map-gl, mapbox-gl)
+- [x] Install frontend deps (swr, vaul, react-map-gl, mapbox-gl)
 - [ ] Backend: enhance `get_by_user` to include list items
 
 **Wave 2 — Backend endpoints + Frontend primitives:**
