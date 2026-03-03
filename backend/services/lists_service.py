@@ -73,8 +73,14 @@ class ListsService:
 
     async def get_list_shops(self, list_id: str) -> list[Shop]:
         """Get full shop data for all shops in a list.
-        RLS on list_items ensures only the owner's lists are visible.
+        RLS on lists ensures only the owner's list is accessible.
+        Raises ValueError if the list is not found or the caller doesn't own it.
         """
+        list_check = self._db.table("lists").select("id").eq("id", list_id).execute()
+        list_rows = cast("list[dict[str, Any]]", list_check.data)
+        if not list_rows:
+            raise ValueError("List not found or access denied")
+
         response = (
             self._db.table("list_items")
             .select("shop_id, added_at, shops(*)")

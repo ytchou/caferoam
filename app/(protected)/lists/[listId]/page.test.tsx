@@ -21,10 +21,6 @@ vi.mock('@/lib/hooks/use-user-lists', () => ({
     createList: vi.fn(),
     error: null,
   }),
-  fetchWithAuth: vi.fn(async (url: string) => {
-    const res = await (global.fetch as ReturnType<typeof vi.fn>)(url);
-    return res.json();
-  }),
 }));
 
 vi.mock('@/lib/supabase/client', () => ({

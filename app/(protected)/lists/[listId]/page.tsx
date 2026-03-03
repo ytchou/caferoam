@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Pencil, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { useUserLists, fetchWithAuth } from '@/lib/hooks/use-user-lists';
+import { useUserLists } from '@/lib/hooks/use-user-lists';
+import { fetchWithAuth } from '@/lib/api/fetch';
 import { RenameListDialog } from '@/components/lists/rename-list-dialog';
 
 interface ShopData {
@@ -34,8 +35,8 @@ export default function ListDetailPage() {
     try {
       const data = await fetchWithAuth(`/api/lists/${listId}/shops`);
       setShops(data);
-    } catch {
-      // unauthenticated users cannot reach this protected route
+    } catch (err) {
+      console.error('Failed to load list shops:', err);
     } finally {
       setLoading(false);
     }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Bookmark } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useUserLists } from '@/lib/hooks/use-user-lists';
@@ -16,7 +16,6 @@ export function BookmarkButton({ shopId, className }: BookmarkButtonProps) {
   const { isSaved } = useUserLists();
   const [sheetOpen, setSheetOpen] = useState(false);
   const router = useRouter();
-  const pathname = usePathname();
   const saved = isSaved(shopId);
 
   async function handleClick(e: React.MouseEvent) {
@@ -26,7 +25,7 @@ export function BookmarkButton({ shopId, className }: BookmarkButtonProps) {
     const supabase = createClient();
     const { data } = await supabase.auth.getSession();
     if (!data.session) {
-      router.push(`/login?next=${encodeURIComponent(pathname)}`);
+      router.push(`/login?next=${encodeURIComponent(`/shops/${shopId}`)}`);
       return;
     }
     setSheetOpen(true);

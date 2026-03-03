@@ -101,8 +101,11 @@ async def get_list_shops(
 ) -> list[dict[str, Any]]:
     """Get full shop data for shops in a list. Auth required."""
     service = ListsService(db=db)
-    results = await service.get_list_shops(list_id=list_id)
-    return [r.model_dump() for r in results]
+    try:
+        results = await service.get_list_shops(list_id=list_id)
+        return [r.model_dump() for r in results]
+    except ValueError as e:
+        raise HTTPException(status_code=403, detail=str(e)) from None
 
 
 @router.post("/{list_id}/shops")
