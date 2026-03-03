@@ -514,7 +514,7 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 - [x] `/lists/[listId]` page (split map + shop list + hover highlight)
 
 **Wave 6 — Validation:**
-- [ ] Full test suite + type-check + lint pass
+- [x] Full test suite + type-check + lint pass
 
 ### Check-in & Stamps
 
