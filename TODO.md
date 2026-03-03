@@ -500,8 +500,8 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 - [x] Drawer UI component (vaul wrapper)
 
 **Wave 3 — Frontend core:**
-- [ ] Frontend API proxy routes (pins, shops, rename)
-- [ ] `useUserLists` SWR hook with derived state + optimistic mutations
+- [x] Frontend API proxy routes (pins, shops, rename)
+- [x] `useUserLists` SWR hook with derived state + optimistic mutations
 
 **Wave 4 — UI components:**
 - [ ] `BookmarkButton` component
