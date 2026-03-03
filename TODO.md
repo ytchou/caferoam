@@ -510,8 +510,8 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 - [x] `ListCard` component
 
 **Wave 5 — Pages:**
-- [ ] `/lists` page (list cards, create, rename, delete)
-- [ ] `/lists/[listId]` page (split map + shop list + hover highlight)
+- [x] `/lists` page (list cards, create, rename, delete)
+- [x] `/lists/[listId]` page (split map + shop list + hover highlight)
 
 **Wave 6 — Validation:**
 - [ ] Full test suite + type-check + lint pass
