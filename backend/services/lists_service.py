@@ -42,12 +42,7 @@ class ListsService:
         """Rename a list. RLS ensures only the owner can update.
         Raises ValueError if the list is not found or the caller doesn't own it.
         """
-        response = (
-            self._db.table("lists")
-            .update({"name": name})
-            .eq("id", list_id)
-            .execute()
-        )
+        response = self._db.table("lists").update({"name": name}).eq("id", list_id).execute()
         if not response.data:
             raise ValueError("List not found or access denied")
         rows = cast("list[dict[str, Any]]", response.data)
@@ -71,7 +66,9 @@ class ListsService:
         """
         try:
             response = (
-                self._db.table("list_items").insert({"list_id": list_id, "shop_id": shop_id}).execute()
+                self._db.table("list_items")
+                .insert({"list_id": list_id, "shop_id": shop_id})
+                .execute()
             )
         except APIError as e:
             if "23505" in str(e):

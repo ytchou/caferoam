@@ -12,7 +12,13 @@ interface ListCardProps {
   onDelete: () => void;
 }
 
-export function ListCard({ id, name, itemCount, onRename, onDelete }: ListCardProps) {
+export function ListCard({
+  id,
+  name,
+  itemCount,
+  onRename,
+  onDelete,
+}: ListCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -36,16 +42,22 @@ export function ListCard({ id, name, itemCount, onRename, onDelete }: ListCardPr
       </Link>
 
       {/* Desktop: show on hover */}
-      <div className="absolute right-2 top-2 hidden gap-1 group-hover:flex">
+      <div className="absolute top-2 right-2 hidden gap-1 group-hover:flex">
         <button
-          onClick={(e) => { e.preventDefault(); onRename(); }}
+          onClick={(e) => {
+            e.preventDefault();
+            onRename();
+          }}
           className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
           aria-label="Rename list"
         >
           <Pencil className="h-4 w-4" />
         </button>
         <button
-          onClick={(e) => { e.preventDefault(); onDelete(); }}
+          onClick={(e) => {
+            e.preventDefault();
+            onDelete();
+          }}
           className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-red-500"
           aria-label="Delete list"
         >
@@ -54,24 +66,35 @@ export function ListCard({ id, name, itemCount, onRename, onDelete }: ListCardPr
       </div>
 
       {/* Mobile: always visible menu */}
-      <div ref={menuRef} className="absolute right-2 top-2 group-hover:hidden">
+      <div ref={menuRef} className="absolute top-2 right-2 group-hover:hidden">
         <button
-          onClick={(e) => { e.preventDefault(); setMenuOpen(!menuOpen); }}
+          onClick={(e) => {
+            e.preventDefault();
+            setMenuOpen(!menuOpen);
+          }}
           className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100"
           aria-label="List menu"
         >
           <MoreHorizontal className="h-4 w-4" />
         </button>
         {menuOpen && (
-          <div className="absolute right-0 top-8 z-10 min-w-[140px] rounded-lg border bg-white py-1 shadow-lg">
+          <div className="absolute top-8 right-0 z-10 min-w-[140px] rounded-lg border bg-white py-1 shadow-lg">
             <button
-              onClick={(e) => { e.preventDefault(); setMenuOpen(false); onRename(); }}
+              onClick={(e) => {
+                e.preventDefault();
+                setMenuOpen(false);
+                onRename();
+              }}
               className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50"
             >
               <Pencil className="h-3.5 w-3.5" /> Rename
             </button>
             <button
-              onClick={(e) => { e.preventDefault(); setMenuOpen(false); onDelete(); }}
+              onClick={(e) => {
+                e.preventDefault();
+                setMenuOpen(false);
+                onDelete();
+              }}
               className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-gray-50"
             >
               <Trash2 className="h-3.5 w-3.5" /> Delete

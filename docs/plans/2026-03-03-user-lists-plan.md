@@ -15,6 +15,7 @@
 **Tech Stack:** SWR (new dep), vaul (new dep), react-map-gl + mapbox-gl (new deps), sonner (existing), lucide-react (existing), Tailwind + shadcn patterns (existing)
 
 **Acceptance Criteria:**
+
 - [ ] A user can tap a bookmark icon on a shop card and save/unsave the shop to any of their lists via a bottom sheet
 - [ ] A user can visit /lists and see all their lists with a mini map showing pins for all saved shops
 - [ ] A user can tap into a list and see a split map+shop-list view where hovering a card highlights its pin
@@ -26,6 +27,7 @@
 ## Task 1: Install new frontend dependencies
 
 **Files:**
+
 - Modify: `package.json`
 
 **Step 1: Install SWR, vaul, react-map-gl, mapbox-gl**
@@ -53,11 +55,13 @@ git commit -m "chore: add swr, vaul, react-map-gl, mapbox-gl deps for lists feat
 ## Task 2: Backend — Enhance `get_by_user` to include list items
 
 **Files:**
+
 - Modify: `backend/services/lists_service.py:14-23`
 - Modify: `backend/models/types.py:57-62`
 - Test: `backend/tests/services/test_lists_service.py`
 
 **API Contract:**
+
 ```yaml
 endpoint: GET /lists
 response: # enhanced — now includes items
@@ -185,6 +189,7 @@ git commit -m "feat(lists): get_by_user returns items with shop_ids via nested s
 ## Task 3: Backend — Add `GET /lists/pins` endpoint
 
 **Files:**
+
 - Modify: `backend/services/lists_service.py`
 - Modify: `backend/api/lists.py`
 - Modify: `backend/models/types.py`
@@ -192,6 +197,7 @@ git commit -m "feat(lists): get_by_user returns items with shop_ids via nested s
 - Test: `backend/tests/api/test_lists.py`
 
 **API Contract:**
+
 ```yaml
 endpoint: GET /lists/pins
 response:
@@ -320,12 +326,14 @@ git commit -m "feat(lists): add GET /lists/pins endpoint for map coordinates"
 ## Task 4: Backend — Add `GET /lists/{list_id}/shops` endpoint
 
 **Files:**
+
 - Modify: `backend/services/lists_service.py`
 - Modify: `backend/api/lists.py`
 - Test: `backend/tests/services/test_lists_service.py`
 - Test: `backend/tests/api/test_lists.py`
 
 **API Contract:**
+
 ```yaml
 endpoint: GET /lists/{list_id}/shops
 response:
@@ -494,20 +502,22 @@ git commit -m "feat(lists): add GET /lists/{list_id}/shops for full shop data"
 ## Task 5: Backend — Add `PATCH /lists/{list_id}` rename endpoint
 
 **Files:**
+
 - Modify: `backend/services/lists_service.py`
 - Modify: `backend/api/lists.py`
 - Test: `backend/tests/services/test_lists_service.py`
 - Test: `backend/tests/api/test_lists.py`
 
 **API Contract:**
+
 ```yaml
 endpoint: PATCH /lists/{list_id}
 request:
-  name: string  # new list name
+  name: string # new list name
 response:
   id: string
   user_id: string
-  name: string  # updated name
+  name: string # updated name
   created_at: datetime
   updated_at: datetime
 errors:
@@ -656,6 +666,7 @@ git commit -m "feat(lists): add PATCH /lists/{list_id} rename endpoint"
 ## Task 6: Frontend — Add API proxy routes for new endpoints
 
 **Files:**
+
 - Modify: `app/api/lists/[listId]/route.ts` (add PATCH)
 - Modify: `app/api/lists/[listId]/shops/route.ts` (add GET)
 - Create: `app/api/lists/pins/route.ts` (new)
@@ -714,6 +725,7 @@ git commit -m "feat(lists): add frontend proxy routes for pins, list shops, rena
 ## Task 7: Frontend — Update types and add `makeListWithItems` factory
 
 **Files:**
+
 - Modify: `lib/types/index.ts`
 - Modify: `lib/test-utils/factories.ts`
 
@@ -791,6 +803,7 @@ git commit -m "feat(lists): update List type to include items, add ListPin and L
 ## Task 8: Frontend — Build `useUserLists` SWR hook
 
 **Files:**
+
 - Create: `lib/hooks/use-user-lists.ts`
 - Create: `lib/hooks/use-user-lists.test.ts`
 
@@ -985,10 +998,12 @@ async function fetchWithAuth(url: string, init?: RequestInit) {
 const fetcher = (url: string) => fetchWithAuth(url);
 
 export function useUserLists() {
-  const { data: lists, error, isLoading, mutate } = useSWR<ListData[]>(
-    '/api/lists',
-    fetcher
-  );
+  const {
+    data: lists,
+    error,
+    isLoading,
+    mutate,
+  } = useSWR<ListData[]>('/api/lists', fetcher);
 
   const savedShopIds = useMemo(() => {
     const set = new Set<string>();
@@ -1160,6 +1175,7 @@ git commit -m "feat(lists): add useUserLists SWR hook with derived state + optim
 ## Task 9: Frontend — Add shadcn Drawer component (vaul)
 
 **Files:**
+
 - Create: `components/ui/drawer.tsx`
 
 No test needed — UI primitive wrapper.
@@ -1287,6 +1303,7 @@ git commit -m "feat(ui): add shadcn Drawer component (vaul wrapper)"
 ## Task 10: Frontend — Build `BookmarkButton` component
 
 **Files:**
+
 - Create: `components/shops/bookmark-button.tsx`
 - Create: `components/shops/bookmark-button.test.tsx`
 
@@ -1451,6 +1468,7 @@ git commit -m "feat(lists): add BookmarkButton with saved state and auth redirec
 ## Task 11: Frontend — Build `SaveToListSheet` component
 
 **Files:**
+
 - Create: `components/lists/save-to-list-sheet.tsx`
 - Create: `components/lists/save-to-list-sheet.test.tsx`
 
@@ -1666,6 +1684,7 @@ git commit -m "feat(lists): add SaveToListSheet bottom sheet with checkboxes and
 ## Task 12: Frontend — Build `RenameListDialog` component
 
 **Files:**
+
 - Create: `components/lists/rename-list-dialog.tsx`
 
 No separate test needed — tested as part of the lists page integration test (Task 14).
@@ -1770,6 +1789,7 @@ git commit -m "feat(lists): add RenameListDialog component"
 ## Task 13: Frontend — Build `ListCard` component
 
 **Files:**
+
 - Create: `components/lists/list-card.tsx`
 - Create: `components/lists/list-card.test.tsx`
 
@@ -1924,6 +1944,7 @@ git commit -m "feat(lists): add ListCard component with desktop hover actions an
 ## Task 14: Frontend — Build `/lists` page
 
 **Files:**
+
 - Modify: `app/(protected)/lists/page.tsx` (overwrite scaffold)
 - Modify: `app/(protected)/lists/page.test.tsx` (overwrite basic test)
 
@@ -2132,6 +2153,7 @@ git commit -m "feat(lists): build /lists page with list cards, create, rename, d
 ## Task 15: Frontend — Build `/lists/[listId]` page (split map + shop list)
 
 **Files:**
+
 - Create: `app/(protected)/lists/[listId]/page.tsx`
 - Create: `app/(protected)/lists/[listId]/page.test.tsx`
 
@@ -2545,10 +2567,12 @@ graph TD
 ```
 
 **Wave 1** (parallel — no dependencies):
+
 - Task 1: Install frontend deps (swr, vaul, react-map-gl, mapbox-gl)
 - Task 2: Backend — enhance `get_by_user` with items
 
 **Wave 2** (parallel — depends on Wave 1):
+
 - Task 3: Backend — `GET /lists/pins` ← Task 2
 - Task 4: Backend — `GET /lists/{list_id}/shops` ← Task 2
 - Task 5: Backend — `PATCH /lists/{list_id}` rename ← Task 2
@@ -2556,20 +2580,24 @@ graph TD
 - Task 9: Drawer UI component ← Task 1
 
 **Wave 3** (parallel — depends on Wave 2):
+
 - Task 6: Frontend API proxies ← Tasks 3, 4, 5
 - Task 8: `useUserLists` hook ← Task 7
 
 **Wave 4** (parallel — depends on Wave 3):
+
 - Task 10: BookmarkButton ← Task 8
 - Task 11: SaveToListSheet ← Tasks 8, 9
 - Task 12: RenameListDialog ← Task 8
 - Task 13: ListCard ← Task 8
 
 **Wave 5** (sequential — depends on Wave 4):
+
 - Task 14: `/lists` page ← Tasks 10, 11, 12, 13
 - Task 15: `/lists/[listId]` page ← Tasks 6, 14
 
 **Wave 6** (sequential — depends on Wave 5):
+
 - Task 16: Full test suite + type-check + lint validation
 
 ---

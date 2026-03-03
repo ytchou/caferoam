@@ -8,10 +8,12 @@ import type { List } from '@/lib/types';
 const fetcher = (url: string) => fetchWithAuth(url);
 
 export function useUserLists() {
-  const { data: lists, error, isLoading, mutate } = useSWR<List[]>(
-    '/api/lists',
-    fetcher
-  );
+  const {
+    data: lists,
+    error,
+    isLoading,
+    mutate,
+  } = useSWR<List[]>('/api/lists', fetcher);
 
   const { savedShopIds, listMembership } = useMemo(() => {
     const saved = new Set<string>();

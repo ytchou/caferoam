@@ -485,14 +485,17 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 > **UX reference:** All approved mockups in `docs/designs/ux/screenshots/`. Layout intent in `docs/designs/ux/DESIGN_HANDOFF.md`. Personas and friction points in `docs/designs/ux/personas.md` and `journeys.md`. PostHog events in `docs/designs/ux/metrics.md`.
 
 ### User Lists
+
 > **Design Doc:** [docs/designs/2026-03-03-user-lists-design.md](docs/designs/2026-03-03-user-lists-design.md)
 > **Plan:** [docs/plans/2026-03-03-user-lists-plan.md](docs/plans/2026-03-03-user-lists-plan.md)
 
 **Wave 1 — Foundation:**
+
 - [x] Install frontend deps (swr, vaul, react-map-gl, mapbox-gl)
 - [x] Backend: enhance `get_by_user` to include list items
 
 **Wave 2 — Backend endpoints + Frontend primitives:**
+
 - [x] Backend: `GET /lists/pins` endpoint
 - [x] Backend: `GET /lists/{list_id}/shops` endpoint
 - [x] Backend: `PATCH /lists/{list_id}` rename endpoint
@@ -500,20 +503,24 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 - [x] Drawer UI component (vaul wrapper)
 
 **Wave 3 — Frontend core:**
+
 - [x] Frontend API proxy routes (pins, shops, rename)
 - [x] `useUserLists` SWR hook with derived state + optimistic mutations
 
 **Wave 4 — UI components:**
+
 - [x] `BookmarkButton` component
 - [x] `SaveToListSheet` bottom sheet
 - [x] `RenameListDialog` component
 - [x] `ListCard` component
 
 **Wave 5 — Pages:**
+
 - [x] `/lists` page (list cards, create, rename, delete)
 - [x] `/lists/[listId]` page (split map + shop list + hover highlight)
 
 **Wave 6 — Validation:**
+
 - [x] Full test suite + type-check + lint pass
 
 ### Check-in & Stamps

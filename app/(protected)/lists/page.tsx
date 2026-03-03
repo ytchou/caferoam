@@ -8,8 +8,11 @@ import { ListCard } from '@/components/lists/list-card';
 import { RenameListDialog } from '@/components/lists/rename-list-dialog';
 
 export default function ListsPage() {
-  const { lists, isLoading, createList, deleteList, renameList } = useUserLists();
-  const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
+  const { lists, isLoading, createList, deleteList, renameList } =
+    useUserLists();
+  const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(
+    null
+  );
   const [newListName, setNewListName] = useState('');
 
   async function handleDelete(listId: string, listName: string) {
@@ -29,8 +32,13 @@ export default function ListsPage() {
       setNewListName('');
       toast.success('List created');
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to create list';
-      toast.error(message.includes('Maximum') ? "You've reached the 3-list limit" : message);
+      const message =
+        err instanceof Error ? err.message : 'Failed to create list';
+      toast.error(
+        message.includes('Maximum')
+          ? "You've reached the 3-list limit"
+          : message
+      );
     }
   }
 

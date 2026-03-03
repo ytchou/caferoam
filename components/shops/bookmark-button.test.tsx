@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SWRConfig } from 'swr';
 
 const LIST_ID_1 = 'e3b0c442-98a1-441d-b22f-5a00bd8c3e1b';
-const USER_ID   = 'c7d2a819-5e3f-4c8b-b6a0-1234567890ab';
+const USER_ID = 'c7d2a819-5e3f-4c8b-b6a0-1234567890ab';
 const SHOP_ID_1 = 'a1b2c3d4-5678-90ab-cdef-1234567890ab';
 
 // Mock supabase auth — stays as auth boundary mock
@@ -26,11 +26,21 @@ vi.mock('next/navigation', () => ({
 vi.mock('@/components/ui/drawer', () => ({
   Drawer: ({ children, open }: { children: React.ReactNode; open: boolean }) =>
     open ? <div>{children}</div> : null,
-  DrawerContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DrawerHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DrawerTitle: ({ children }: { children: React.ReactNode }) => <h2>{children}</h2>,
-  DrawerFooter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DrawerClose: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DrawerContent: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  DrawerHeader: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  DrawerTitle: ({ children }: { children: React.ReactNode }) => (
+    <h2>{children}</h2>
+  ),
+  DrawerFooter: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  DrawerClose: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
 }));
 
 const mockFetch = vi.fn();
@@ -51,7 +61,14 @@ describe('BookmarkButton', () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => [
-        { id: LIST_ID_1, user_id: USER_ID, name: 'Work spots', items: [{ shop_id: SHOP_ID_1, added_at: '2026-01-15T10:00:00Z' }], created_at: '2026-01-15T10:00:00Z', updated_at: '2026-01-15T10:00:00Z' },
+        {
+          id: LIST_ID_1,
+          user_id: USER_ID,
+          name: 'Work spots',
+          items: [{ shop_id: SHOP_ID_1, added_at: '2026-01-15T10:00:00Z' }],
+          created_at: '2026-01-15T10:00:00Z',
+          updated_at: '2026-01-15T10:00:00Z',
+        },
       ],
     });
     render(
@@ -59,7 +76,9 @@ describe('BookmarkButton', () => {
         <BookmarkButton shopId={SHOP_ID_1} />
       </SWRConfig>
     );
-    expect(await screen.findByRole('button', { name: /saved/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: /saved/i })
+    ).toBeInTheDocument();
   });
 
   it('renders empty icon when shop is not saved', async () => {
@@ -69,7 +88,14 @@ describe('BookmarkButton', () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => [
-        { id: LIST_ID_1, user_id: USER_ID, name: 'Work spots', items: [], created_at: '2026-01-15T10:00:00Z', updated_at: '2026-01-15T10:00:00Z' },
+        {
+          id: LIST_ID_1,
+          user_id: USER_ID,
+          name: 'Work spots',
+          items: [],
+          created_at: '2026-01-15T10:00:00Z',
+          updated_at: '2026-01-15T10:00:00Z',
+        },
       ],
     });
     render(
@@ -77,7 +103,9 @@ describe('BookmarkButton', () => {
         <BookmarkButton shopId={SHOP_ID_1} />
       </SWRConfig>
     );
-    expect(await screen.findByRole('button', { name: /save to list/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: /save to list/i })
+    ).toBeInTheDocument();
   });
 
   it('redirects to login when unauthenticated user clicks', async () => {
@@ -91,8 +119,6 @@ describe('BookmarkButton', () => {
     );
     const button = await screen.findByRole('button', { name: /save to list/i });
     await userEvent.click(button);
-    expect(mockPush).toHaveBeenCalledWith(
-      expect.stringContaining('/login')
-    );
+    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('/login'));
   });
 });

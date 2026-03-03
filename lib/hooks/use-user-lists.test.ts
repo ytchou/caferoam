@@ -24,7 +24,7 @@ import { useUserLists } from './use-user-lists';
 
 const LIST_ID_1 = 'e3b0c442-98a1-441d-b22f-5a00bd8c3e1b';
 const LIST_ID_2 = 'f4c1d553-a9b2-552e-c330-6b11ce9d4f2c';
-const USER_ID   = 'c7d2a819-5e3f-4c8b-b6a0-1234567890ab';
+const USER_ID = 'c7d2a819-5e3f-4c8b-b6a0-1234567890ab';
 const SHOP_ID_1 = 'a1b2c3d4-5678-90ab-cdef-1234567890ab';
 const SHOP_ID_2 = 'b2c3d4e5-6789-01bc-def0-2345678901bc';
 const SHOP_ID_3 = 'c3d4e5f6-789a-12cd-ef01-3456789012cd';
@@ -65,7 +65,9 @@ describe('useUserLists', () => {
     await waitFor(() => expect(result.current.lists).toHaveLength(2));
     expect(result.current.isSaved(SHOP_ID_1)).toBe(true);
     expect(result.current.isSaved(SHOP_ID_3)).toBe(true);
-    expect(result.current.isSaved('d5e6f7a8-9012-4bcd-ef01-567890123456')).toBe(false);
+    expect(result.current.isSaved('d5e6f7a8-9012-4bcd-ef01-567890123456')).toBe(
+      false
+    );
   });
 
   it('a shop in list A does not show as saved in list B', async () => {
@@ -82,7 +84,10 @@ describe('useUserLists', () => {
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ id: 'e5f6a7b8-9abc-4ef0-d123-456789012345', name: 'New' }),
+      json: async () => ({
+        id: 'e5f6a7b8-9abc-4ef0-d123-456789012345',
+        name: 'New',
+      }),
     });
 
     await act(async () => {
@@ -129,7 +134,9 @@ describe('useUserLists', () => {
     });
 
     const deleteCall = mockFetch.mock.calls.find(
-      (c) => c[1]?.method === 'DELETE' && c[0] === `/api/lists/${LIST_ID_1}/shops/${SHOP_ID_1}`
+      (c) =>
+        c[1]?.method === 'DELETE' &&
+        c[0] === `/api/lists/${LIST_ID_1}/shops/${SHOP_ID_1}`
     );
     expect(deleteCall).toBeDefined();
   });
@@ -138,17 +145,24 @@ describe('useUserLists', () => {
     const { result } = renderHook(() => useUserLists());
     await waitFor(() => expect(result.current.lists).toHaveLength(2));
 
-    const originalItemCount = result.current.lists.find((l) => l.id === LIST_ID_1)?.items.length ?? 0;
+    const originalItemCount =
+      result.current.lists.find((l) => l.id === LIST_ID_1)?.items.length ?? 0;
 
     // API call fails
-    mockFetch.mockResolvedValueOnce({ ok: false, json: async () => ({ detail: 'Server error' }) });
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ detail: 'Server error' }),
+    });
 
     await act(async () => {
-      await expect(result.current.saveShop(LIST_ID_1, 'new-shop-id')).rejects.toThrow();
+      await expect(
+        result.current.saveShop(LIST_ID_1, 'new-shop-id')
+      ).rejects.toThrow();
     });
 
     await waitFor(() => {
-      const itemCount = result.current.lists.find((l) => l.id === LIST_ID_1)?.items.length ?? 0;
+      const itemCount =
+        result.current.lists.find((l) => l.id === LIST_ID_1)?.items.length ?? 0;
       expect(itemCount).toBe(originalItemCount);
     });
   });
@@ -161,7 +175,11 @@ describe('useUserLists', () => {
     mockFetch
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ list_id: LIST_ID_1, shop_id: newShopId, added_at: '2026-01-20T12:00:00Z' }),
+        json: async () => ({
+          list_id: LIST_ID_1,
+          shop_id: newShopId,
+          added_at: '2026-01-20T12:00:00Z',
+        }),
       })
       .mockResolvedValueOnce({ ok: true, json: async () => ({ ok: true }) });
 
@@ -187,7 +205,9 @@ describe('useUserLists', () => {
     });
 
     await act(async () => {
-      await expect(result.current.createList('Fourth List')).rejects.toThrow('Maximum');
+      await expect(result.current.createList('Fourth List')).rejects.toThrow(
+        'Maximum'
+      );
     });
   });
 
@@ -197,7 +217,10 @@ describe('useUserLists', () => {
 
     let resolveRename!: (val: unknown) => void;
     mockFetch.mockImplementationOnce(
-      () => new Promise((resolve) => { resolveRename = resolve; })
+      () =>
+        new Promise((resolve) => {
+          resolveRename = resolve;
+        })
     );
 
     // Trigger rename — the synchronous optimistic mutate runs before the first await
@@ -207,12 +230,17 @@ describe('useUserLists', () => {
 
     // Optimistic update must be visible before the API call settles
     await waitFor(() => {
-      expect(result.current.lists.find((l) => l.id === LIST_ID_1)?.name).toBe('Night spots');
+      expect(result.current.lists.find((l) => l.id === LIST_ID_1)?.name).toBe(
+        'Night spots'
+      );
     });
 
     // Resolve the hanging call to avoid unfinished-promise warnings
     await act(async () => {
-      resolveRename({ ok: true, json: async () => ({ id: LIST_ID_1, name: 'Night spots' }) });
+      resolveRename({
+        ok: true,
+        json: async () => ({ id: LIST_ID_1, name: 'Night spots' }),
+      });
     });
   });
 });

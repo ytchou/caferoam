@@ -28,15 +28,15 @@ User Lists lets authenticated users save coffee shops into named collections (ma
 
 ### Frontend components and pages (7 new files)
 
-| File | Purpose |
-|---|---|
-| `lib/hooks/use-user-lists.ts` | Central SWR hook — list state, derived maps, all mutations |
-| `components/shops/bookmark-button.tsx` | Bookmark icon with filled/empty saved state |
-| `components/lists/save-to-list-sheet.tsx` | Bottom sheet (vaul Drawer) for saving to lists |
-| `components/lists/rename-list-dialog.tsx` | Rename dialog with pre-filled input |
-| `components/lists/list-card.tsx` | List card shown on the `/lists` index page |
-| `app/(protected)/lists/page.tsx` | Overwrite scaffold — mini map + list cards |
-| `app/(protected)/lists/[listId]/page.tsx` | New route — split map + shop list |
+| File                                      | Purpose                                                    |
+| ----------------------------------------- | ---------------------------------------------------------- |
+| `lib/hooks/use-user-lists.ts`             | Central SWR hook — list state, derived maps, all mutations |
+| `components/shops/bookmark-button.tsx`    | Bookmark icon with filled/empty saved state                |
+| `components/lists/save-to-list-sheet.tsx` | Bottom sheet (vaul Drawer) for saving to lists             |
+| `components/lists/rename-list-dialog.tsx` | Rename dialog with pre-filled input                        |
+| `components/lists/list-card.tsx`          | List card shown on the `/lists` index page                 |
+| `app/(protected)/lists/page.tsx`          | Overwrite scaffold — mini map + list cards                 |
+| `app/(protected)/lists/[listId]/page.tsx` | New route — split map + shop list                          |
 
 ---
 
@@ -70,6 +70,7 @@ Both are O(1) lookups — no per-render array scans.
 ### Entry points for saving a shop
 
 Bookmark icon appears in two places:
+
 - **Shop cards** in directory and search results
 - **Shop detail page**
 
@@ -157,14 +158,14 @@ Empty state (no shops): "No shops saved yet — go explore!"
 
 ## Error Handling
 
-| Scenario | Behavior |
-|---|---|
-| 3-list cap hit (API 400) | Toast: "You've reached the 3-list limit" |
-| Optimistic update fails | SWR rollback to last server state + error toast |
-| Rename to empty name | Client validation — submit disabled |
-| Delete list | Confirmation dialog: "Delete 'Work spots'? This won't remove the shops." |
-| Unauthenticated bookmark tap | Redirect to `/login?next=/shops/{id}` |
-| Map with zero pins | Empty bounds fallback, no Mapbox viewport error |
+| Scenario                            | Behavior                                                                                                               |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 3-list cap hit (API 400)            | Toast: "You've reached the 3-list limit"                                                                               |
+| Optimistic update fails             | SWR rollback to last server state + error toast                                                                        |
+| Rename to empty name                | Client validation — submit disabled                                                                                    |
+| Delete list                         | Confirmation dialog: "Delete 'Work spots'? This won't remove the shops."                                               |
+| Unauthenticated bookmark tap        | Redirect to `/login?next=/shops/{id}`                                                                                  |
+| Map with zero pins                  | Empty bounds fallback, no Mapbox viewport error                                                                        |
 | Shop deleted but still in list item | Join silently drops stale item; list card count may differ from detail count. Accepted for V1 — not worth complex fix. |
 
 ---

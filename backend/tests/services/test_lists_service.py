@@ -151,7 +151,12 @@ class TestListsService:
                     return_value=MagicMock(
                         execute=MagicMock(
                             side_effect=APIError(
-                                {"message": "duplicate key value violates unique constraint", "code": "23505", "details": None, "hint": None}
+                                {
+                                    "message": "duplicate key value violates unique constraint",
+                                    "code": "23505",
+                                    "details": None,
+                                    "hint": None,
+                                }
                             )
                         )
                     )
@@ -272,9 +277,7 @@ class TestListsService:
         mock_update = MagicMock(
             return_value=MagicMock(
                 eq=MagicMock(
-                    return_value=MagicMock(
-                        execute=MagicMock(return_value=MagicMock(data=[]))
-                    )
+                    return_value=MagicMock(execute=MagicMock(return_value=MagicMock(data=[])))
                 )
             )
         )
@@ -371,8 +374,16 @@ class TestListsService:
                         execute=MagicMock(
                             return_value=MagicMock(
                                 data=[
-                                    {"list_id": LIST_ID, "shop_id": SHOP_ID_1, "shops": {"latitude": 25.0216, "longitude": 121.5312}},
-                                    {"list_id": LIST_ID, "shop_id": SHOP_ID_2, "shops": {"latitude": 25.0528, "longitude": 121.5201}},
+                                    {
+                                        "list_id": LIST_ID,
+                                        "shop_id": SHOP_ID_1,
+                                        "shops": {"latitude": 25.0216, "longitude": 121.5312},
+                                    },
+                                    {
+                                        "list_id": LIST_ID,
+                                        "shop_id": SHOP_ID_2,
+                                        "shops": {"latitude": 25.0528, "longitude": 121.5201},
+                                    },
                                 ]
                             )
                         )

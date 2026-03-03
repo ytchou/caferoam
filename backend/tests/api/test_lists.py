@@ -15,6 +15,7 @@ client = TestClient(app)
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _new_id() -> str:
     return str(uuid.uuid4())
 
@@ -99,7 +100,13 @@ class TestListsAPI:
         lid = _new_id()
         mock_db = MagicMock()
         mock_db.table.return_value.insert.return_value.execute.return_value.data = [
-            {"id": lid, "user_id": uid, "name": "Regulars", "created_at": _now(), "updated_at": _now()}
+            {
+                "id": lid,
+                "user_id": uid,
+                "name": "Regulars",
+                "created_at": _now(),
+                "updated_at": _now(),
+            }
         ]
         app.dependency_overrides[get_current_user] = lambda: {"id": uid}
         app.dependency_overrides[get_user_db] = lambda: mock_db

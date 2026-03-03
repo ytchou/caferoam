@@ -6,31 +6,31 @@
 
 ## Pass 1 — Full Discovery
 
-*Agents: Bug Hunter (Opus), Standards (Sonnet), Architecture (Sonnet), Plan Alignment (Sonnet), Test Philosophy (Sonnet)*
+_Agents: Bug Hunter (Opus), Standards (Sonnet), Architecture (Sonnet), Plan Alignment (Sonnet), Test Philosophy (Sonnet)_
 
 ### Issues Found (19 total, after dedup and false-positive filtering)
 
-| # | Severity | File:Line | Description | Flagged By |
-|---|----------|-----------|-------------|------------|
-| 1 | Critical | `app/api/lists/[listId]/shops/` (missing file) | Missing Next.js DELETE route for `/api/lists/[listId]/shops/[shopId]` — `removeShop` always 404s; feature completely broken | Bug Hunter |
-| 2 | Important | `backend/services/lists_service.py:74` | `get_list_shops` returns empty list on unauthorized access instead of raising ValueError (→403); design doc explicitly requires service-layer ownership check | Bug Hunter, Architecture, Plan Alignment |
-| 3 | Important | `backend/services/lists_service.py:66` | `add_shop` inserts without checking if result is empty; missing ownership guard consistent with other mutations | Bug Hunter, Architecture |
-| 4 | Important | `components/shops/bookmark-button.tsx:29` | Redirect uses current `pathname` instead of `/shops/${shopId}` — on directory pages the post-login redirect goes to `/` not the shop | Plan Alignment |
-| 5 | Important | `components/lists/rename-list-dialog.tsx` | No focus trap, no Escape key handler — violates a11y conventions and diverges from shadcn/ui system | Architecture |
-| 6 | Important | `app/(protected)/lists/page.tsx` | Mini-map with pins absent; design doc acceptance criterion 2 requires it (react-map-gl installed, API ready) | Plan Alignment |
-| 7 | Important | `app/(protected)/lists/[listId]/page.tsx:103` | Map is a gray placeholder div; no Mapbox pins, no hover-to-pin highlight; design doc acceptance criterion 3 unmet | Plan Alignment |
-| 8 | Important | `lib/hooks/use-user-lists.ts` | `fetchWithAuth` lives in the hook module but is imported by unrelated page components — violates module boundaries; also causes test mock coupling | Architecture, Test Philosophy |
-| 9 | Important | `backend/tests/api/test_lists.py:30,46,63,76,120` | `patch("api.lists.ListsService")` mocks the project's own service class — violates "mock at boundaries only" rule | Test Philosophy, Standards |
-| 10 | Important | `backend/tests/services/test_lists_service.py` | Placeholder IDs throughout (`"user-1"`, `"l1"`, `"s1"`) — violates "realistic test data" rule | Standards |
-| 11 | Minor | `app/(protected)/lists/[listId]/page.tsx:37` | Silent `catch {}` with misleading comment swallows all errors including network failures | Standards |
-| 12 | Minor | `lib/hooks/use-user-lists.test.ts:56,64,72,91,110` | Test names describe function calls/return values rather than user actions | Standards, Test Philosophy |
-| 13 | Minor | `backend/tests/api/test_lists.py:24,104` | Test names use HTTP status codes instead of user outcomes | Test Philosophy |
-| 14 | Minor | `backend/tests/services/test_lists_service.py:22,74,106` | Test names describe implementation steps (function success/failure) not user journeys | Test Philosophy |
-| 15 | Minor | `backend/tests/services/test_lists_service.py:48,88` | Assertions check DB table call sequence (`table_calls == ["lists"]`) — tests implementation detail, not behavior | Test Philosophy |
-| 16 | Minor | `components/lists/save-to-list-sheet.test.tsx` | Missing test: create form hidden when `lists.length === 3` | Plan Alignment |
-| 17 | Minor | `lib/hooks/use-user-lists.test.ts` | Missing rollback-on-failure tests and rapid-toggle serialization test; both required by design doc testing strategy | Plan Alignment |
-| 18 | Minor | `backend/tests/api/test_lists.py` | Missing API-level test: accessing another user's list_id on GET /lists/{id}/shops returns 403 | Plan Alignment |
-| 19 | Minor | `lib/hooks/use-user-lists.ts` | `saveShop` optimistic update does not guard against duplicate entries on rapid clicks | Bug Hunter |
+| #   | Severity  | File:Line                                                | Description                                                                                                                                                   | Flagged By                               |
+| --- | --------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| 1   | Critical  | `app/api/lists/[listId]/shops/` (missing file)           | Missing Next.js DELETE route for `/api/lists/[listId]/shops/[shopId]` — `removeShop` always 404s; feature completely broken                                   | Bug Hunter                               |
+| 2   | Important | `backend/services/lists_service.py:74`                   | `get_list_shops` returns empty list on unauthorized access instead of raising ValueError (→403); design doc explicitly requires service-layer ownership check | Bug Hunter, Architecture, Plan Alignment |
+| 3   | Important | `backend/services/lists_service.py:66`                   | `add_shop` inserts without checking if result is empty; missing ownership guard consistent with other mutations                                               | Bug Hunter, Architecture                 |
+| 4   | Important | `components/shops/bookmark-button.tsx:29`                | Redirect uses current `pathname` instead of `/shops/${shopId}` — on directory pages the post-login redirect goes to `/` not the shop                          | Plan Alignment                           |
+| 5   | Important | `components/lists/rename-list-dialog.tsx`                | No focus trap, no Escape key handler — violates a11y conventions and diverges from shadcn/ui system                                                           | Architecture                             |
+| 6   | Important | `app/(protected)/lists/page.tsx`                         | Mini-map with pins absent; design doc acceptance criterion 2 requires it (react-map-gl installed, API ready)                                                  | Plan Alignment                           |
+| 7   | Important | `app/(protected)/lists/[listId]/page.tsx:103`            | Map is a gray placeholder div; no Mapbox pins, no hover-to-pin highlight; design doc acceptance criterion 3 unmet                                             | Plan Alignment                           |
+| 8   | Important | `lib/hooks/use-user-lists.ts`                            | `fetchWithAuth` lives in the hook module but is imported by unrelated page components — violates module boundaries; also causes test mock coupling            | Architecture, Test Philosophy            |
+| 9   | Important | `backend/tests/api/test_lists.py:30,46,63,76,120`        | `patch("api.lists.ListsService")` mocks the project's own service class — violates "mock at boundaries only" rule                                             | Test Philosophy, Standards               |
+| 10  | Important | `backend/tests/services/test_lists_service.py`           | Placeholder IDs throughout (`"user-1"`, `"l1"`, `"s1"`) — violates "realistic test data" rule                                                                 | Standards                                |
+| 11  | Minor     | `app/(protected)/lists/[listId]/page.tsx:37`             | Silent `catch {}` with misleading comment swallows all errors including network failures                                                                      | Standards                                |
+| 12  | Minor     | `lib/hooks/use-user-lists.test.ts:56,64,72,91,110`       | Test names describe function calls/return values rather than user actions                                                                                     | Standards, Test Philosophy               |
+| 13  | Minor     | `backend/tests/api/test_lists.py:24,104`                 | Test names use HTTP status codes instead of user outcomes                                                                                                     | Test Philosophy                          |
+| 14  | Minor     | `backend/tests/services/test_lists_service.py:22,74,106` | Test names describe implementation steps (function success/failure) not user journeys                                                                         | Test Philosophy                          |
+| 15  | Minor     | `backend/tests/services/test_lists_service.py:48,88`     | Assertions check DB table call sequence (`table_calls == ["lists"]`) — tests implementation detail, not behavior                                              | Test Philosophy                          |
+| 16  | Minor     | `components/lists/save-to-list-sheet.test.tsx`           | Missing test: create form hidden when `lists.length === 3`                                                                                                    | Plan Alignment                           |
+| 17  | Minor     | `lib/hooks/use-user-lists.test.ts`                       | Missing rollback-on-failure tests and rapid-toggle serialization test; both required by design doc testing strategy                                           | Plan Alignment                           |
+| 18  | Minor     | `backend/tests/api/test_lists.py`                        | Missing API-level test: accessing another user's list_id on GET /lists/{id}/shops returns 403                                                                 | Plan Alignment                           |
+| 19  | Minor     | `lib/hooks/use-user-lists.ts`                            | `saveShop` optimistic update does not guard against duplicate entries on rapid clicks                                                                         | Bug Hunter                               |
 
 ### False Positives Skipped
 
@@ -56,6 +56,7 @@
 **Pre-fix SHA:** 201be096eab8e4bf0929d0a8dcd326835cd4abbd
 
 **Issues fixed:**
+
 - [Important] `backend/services/lists_service.py:74` — Added ownership check via RLS-filtered `lists` query; raises ValueError → 403
 - [Important] `backend/api/lists.py` — Added try/except ValueError to `get_list_shops` route
 - [Important] `components/shops/bookmark-button.tsx:29` — Redirect now uses `/shops/${shopId}` instead of `pathname`; removed unused `usePathname` import
@@ -68,14 +69,16 @@
 - [Minor] `lib/hooks/use-user-lists.test.ts` — Added optimistic update rollback test
 
 **Batch Test Run:**
+
 - `pnpm test` — PASS (319 tests, 47 files)
 - `uv run pytest tests/` — 290 passed (2 pre-existing admin failures unrelated to lists)
 
 ## Pass 2 — Re-Verify
 
-*Agents re-run (smart routing): All 5 (Bug Hunter, Standards, Architecture, Plan Alignment, Test Philosophy)*
+_Agents re-run (smart routing): All 5 (Bug Hunter, Standards, Architecture, Plan Alignment, Test Philosophy)_
 
 ### Previously Flagged Issues — Resolution Status
+
 - [Important] `get_list_shops` ownership check — ✓ Resolved
 - [Important] Bookmark redirect — ✓ Resolved
 - [Important] `fetchWithAuth` module location — ✓ Resolved
@@ -95,6 +98,7 @@ No regressions introduced.
 **Iterations completed:** 1
 **All Critical/Important resolved:** Yes
 **Remaining issues:**
+
 - None
 
 **Review log:** docs/reviews/2026-03-03-feat-user-lists.md

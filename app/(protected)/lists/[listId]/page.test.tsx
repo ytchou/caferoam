@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SWRConfig } from 'swr';
 
 const LIST_ID_1 = 'e3b0c442-98a1-441d-b22f-5a00bd8c3e1b';
-const USER_ID   = 'c7d2a819-5e3f-4c8b-b6a0-1234567890ab';
+const USER_ID = 'c7d2a819-5e3f-4c8b-b6a0-1234567890ab';
 const SHOP_ID_1 = 'a1b2c3d4-5678-90ab-cdef-1234567890ab';
 const SHOP_ID_2 = 'b2c3d4e5-6789-01bc-def0-2345678901bc';
 

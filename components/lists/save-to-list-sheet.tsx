@@ -19,7 +19,11 @@ interface SaveToListSheetProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function SaveToListSheet({ shopId, open, onOpenChange }: SaveToListSheetProps) {
+export function SaveToListSheet({
+  shopId,
+  open,
+  onOpenChange,
+}: SaveToListSheetProps) {
   const { lists, isInList, saveShop, removeShop, createList } = useUserLists();
   const [newListName, setNewListName] = useState('');
   const [creating, setCreating] = useState(false);
@@ -43,8 +47,13 @@ export function SaveToListSheet({ shopId, open, onOpenChange }: SaveToListSheetP
       await createList(newListName.trim());
       setNewListName('');
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to create list';
-      toast.error(message.includes('Maximum') ? "You've reached the 3-list limit" : message);
+      const message =
+        err instanceof Error ? err.message : 'Failed to create list';
+      toast.error(
+        message.includes('Maximum')
+          ? "You've reached the 3-list limit"
+          : message
+      );
     } finally {
       setCreating(false);
     }

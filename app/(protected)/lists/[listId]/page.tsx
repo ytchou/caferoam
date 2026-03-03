@@ -39,7 +39,10 @@ export default function ListDetailPage() {
   async function handleRemoveShop(shopId: string) {
     try {
       await removeShop(listId, shopId);
-      mutateShops(shops.filter((s) => s.id !== shopId), false);
+      mutateShops(
+        shops.filter((s) => s.id !== shopId),
+        false
+      );
       toast.success('Shop removed');
     } catch {
       toast.error('Failed to remove shop');
@@ -104,7 +107,9 @@ export default function ListDetailPage() {
         ) : shops.length === 0 ? (
           <div className="py-16 text-center">
             <p className="text-gray-500">No shops saved yet</p>
-            <p className="mt-1 text-sm text-gray-400">Go explore and save some shops!</p>
+            <p className="mt-1 text-sm text-gray-400">
+              Go explore and save some shops!
+            </p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -121,7 +126,9 @@ export default function ListDetailPage() {
               >
                 <div className="min-w-0 flex-1">
                   <Link href={`/shops/${shop.id}`}>
-                    <h3 className="font-medium text-gray-900 hover:underline">{shop.name}</h3>
+                    <h3 className="font-medium text-gray-900 hover:underline">
+                      {shop.name}
+                    </h3>
                   </Link>
                   <p className="mt-0.5 text-sm text-gray-500">
                     {shop.rating && `★ ${shop.rating}`}
