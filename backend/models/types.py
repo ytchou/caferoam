@@ -110,6 +110,20 @@ class Stamp(BaseModel):
     earned_at: datetime
 
 
+class ShopCheckInSummary(BaseModel):
+    id: str
+    user_id: str
+    display_name: str | None = None
+    photo_url: str
+    note: str | None = None
+    created_at: datetime
+
+
+class ShopCheckInPreview(BaseModel):
+    count: int
+    preview_photo_url: str | None = None
+
+
 class SearchFilters(BaseModel):
     dimensions: dict[TaxonomyDimension, list[str]] | None = None
     near_latitude: float | None = None
