@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { BatchDetail } from './BatchDetail';
 
@@ -38,7 +38,7 @@ export function BatchesList() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [expandedBatchId, setExpandedBatchId] = useState<string | null>(null);
-  const tokenRef = useRef<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
 
   const fetchBatches = useCallback(
     async (token: string, currentPage: number) => {
@@ -72,7 +72,7 @@ export function BatchesList() {
         setLoading(false);
         return;
       }
-      tokenRef.current = session.access_token;
+      setToken(session.access_token);
       fetchBatches(session.access_token, page);
     }
     load();
@@ -134,12 +134,12 @@ export function BatchesList() {
                     </div>
                   </td>
                 </tr>
-                {expandedBatchId === batch.batch_id && tokenRef.current && (
+                {expandedBatchId === batch.batch_id && token && (
                   <tr className="border-b bg-gray-50">
                     <td colSpan={3} className="px-4 py-3">
                       <BatchDetail
                         batchId={batch.batch_id}
-                        token={tokenRef.current}
+                        token={token}
                       />
                     </td>
                   </tr>

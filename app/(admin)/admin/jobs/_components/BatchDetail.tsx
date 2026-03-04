@@ -71,19 +71,20 @@ export function BatchDetail({
 
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true);
-    const params = new URLSearchParams({
-      offset: String((page - 1) * PAGE_SIZE),
-      limit: String(PAGE_SIZE),
-    });
-    if (debouncedSearch) params.set('search', debouncedSearch);
-    if (statusFilter) params.set('status', statusFilter);
 
-    fetch(`/api/admin/pipeline/batches/${batchId}?${params}`, {
-      headers: { Authorization: `Bearer ${token}` },
-      signal: controller.signal,
-    })
-      .then(async (res) => {
+    async function doFetch() {
+      setLoading(true);
+      const params = new URLSearchParams({
+        offset: String((page - 1) * PAGE_SIZE),
+        limit: String(PAGE_SIZE),
+      });
+      if (debouncedSearch) params.set('search', debouncedSearch);
+      if (statusFilter) params.set('status', statusFilter);
+      try {
+        const res = await fetch(`/api/admin/pipeline/batches/${batchId}?${params}`, {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
+        });
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
           setError(body.detail || 'Failed to load batch detail');
@@ -91,15 +92,16 @@ export function BatchDetail({
           setData(await res.json());
           setError(null);
         }
-        setLoading(false);
-      })
-      .catch((e) => {
-        if (e.name !== 'AbortError') {
+      } catch (e) {
+        if ((e as Error).name !== 'AbortError') {
           setError('Failed to load batch detail');
-          setLoading(false);
         }
-      });
+      } finally {
+        setLoading(false);
+      }
+    }
 
+    doFetch();
     return () => controller.abort();
   }, [batchId, token, debouncedSearch, statusFilter, page]);
 
