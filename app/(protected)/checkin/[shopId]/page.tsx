@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { toast } from 'sonner';
@@ -22,6 +22,15 @@ export default function CheckInPage() {
 
   const [photos, setPhotos] = useState<File[]>([]);
   const [menuPhoto, setMenuPhoto] = useState<File | null>(null);
+  const menuPhotoPreviewUrl = useMemo(
+    () => (menuPhoto ? URL.createObjectURL(menuPhoto) : null),
+    [menuPhoto]
+  );
+  useEffect(() => {
+    return () => {
+      if (menuPhotoPreviewUrl) URL.revokeObjectURL(menuPhotoPreviewUrl);
+    };
+  }, [menuPhotoPreviewUrl]);
   const [note, setNote] = useState('');
   const [submitState, setSubmitState] = useState<SubmitState>('idle');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -34,8 +43,10 @@ export default function CheckInPage() {
     try {
       setSubmitState('uploading');
 
-      const photoUrls = await Promise.all(photos.map(uploadCheckInPhoto));
-      const menuPhotoUrl = menuPhoto ? await uploadMenuPhoto(menuPhoto) : undefined;
+      const [photoUrls, menuPhotoUrl] = await Promise.all([
+        Promise.all(photos.map(uploadCheckInPhoto)),
+        menuPhoto ? uploadMenuPhoto(menuPhoto) : Promise.resolve(undefined),
+      ]);
 
       setSubmitState('submitting');
 
@@ -50,6 +61,7 @@ export default function CheckInPage() {
       });
 
       toast('打卡成功！Stamp earned.', {
+        icon: <img src={`/stamps/${shopId}.svg`} alt="Stamp" className="h-8 w-8" />,
         description: shop?.name ?? 'Check-in recorded',
         action: {
           label: 'View Collection',
@@ -120,9 +132,9 @@ export default function CheckInPage() {
                 onChange={(e) => setMenuPhoto(e.target.files?.[0] ?? null)}
                 className="block w-full text-sm text-gray-500 file:mr-2 file:rounded file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-sm"
               />
-              {menuPhoto && (
+              {menuPhotoPreviewUrl && (
                 <img
-                  src={URL.createObjectURL(menuPhoto)}
+                  src={menuPhotoPreviewUrl}
                   alt="Menu photo preview"
                   className="h-20 w-20 rounded object-cover"
                 />
