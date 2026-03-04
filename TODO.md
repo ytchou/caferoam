@@ -612,10 +612,10 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 
 **Chunk 3 — UI Components (Wave 5):**
 
-- [ ] ProfileHeader component with TDD
-- [ ] StampDetailSheet + enhance StampPassport tap-to-open
-- [ ] CheckinHistoryTab component with TDD
-- [ ] ListsTab component with TDD
+- [x] ProfileHeader component with TDD
+- [x] StampDetailSheet + enhance StampPassport tap-to-open
+- [x] CheckinHistoryTab component with TDD
+- [x] ListsTab component with TDD
 
 **Chunk 4 — Pages + Verification (Wave 6-7):**
 
