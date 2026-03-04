@@ -575,7 +575,7 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 
 **Chunk 3 — Frontend Components (Wave 3-4):**
 
-- [ ] StarRating component (interactive + display modes) with TDD
+- [x] StarRating component (interactive + display modes) with TDD
 - [ ] TagConfirmation component (taxonomy tag chips) with TDD
 - [ ] ReviewForm component (stars + tags + text) with TDD
 
