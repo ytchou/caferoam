@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback } from 'react';
 import useSWR from 'swr';
 import { fetchWithAuth } from '@/lib/api/fetch';
 
@@ -22,13 +23,24 @@ interface CheckInPhotoGridProps {
   isAuthenticated: boolean;
 }
 
-export function CheckInPhotoGrid({ shopId, isAuthenticated }: CheckInPhotoGridProps) {
-  const { data } = useSWR(
-    `/api/shops/${shopId}/checkins`,
-    isAuthenticated
-      ? (url: string) => fetchWithAuth(url)
-      : (url: string) => fetch(url).then((r) => r.json())
+function CheckInHeader({ count }: { count: number }) {
+  return (
+    <div className="mb-3 flex items-center justify-between">
+      <h3 className="font-semibold">Recent Check-ins</h3>
+      <span className="text-sm text-gray-500">{count} visits</span>
+    </div>
   );
+}
+
+export function CheckInPhotoGrid({ shopId, isAuthenticated }: CheckInPhotoGridProps) {
+  const apiUrl = `/api/shops/${shopId}/checkins`;
+  const swrKey = `${isAuthenticated ? 'auth' : 'anon'}:${apiUrl}`;
+  const fetcher = useCallback(
+    () =>
+      isAuthenticated ? fetchWithAuth(apiUrl) : fetch(apiUrl).then((r) => r.json()),
+    [isAuthenticated, apiUrl]
+  );
+  const { data } = useSWR(swrKey, fetcher);
 
   if (!data) return null;
 
@@ -38,10 +50,7 @@ export function CheckInPhotoGrid({ shopId, isAuthenticated }: CheckInPhotoGridPr
 
     return (
       <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-semibold">Recent Check-ins</h3>
-          <span className="text-sm text-gray-500">{data.length} visits</span>
-        </div>
+        <CheckInHeader count={data.length} />
         <div className="grid grid-cols-3 gap-1">
           {data.slice(0, 9).map((checkin: CheckInSummary) => (
             <img
@@ -62,10 +71,7 @@ export function CheckInPhotoGrid({ shopId, isAuthenticated }: CheckInPhotoGridPr
 
   return (
     <section>
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-semibold">Recent Check-ins</h3>
-        <span className="text-sm text-gray-500">{preview.count} visits</span>
-      </div>
+      <CheckInHeader count={preview.count} />
       <div className="relative overflow-hidden rounded-lg">
         {preview.preview_photo_url && (
           <img
