@@ -54,7 +54,11 @@ describe('PhotoUploader', () => {
   });
 
   it('hides the add button when 3 photos are selected', () => {
-    const files = [makeImageFile('a.jpg'), makeImageFile('b.jpg'), makeImageFile('c.jpg')];
+    const files = [
+      makeImageFile('a.jpg'),
+      makeImageFile('b.jpg'),
+      makeImageFile('c.jpg'),
+    ];
     render(<PhotoUploader files={files} onChange={vi.fn()} maxPhotos={3} />);
     expect(screen.queryByText(/add another/i)).not.toBeInTheDocument();
   });

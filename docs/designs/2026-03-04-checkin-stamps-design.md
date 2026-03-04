@@ -39,6 +39,7 @@ Check-in Page (/checkin/[shopId])
 Direct client upload to Supabase Storage using the user's session JWT (RLS-protected bucket). After all uploads complete, the client POSTs resulting URLs to the existing `POST /checkins` API. No files routed through the backend.
 
 Alternatives rejected:
+
 - **Signed URL upload** — extra round-trip, no meaningful security benefit over RLS in V1
 - **Backend proxy (multipart)** — routes large files through two servers, breaks thin-proxy rule
 
@@ -136,22 +137,25 @@ USING (bucket_id = 'checkin-photos' AND (storage.foldername(name))[1] = auth.uid
 ```
 
 **Photo upload input behavior:**
+
 - **Mobile** (detected via `pointer: coarse` media query): `<input type="file" accept="image/*" capture="environment">` — camera opens by default. Secondary "Choose from gallery" tap target below.
 - **Desktop**: `<input type="file" accept="image/*">` — standard system file picker. No `capture` attribute.
 - Max 3 photos, ≤ 5 MB each, image types only (client-side validation before upload).
 - Each thumbnail shows an × remove button.
 
 **Submit state machine:**
+
 ```
 idle → uploading (per-photo progress) → submitting → success → navigate back
                                                     → error (toast with retry)
 ```
 
 **On success:**
+
 - Navigate back to `/shop/[shopId]`
 - Show stamp reveal toast (see below)
 
-**PDPA disclosure:** Menu photo collapsible section includes disclosure text at upload area: *"Menu photos may be used to improve shop information on CafeRoam."* Required per SPEC §5.
+**PDPA disclosure:** Menu photo collapsible section includes disclosure text at upload area: _"Menu photos may be used to improve shop information on CafeRoam."_ Required per SPEC §5.
 
 ### 2. Stamp Reveal Toast
 
@@ -198,6 +202,7 @@ Slides up from bottom after successful check-in:
 - Page 2 appears once 20 stamps earned (first page full)
 
 **Components:**
+
 - `StampPassport` — container, manages pages
 - `PassportPage` — 4×5 grid of slots
 - `StampSlot` — filled (stamp SVG) or empty (circle outline)
@@ -248,6 +253,7 @@ Slides up from bottom after successful check-in:
 - Uses a separate `GET /shops/{shopId}/checkins/preview` endpoint (public, returns only 1 photo + total count) or derives from shop record
 
 **Components:**
+
 - `CheckInPhotoGrid` — auth-aware, renders full grid or teaser
 - `CheckInPhotoLightbox` — modal on tap
 - `CheckInCountBadge` — "X visits" display
@@ -256,14 +262,14 @@ Slides up from bottom after successful check-in:
 
 ## Error Handling
 
-| Scenario | Handling |
-|----------|----------|
-| Upload fails (network) | Per-photo error with retry button; other photos unaffected |
-| File too large (>5 MB) | Inline validation error before upload starts |
-| Invalid file type | Inline error; file rejected |
-| Max photos exceeded | Disable "+ Add" button after 3 photos |
-| Check-in POST fails | Error toast: "Check-in failed. Try again." with retry |
-| No photos selected on submit | Submit button remains disabled (prevented at UI level) |
+| Scenario                     | Handling                                                   |
+| ---------------------------- | ---------------------------------------------------------- |
+| Upload fails (network)       | Per-photo error with retry button; other photos unaffected |
+| File too large (>5 MB)       | Inline validation error before upload starts               |
+| Invalid file type            | Inline error; file rejected                                |
+| Max photos exceeded          | Disable "+ Add" button after 3 photos                      |
+| Check-in POST fails          | Error toast: "Check-in failed. Try again." with retry      |
+| No photos selected on submit | Submit button remains disabled (prevented at UI level)     |
 
 ---
 

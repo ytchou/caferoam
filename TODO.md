@@ -524,28 +524,34 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 - [x] Full test suite + type-check + lint pass
 
 ### Check-in & Stamps
+
 > **Design Doc:** [docs/designs/2026-03-04-checkin-stamps-design.md](docs/designs/2026-03-04-checkin-stamps-design.md)
 > **Plan:** [docs/plans/2026-03-04-checkin-stamps-plan.md](docs/plans/2026-03-04-checkin-stamps-plan.md)
 
 **Chunk 1 — Infrastructure (Wave 1):**
+
 - [x] Supabase Storage migration: `checkin-photos` + `menu-photos` buckets with RLS
 - [x] Backend `GET /shops/{shop_id}/checkins` endpoint (auth-gated response shape)
 - [x] Photo upload utility (`lib/supabase/storage.ts`)
 
 **Chunk 2 — Components (Wave 1-2):**
+
 - [x] PhotoUploader component (camera-first mobile, file picker desktop, max 3)
 - [x] StampPassport component (4×5 grid, swipeable pages)
 - [x] `useUserStamps` SWR hook
 
 **Chunk 3 — Pages (Wave 2):**
+
 - [x] Check-in page (`/checkin/[shopId]`): upload → submit → stamp toast
 - [x] Profile page: stamp passport collection (replace placeholder)
 - [x] Next.js proxy route for shop check-ins
 
 **Chunk 4 — Shop Detail Integration (Wave 3):**
+
 - [x] CheckInPhotoGrid component (auth-gated: photo grid vs. preview + login CTA)
 
 **Deferred:**
+
 - [ ] Menu photo enrichment worker (job queueing already works via DB trigger)
 - [ ] `checkin_completed` PostHog event: shop_id, is_first_checkin_at_shop, has_text_note, has_menu_photo
 - [ ] `profile_stamps_viewed` PostHog event: stamp_count

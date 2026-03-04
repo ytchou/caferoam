@@ -15,9 +15,8 @@ export default function CheckInPage() {
   const { shopId } = useParams<{ shopId: string }>();
   const router = useRouter();
 
-  const { data: shop } = useSWR(
-    shopId ? `/api/shops/${shopId}` : null,
-    (url) => fetch(url).then((r) => r.json())
+  const { data: shop } = useSWR(shopId ? `/api/shops/${shopId}` : null, (url) =>
+    fetch(url).then((r) => r.json())
   );
 
   const [photos, setPhotos] = useState<File[]>([]);
@@ -61,7 +60,9 @@ export default function CheckInPage() {
       });
 
       toast('打卡成功！Stamp earned.', {
-        icon: <img src={`/stamps/${shopId}.svg`} alt="Stamp" className="h-8 w-8" />,
+        icon: (
+          <img src={`/stamps/${shopId}.svg`} alt="Stamp" className="h-8 w-8" />
+        ),
         description: shop?.name ?? 'Check-in recorded',
         action: {
           label: 'View Collection',
@@ -100,7 +101,10 @@ export default function CheckInPage() {
         <PhotoUploader files={photos} onChange={setPhotos} />
 
         <div>
-          <label htmlFor="note" className="mb-1 block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="note"
+            className="mb-1 block text-sm font-medium text-gray-700"
+          >
             Note <span className="text-gray-400">(optional)</span>
           </label>
           <textarea
@@ -119,7 +123,9 @@ export default function CheckInPage() {
             onClick={() => setMenuOpen(!menuOpen)}
             className="flex items-center gap-1 text-sm text-gray-600"
           >
-            <span className={`transition-transform ${menuOpen ? 'rotate-90' : ''}`}>
+            <span
+              className={`transition-transform ${menuOpen ? 'rotate-90' : ''}`}
+            >
               ▸
             </span>
             Menu photo <span className="text-gray-400">(optional)</span>
@@ -146,11 +152,7 @@ export default function CheckInPage() {
           </p>
         </div>
 
-        <Button
-          type="submit"
-          disabled={!canSubmit}
-          className="w-full"
-        >
+        <Button type="submit" disabled={!canSubmit} className="w-full">
           {submitState === 'uploading'
             ? 'Uploading photos...'
             : submitState === 'submitting'

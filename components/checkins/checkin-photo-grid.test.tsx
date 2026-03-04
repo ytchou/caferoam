@@ -68,7 +68,10 @@ describe('CheckInPhotoGrid', () => {
   it('shows count and login CTA for unauthenticated view', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: async () => ({ count: 47, preview_photo_url: 'https://example.com/p1.jpg' }),
+      json: async () => ({
+        count: 47,
+        preview_photo_url: 'https://example.com/p1.jpg',
+      }),
     });
 
     render(<CheckInPhotoGrid shopId="shop-1" isAuthenticated={false} />, {
@@ -87,10 +90,9 @@ describe('CheckInPhotoGrid', () => {
       json: async () => ({ count: 0, preview_photo_url: null }),
     });
 
-    render(
-      <CheckInPhotoGrid shopId="shop-1" isAuthenticated={false} />,
-      { wrapper }
-    );
+    render(<CheckInPhotoGrid shopId="shop-1" isAuthenticated={false} />, {
+      wrapper,
+    });
 
     await waitFor(() => {
       expect(screen.queryByText(/visits/i)).not.toBeInTheDocument();

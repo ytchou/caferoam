@@ -38,7 +38,11 @@ const STAMPS = [
 ];
 
 function wrapper({ children }: { children: React.ReactNode }) {
-  return React.createElement(SWRConfig, { value: { provider: () => new Map() } }, children);
+  return React.createElement(
+    SWRConfig,
+    { value: { provider: () => new Map() } },
+    children
+  );
 }
 
 describe('useUserStamps', () => {

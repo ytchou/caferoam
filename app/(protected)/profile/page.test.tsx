@@ -35,7 +35,11 @@ describe('ProfilePage', () => {
   it('shows the stamp passport with earned stamps', async () => {
     const stamps = [
       makeStamp({ id: 'stamp-1' }),
-      makeStamp({ id: 'stamp-2', shop_id: 'shop-b', design_url: '/stamps/shop-b.svg' }),
+      makeStamp({
+        id: 'stamp-2',
+        shop_id: 'shop-b',
+        design_url: '/stamps/shop-b.svg',
+      }),
     ];
     mockFetch.mockResolvedValue({ ok: true, json: async () => stamps });
 

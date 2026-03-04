@@ -21,7 +21,10 @@ class TestShopCheckinsAPI:
                         {
                             "id": "ci-1",
                             "user_id": "user-2",
-                            "photo_urls": ["https://example.com/p1.jpg", "https://example.com/p2.jpg"],
+                            "photo_urls": [
+                                "https://example.com/p1.jpg",
+                                "https://example.com/p2.jpg",
+                            ],
                             "note": "Great latte",
                             "created_at": "2026-03-01T10:00:00Z",
                             "profiles": {"display_name": "小明"},
@@ -85,6 +88,8 @@ class TestShopCheckinsAPI:
                     data=[]
                 )
                 client.get("/shops/shop-1/checkins?limit=3")
-                mock_db.table.return_value.select.return_value.eq.return_value.order.return_value.limit.assert_called_with(3)
+                mock_db.table.return_value.select.return_value.eq.return_value.order.return_value.limit.assert_called_with(
+                    3
+                )
         finally:
             app.dependency_overrides.clear()

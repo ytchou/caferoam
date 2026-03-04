@@ -23,7 +23,7 @@ beforeEach(() => {
         data: { session: { user: { id: 'user-abc' } } },
       }),
     },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
   mockUpload.mockReset();
   mockGetPublicUrl.mockReset();
@@ -31,9 +31,15 @@ beforeEach(() => {
 
 describe('uploadCheckInPhoto', () => {
   it('uploads file to checkin-photos bucket under user path and returns public URL', async () => {
-    mockUpload.mockResolvedValue({ data: { path: 'user-abc/test.webp' }, error: null });
+    mockUpload.mockResolvedValue({
+      data: { path: 'user-abc/test.webp' },
+      error: null,
+    });
     mockGetPublicUrl.mockReturnValue({
-      data: { publicUrl: 'https://example.supabase.co/storage/v1/object/public/checkin-photos/user-abc/test.webp' },
+      data: {
+        publicUrl:
+          'https://example.supabase.co/storage/v1/object/public/checkin-photos/user-abc/test.webp',
+      },
     });
 
     const file = new File(['photo'], 'latte.jpg', { type: 'image/jpeg' });
@@ -48,7 +54,10 @@ describe('uploadCheckInPhoto', () => {
   });
 
   it('throws when upload fails', async () => {
-    mockUpload.mockResolvedValue({ data: null, error: { message: 'Bucket not found' } });
+    mockUpload.mockResolvedValue({
+      data: null,
+      error: { message: 'Bucket not found' },
+    });
 
     const file = new File(['photo'], 'latte.jpg', { type: 'image/jpeg' });
     await expect(uploadCheckInPhoto(file)).rejects.toThrow('Bucket not found');
@@ -57,9 +66,15 @@ describe('uploadCheckInPhoto', () => {
 
 describe('uploadMenuPhoto', () => {
   it('uploads to menu-photos bucket', async () => {
-    mockUpload.mockResolvedValue({ data: { path: 'user-abc/menu.webp' }, error: null });
+    mockUpload.mockResolvedValue({
+      data: { path: 'user-abc/menu.webp' },
+      error: null,
+    });
     mockGetPublicUrl.mockReturnValue({
-      data: { publicUrl: 'https://example.supabase.co/storage/v1/object/public/menu-photos/user-abc/menu.webp' },
+      data: {
+        publicUrl:
+          'https://example.supabase.co/storage/v1/object/public/menu-photos/user-abc/menu.webp',
+      },
     });
 
     const file = new File(['photo'], 'menu.jpg', { type: 'image/jpeg' });

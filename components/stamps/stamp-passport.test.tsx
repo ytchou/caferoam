@@ -13,8 +13,16 @@ describe('StampPassport', () => {
 
   it('renders stamps in filled slots and the rest as empty', () => {
     const stamps = [
-      makeStamp({ id: 'stamp-1', shop_id: 'shop-a', design_url: '/stamps/shop-a.svg' }),
-      makeStamp({ id: 'stamp-2', shop_id: 'shop-b', design_url: '/stamps/shop-b.svg' }),
+      makeStamp({
+        id: 'stamp-1',
+        shop_id: 'shop-a',
+        design_url: '/stamps/shop-a.svg',
+      }),
+      makeStamp({
+        id: 'stamp-2',
+        shop_id: 'shop-b',
+        design_url: '/stamps/shop-b.svg',
+      }),
     ];
     render(<StampPassport stamps={stamps} />);
     const filledSlots = screen.getAllByTestId('stamp-slot-filled');
@@ -37,7 +45,10 @@ describe('StampPassport', () => {
   });
 
   it('shows the total stamp count in the header', () => {
-    const stamps = [makeStamp(), makeStamp({ id: 'stamp-2', shop_id: 'shop-b' })];
+    const stamps = [
+      makeStamp(),
+      makeStamp({ id: 'stamp-2', shop_id: 'shop-b' }),
+    ];
     render(<StampPassport stamps={stamps} />);
     expect(screen.getByText(/2 stamps/i)).toBeInTheDocument();
   });

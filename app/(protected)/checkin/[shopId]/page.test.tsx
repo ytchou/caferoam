@@ -35,14 +35,24 @@ vi.mock('@/lib/supabase/client', () => ({
   createClient: () => ({
     auth: {
       getSession: vi.fn().mockResolvedValue({
-        data: { session: { access_token: 'test-token', user: { id: 'user-abc' } } },
+        data: {
+          session: { access_token: 'test-token', user: { id: 'user-abc' } },
+        },
       }),
     },
     storage: {
       from: () => ({
-        upload: vi.fn().mockResolvedValue({ data: { path: 'user-abc/photo.webp' }, error: null }),
+        upload: vi
+          .fn()
+          .mockResolvedValue({
+            data: { path: 'user-abc/photo.webp' },
+            error: null,
+          }),
         getPublicUrl: () => ({
-          data: { publicUrl: 'https://example.supabase.co/storage/v1/object/public/checkin-photos/user-abc/photo.webp' },
+          data: {
+            publicUrl:
+              'https://example.supabase.co/storage/v1/object/public/checkin-photos/user-abc/photo.webp',
+          },
         }),
       }),
     },
@@ -91,7 +101,9 @@ describe('CheckInPage', () => {
       json: async () => ({
         id: 'ci-1',
         shop_id: 'shop-d4e5f6',
-        photo_urls: ['https://example.supabase.co/storage/v1/object/public/checkin-photos/user-abc/photo.webp'],
+        photo_urls: [
+          'https://example.supabase.co/storage/v1/object/public/checkin-photos/user-abc/photo.webp',
+        ],
         created_at: '2026-03-04T10:00:00Z',
       }),
     });

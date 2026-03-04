@@ -20,7 +20,10 @@ export function PhotoUploader({
 }: PhotoUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
-  const previewUrls = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
+  const previewUrls = useMemo(
+    () => files.map((f) => URL.createObjectURL(f)),
+    [files]
+  );
   useEffect(() => {
     return () => previewUrls.forEach((url) => URL.revokeObjectURL(url));
   }, [previewUrls]);
@@ -49,7 +52,9 @@ export function PhotoUploader({
       }
 
       const existingNames = new Set(files.map((f) => `${f.name}:${f.size}`));
-      const deduped = valid.filter((f) => !existingNames.has(`${f.name}:${f.size}`));
+      const deduped = valid.filter(
+        (f) => !existingNames.has(`${f.name}:${f.size}`)
+      );
       const combined = [...files, ...deduped].slice(0, maxPhotos);
       onChange(combined);
     },
@@ -86,7 +91,7 @@ export function PhotoUploader({
                 type="button"
                 aria-label="Remove photo"
                 onClick={() => removeFile(i)}
-                className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-xs text-white"
+                className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-xs text-white"
               >
                 &times;
               </button>

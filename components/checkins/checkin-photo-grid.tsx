@@ -32,12 +32,17 @@ function CheckInHeader({ count }: { count: number }) {
   );
 }
 
-export function CheckInPhotoGrid({ shopId, isAuthenticated }: CheckInPhotoGridProps) {
+export function CheckInPhotoGrid({
+  shopId,
+  isAuthenticated,
+}: CheckInPhotoGridProps) {
   const apiUrl = `/api/shops/${shopId}/checkins`;
   const swrKey = `${isAuthenticated ? 'auth' : 'anon'}:${apiUrl}`;
   const fetcher = useCallback(
     () =>
-      isAuthenticated ? fetchWithAuth(apiUrl) : fetch(apiUrl).then((r) => r.json()),
+      isAuthenticated
+        ? fetchWithAuth(apiUrl)
+        : fetch(apiUrl).then((r) => r.json()),
     [isAuthenticated, apiUrl]
   );
   const { data } = useSWR(swrKey, fetcher);

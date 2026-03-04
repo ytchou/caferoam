@@ -9,27 +9,27 @@
 
 ## Pass 1 — Full Discovery
 
-*Agents: Bug Hunter (Opus), Standards (Sonnet), Architecture (Opus), Plan Alignment (Sonnet), Test Philosophy (Sonnet), Gemini (cross-review)*
+_Agents: Bug Hunter (Opus), Standards (Sonnet), Architecture (Opus), Plan Alignment (Sonnet), Test Philosophy (Sonnet), Gemini (cross-review)_
 
 ### Issues Found (19 total before dedup)
 
-| Severity | File:Line | Description | Flagged By |
-|----------|-----------|-------------|------------|
-| Critical | `supabase/migrations/...sql:4` + `lib/supabase/storage.ts:17` | Private buckets (`public=false`) but `getPublicUrl()` used — `<img>` tags cannot carry auth headers; all photos broken for everyone | Bug Hunter, Architecture |
-| Important | `components/checkins/photo-uploader.tsx:75` | `URL.createObjectURL(file)` called in render loop — new blob URL created on every render, never revoked; memory leak | Bug Hunter, Architecture, Standards |
-| Important | `lib/supabase/storage.ts:9-13` | Extension hardcoded as `webp` but `contentType` is the real file MIME type — metadata mismatch | Bug Hunter, Standards |
-| Important | `backend/api/shops.py:61,75` | `photo_urls[0]` accessed without empty-array guard — IndexError if any row has empty array | Bug Hunter, Architecture |
-| Important | `backend/api/shops.py:68-72` | Anon preview query fetches ALL rows without `LIMIT` — unbounded at scale | Architecture |
-| Important | `backend/api/shops.py:35` | No upper bound on `limit` query parameter — DoS/exfiltration risk | Bug Hunter, Architecture |
-| Important | `components/checkins/checkin-photo-grid.tsx:41` | SWR key does not include `isAuthenticated` — user sees stale anon cache after login | Gemini |
-| Minor | `components/stamps/stamp-passport.tsx:87-101` | Page dots call `setCurrentPage(i)` but don't scroll the container — non-functional UI | Bug Hunter, Architecture, Gemini |
-| Minor | `components/checkins/checkin-photo-grid.tsx:51` | Authenticated count badge shows `data.length` (paginated, max 9), not total count | Bug Hunter, Plan Alignment |
-| Minor | `lib/hooks/use-user-stamps.ts` + `components/stamps/stamp-passport.tsx` | `StampData` interface defined in both files independently | Architecture |
-| Minor | `components/checkins/photo-uploader.tsx` | No deduplication of File objects in `handleFiles` — same photo can be added twice | Gemini |
-| Minor | `app/(protected)/checkin/[shopId]/page.tsx` | Stamp toast missing stamp SVG image per design doc | Plan Alignment |
-| Minor | `backend/tests/api/test_shop_checkins.py:16,46,65,80` | Tests mock internal `api.shops.get_admin_db` (not a system boundary); line 88 asserts on ORM chain implementation detail | Test Philosophy, Standards |
-| Minor | `lib/supabase/storage.test.ts` | Test describe/it blocks named after function signatures, not user outcomes | Test Philosophy |
-| Minor | `lib/hooks/use-user-stamps.test.ts` | Test describe/it blocks named after hook internals, not user outcomes | Test Philosophy |
+| Severity  | File:Line                                                               | Description                                                                                                                         | Flagged By                          |
+| --------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| Critical  | `supabase/migrations/...sql:4` + `lib/supabase/storage.ts:17`           | Private buckets (`public=false`) but `getPublicUrl()` used — `<img>` tags cannot carry auth headers; all photos broken for everyone | Bug Hunter, Architecture            |
+| Important | `components/checkins/photo-uploader.tsx:75`                             | `URL.createObjectURL(file)` called in render loop — new blob URL created on every render, never revoked; memory leak                | Bug Hunter, Architecture, Standards |
+| Important | `lib/supabase/storage.ts:9-13`                                          | Extension hardcoded as `webp` but `contentType` is the real file MIME type — metadata mismatch                                      | Bug Hunter, Standards               |
+| Important | `backend/api/shops.py:61,75`                                            | `photo_urls[0]` accessed without empty-array guard — IndexError if any row has empty array                                          | Bug Hunter, Architecture            |
+| Important | `backend/api/shops.py:68-72`                                            | Anon preview query fetches ALL rows without `LIMIT` — unbounded at scale                                                            | Architecture                        |
+| Important | `backend/api/shops.py:35`                                               | No upper bound on `limit` query parameter — DoS/exfiltration risk                                                                   | Bug Hunter, Architecture            |
+| Important | `components/checkins/checkin-photo-grid.tsx:41`                         | SWR key does not include `isAuthenticated` — user sees stale anon cache after login                                                 | Gemini                              |
+| Minor     | `components/stamps/stamp-passport.tsx:87-101`                           | Page dots call `setCurrentPage(i)` but don't scroll the container — non-functional UI                                               | Bug Hunter, Architecture, Gemini    |
+| Minor     | `components/checkins/checkin-photo-grid.tsx:51`                         | Authenticated count badge shows `data.length` (paginated, max 9), not total count                                                   | Bug Hunter, Plan Alignment          |
+| Minor     | `lib/hooks/use-user-stamps.ts` + `components/stamps/stamp-passport.tsx` | `StampData` interface defined in both files independently                                                                           | Architecture                        |
+| Minor     | `components/checkins/photo-uploader.tsx`                                | No deduplication of File objects in `handleFiles` — same photo can be added twice                                                   | Gemini                              |
+| Minor     | `app/(protected)/checkin/[shopId]/page.tsx`                             | Stamp toast missing stamp SVG image per design doc                                                                                  | Plan Alignment                      |
+| Minor     | `backend/tests/api/test_shop_checkins.py:16,46,65,80`                   | Tests mock internal `api.shops.get_admin_db` (not a system boundary); line 88 asserts on ORM chain implementation detail            | Test Philosophy, Standards          |
+| Minor     | `lib/supabase/storage.test.ts`                                          | Test describe/it blocks named after function signatures, not user outcomes                                                          | Test Philosophy                     |
+| Minor     | `lib/hooks/use-user-stamps.test.ts`                                     | Test describe/it blocks named after hook internals, not user outcomes                                                               | Test Philosophy                     |
 
 ### Validation Results
 
@@ -48,6 +48,7 @@
 **Post-fix SHA:** 948aa1c6f70a64ef13489a4741131b2b099abb0c
 
 **Issues fixed:**
+
 - [Critical] `supabase/migrations/...sql:4` — Made `checkin-photos` bucket `public=true`; removed redundant SELECT policy
 - [Important] `components/checkins/photo-uploader.tsx:75` — Memoized blob URLs via `useMemo` + `useEffect` cleanup with `revokeObjectURL`
 - [Important] `lib/supabase/storage.ts:9` — Derive file extension from `file.name` instead of hardcoding `'webp'`
@@ -61,11 +62,13 @@
 - [Minor] `app/(protected)/checkin/[shopId]/page.tsx` — Added stamp SVG `icon` to success toast
 
 **Test fixes:**
+
 - `photo-uploader.test.tsx`, `page.test.tsx` — Added `URL.revokeObjectURL = vi.fn()` stub
 - `storage.test.ts` — Updated path regex from `\.webp` to `\.\w+`
 - `test_shop_checkins.py` — Updated anon mock chain to include `.limit()`
 
 **Batch Test Run:**
+
 - `pnpm test` — PASS (4 pre-existing admin failures unrelated to this branch)
 - `uv run pytest` — PASS for all shop checkins tests; pre-existing failures in other test suites unrelated
 
@@ -73,10 +76,11 @@
 
 ## Pass 2 — Re-Verify
 
-*Agents re-run (smart routing): Bug Hunter (Opus), Architecture (Sonnet)*
-*Agents skipped (Minor-only findings in Pass 1): Standards, Plan Alignment, Test Philosophy*
+_Agents re-run (smart routing): Bug Hunter (Opus), Architecture (Sonnet)_
+_Agents skipped (Minor-only findings in Pass 1): Standards, Plan Alignment, Test Philosophy_
 
 ### Previously Flagged Issues — Resolution Status
+
 All 10 issues verified as resolved. No Critical or Important regressions introduced.
 
 ---

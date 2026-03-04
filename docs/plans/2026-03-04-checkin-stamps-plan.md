@@ -15,6 +15,7 @@
 **Tech Stack:** Supabase Storage (photo upload), SWR (data fetching), sonner (toast), CSS scroll-snap (passport pages), existing shadcn/ui components
 
 **Acceptance Criteria:**
+
 - [ ] A user can upload 1-3 photos and submit a check-in at a shop, seeing a stamp toast on success
 - [ ] A user's stamp collection displays as a passport grid on their profile page
 - [ ] Logged-in users see a photo grid of recent check-ins on a shop's detail section
@@ -28,6 +29,7 @@
 Create storage buckets for check-in photos and menu photos with RLS policies.
 
 **Files:**
+
 - Create: `supabase/migrations/20260304000001_create_storage_buckets.sql`
 
 **Step 1: Write the migration**
@@ -101,21 +103,23 @@ git commit -m "feat: storage buckets for check-in and menu photos"
 Add `GET /shops/{shop_id}/checkins` endpoint. Uses service-role client to read cross-user check-in data. Returns full check-in list for authenticated users, count + preview for unauthenticated.
 
 **Files:**
+
 - Modify: `backend/models/types.py` (add `ShopCheckInSummary`, `ShopCheckInPreview`)
 - Modify: `backend/api/shops.py` (add endpoint)
 - Create: `backend/tests/api/test_shop_checkins.py`
 
 **API Contract:**
+
 ```yaml
 endpoint: GET /shops/{shop_id}/checkins?limit=9
 request:
-  shop_id: string  # path param
-  limit: int       # query param, default 9
+  shop_id: string # path param
+  limit: int # query param, default 9
 response (authenticated):
   - id: string
     user_id: string
     display_name: string | null
-    photo_url: string       # first photo only
+    photo_url: string # first photo only
     note: string | null
     created_at: string
 response (unauthenticated):
@@ -354,6 +358,7 @@ git commit -m "feat: GET /shops/{shop_id}/checkins endpoint with auth-gated resp
 Thin proxy route for the new backend endpoint.
 
 **Files:**
+
 - Create: `app/api/shops/[id]/checkins/route.ts`
 
 No test needed — thin proxy following established pattern (`app/api/checkins/route.ts`).
@@ -387,6 +392,7 @@ git commit -m "feat: proxy route for shop check-ins endpoint"
 Client-side helper to upload files to Supabase Storage.
 
 **Files:**
+
 - Create: `lib/supabase/storage.ts`
 - Create: `lib/supabase/storage.test.ts`
 
@@ -425,9 +431,15 @@ beforeEach(() => {
 
 describe('uploadCheckInPhoto', () => {
   it('uploads file to checkin-photos bucket under user path and returns public URL', async () => {
-    mockUpload.mockResolvedValue({ data: { path: 'user-abc/test.webp' }, error: null });
+    mockUpload.mockResolvedValue({
+      data: { path: 'user-abc/test.webp' },
+      error: null,
+    });
     mockGetPublicUrl.mockReturnValue({
-      data: { publicUrl: 'https://example.supabase.co/storage/v1/object/public/checkin-photos/user-abc/test.webp' },
+      data: {
+        publicUrl:
+          'https://example.supabase.co/storage/v1/object/public/checkin-photos/user-abc/test.webp',
+      },
     });
 
     const file = new File(['photo'], 'latte.jpg', { type: 'image/jpeg' });
@@ -442,7 +454,10 @@ describe('uploadCheckInPhoto', () => {
   });
 
   it('throws when upload fails', async () => {
-    mockUpload.mockResolvedValue({ data: null, error: { message: 'Bucket not found' } });
+    mockUpload.mockResolvedValue({
+      data: null,
+      error: { message: 'Bucket not found' },
+    });
 
     const file = new File(['photo'], 'latte.jpg', { type: 'image/jpeg' });
     await expect(uploadCheckInPhoto(file)).rejects.toThrow('Bucket not found');
@@ -451,9 +466,15 @@ describe('uploadCheckInPhoto', () => {
 
 describe('uploadMenuPhoto', () => {
   it('uploads to menu-photos bucket', async () => {
-    mockUpload.mockResolvedValue({ data: { path: 'user-abc/menu.webp' }, error: null });
+    mockUpload.mockResolvedValue({
+      data: { path: 'user-abc/menu.webp' },
+      error: null,
+    });
     mockGetPublicUrl.mockReturnValue({
-      data: { publicUrl: 'https://example.supabase.co/storage/v1/object/public/menu-photos/user-abc/menu.webp' },
+      data: {
+        publicUrl:
+          'https://example.supabase.co/storage/v1/object/public/menu-photos/user-abc/menu.webp',
+      },
     });
 
     const file = new File(['photo'], 'menu.jpg', { type: 'image/jpeg' });
@@ -520,6 +541,7 @@ git commit -m "feat: photo upload utility for Supabase Storage"
 Reusable photo selection component — camera-first on mobile, file picker on desktop. Handles validation (max 3 files, max 5 MB, image types only).
 
 **Files:**
+
 - Create: `components/checkins/photo-uploader.tsx`
 - Create: `components/checkins/photo-uploader.test.tsx`
 
@@ -675,7 +697,7 @@ export function PhotoUploader({
                 type="button"
                 aria-label="Remove photo"
                 onClick={() => removeFile(i)}
-                className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-xs text-white"
+                className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-xs text-white"
               >
                 ×
               </button>
@@ -746,6 +768,7 @@ git commit -m "feat: PhotoUploader component with mobile camera-first"
 The standalone check-in page at `/checkin/[shopId]`. Composes PhotoUploader, note input, optional menu photo, submit flow with Supabase Storage upload.
 
 **Files:**
+
 - Create: `app/(protected)/checkin/[shopId]/page.tsx`
 - Create: `app/(protected)/checkin/[shopId]/page.test.tsx`
 
@@ -883,9 +906,8 @@ export default function CheckInPage() {
   const { shopId } = useParams<{ shopId: string }>();
   const router = useRouter();
 
-  const { data: shop } = useSWR(
-    shopId ? `/api/shops/${shopId}` : null,
-    (url) => fetch(url).then((r) => r.json())
+  const { data: shop } = useSWR(shopId ? `/api/shops/${shopId}` : null, (url) =>
+    fetch(url).then((r) => r.json())
   );
 
   const [photos, setPhotos] = useState<File[]>([]);
@@ -903,7 +925,9 @@ export default function CheckInPage() {
       setSubmitState('uploading');
 
       const photoUrls = await Promise.all(photos.map(uploadCheckInPhoto));
-      const menuPhotoUrl = menuPhoto ? await uploadMenuPhoto(menuPhoto) : undefined;
+      const menuPhotoUrl = menuPhoto
+        ? await uploadMenuPhoto(menuPhoto)
+        : undefined;
 
       setSubmitState('submitting');
 
@@ -956,7 +980,10 @@ export default function CheckInPage() {
         <PhotoUploader files={photos} onChange={setPhotos} />
 
         <div>
-          <label htmlFor="note" className="mb-1 block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="note"
+            className="mb-1 block text-sm font-medium text-gray-700"
+          >
             Note <span className="text-gray-400">(optional)</span>
           </label>
           <textarea
@@ -975,7 +1002,9 @@ export default function CheckInPage() {
             onClick={() => setMenuOpen(!menuOpen)}
             className="flex items-center gap-1 text-sm text-gray-600"
           >
-            <span className={`transition-transform ${menuOpen ? 'rotate-90' : ''}`}>
+            <span
+              className={`transition-transform ${menuOpen ? 'rotate-90' : ''}`}
+            >
               ▸
             </span>
             Menu photo <span className="text-gray-400">(optional)</span>
@@ -1002,11 +1031,7 @@ export default function CheckInPage() {
           )}
         </div>
 
-        <Button
-          type="submit"
-          disabled={!canSubmit}
-          className="w-full"
-        >
+        <Button type="submit" disabled={!canSubmit} className="w-full">
           {submitState === 'uploading'
             ? 'Uploading photos...'
             : submitState === 'submitting'
@@ -1038,6 +1063,7 @@ git commit -m "feat: check-in page with photo upload and stamp toast"
 SWR-based hook to fetch the authenticated user's stamps for the profile page.
 
 **Files:**
+
 - Create: `lib/hooks/use-user-stamps.ts`
 - Create: `lib/hooks/use-user-stamps.test.ts`
 
@@ -1084,7 +1110,11 @@ const STAMPS = [
 ];
 
 function wrapper({ children }: { children: React.ReactNode }) {
-  return React.createElement(SWRConfig, { value: { provider: () => new Map() } }, children);
+  return React.createElement(
+    SWRConfig,
+    { value: { provider: () => new Map() } },
+    children
+  );
 }
 
 describe('useUserStamps', () => {
@@ -1126,7 +1156,10 @@ import type { Stamp } from '@/lib/types';
 const fetcher = (url: string) => fetchWithAuth(url);
 
 export function useUserStamps() {
-  const { data, error, isLoading, mutate } = useSWR<Stamp[]>('/api/stamps', fetcher);
+  const { data, error, isLoading, mutate } = useSWR<Stamp[]>(
+    '/api/stamps',
+    fetcher
+  );
 
   return {
     stamps: data ?? [],
@@ -1158,6 +1191,7 @@ git commit -m "feat: useUserStamps SWR hook"
 Passport-style stamp grid. 4×5 = 20 slots per page, swipeable with CSS scroll-snap.
 
 **Files:**
+
 - Create: `components/stamps/stamp-passport.tsx`
 - Create: `components/stamps/stamp-passport.test.tsx`
 
@@ -1344,6 +1378,7 @@ git commit -m "feat: StampPassport component with 4x5 grid and pages"
 Replace the "Coming soon" placeholder with real content: stamp passport and check-in history.
 
 **Files:**
+
 - Modify: `app/(protected)/profile/page.tsx`
 - Create: `app/(protected)/profile/page.test.tsx`
 
@@ -1462,6 +1497,7 @@ git commit -m "feat: profile page with stamp passport collection"
 Photo grid for Shop Detail page — shows recent check-in photos (logged-in) or preview (unauthenticated).
 
 **Files:**
+
 - Create: `components/checkins/checkin-photo-grid.tsx`
 - Create: `components/checkins/checkin-photo-grid.test.tsx`
 
@@ -1601,7 +1637,10 @@ interface CheckInPhotoGridProps {
   isAuthenticated: boolean;
 }
 
-export function CheckInPhotoGrid({ shopId, isAuthenticated }: CheckInPhotoGridProps) {
+export function CheckInPhotoGrid({
+  shopId,
+  isAuthenticated,
+}: CheckInPhotoGridProps) {
   const { data } = useSWR(
     `/api/shops/${shopId}/checkins`,
     isAuthenticated
@@ -1712,6 +1751,7 @@ graph TD
 ```
 
 **Wave 1** (parallel — no dependencies):
+
 - Task 1: Supabase Storage migration
 - Task 2: Backend shop check-ins endpoint
 - Task 4: Photo upload utility
@@ -1720,11 +1760,13 @@ graph TD
 - Task 8: StampPassport component
 
 **Wave 2** (parallel — depends on Wave 1):
+
 - Task 3: Next.js proxy ← Task 2
 - Task 6: Check-in page ← Tasks 1, 4, 5
 - Task 9: Profile page ← Tasks 7, 8
 
 **Wave 3** (depends on Wave 2):
+
 - Task 10: CheckInPhotoGrid ← Task 3
 
 ---
@@ -1748,6 +1790,7 @@ pnpm lint && cd backend && ruff check .
 ```
 
 Manual verification:
+
 1. Start local Supabase (`supabase start`) — verify storage buckets exist
 2. Navigate to `/checkin/[shopId]` — verify auth redirect works
 3. Upload a photo, submit check-in — verify toast appears
