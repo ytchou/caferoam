@@ -563,7 +563,7 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 
 **Chunk 1 — DB + Backend Models (Wave 1-2):**
 
-- [ ] DB migration: add review columns to check_ins (stars, review_text, confirmed_tags, reviewed_at)
+- [x] DB migration: add review columns to check_ins (stars, review_text, confirmed_tags, reviewed_at)
 - [ ] Backend models: add review fields to CheckIn, ShopCheckInSummary; add ShopReview, ShopReviewsResponse
 
 **Chunk 2 — Backend Service + API (Wave 3-4):**
