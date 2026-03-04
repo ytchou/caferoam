@@ -130,4 +130,73 @@ describe('CheckInPage', () => {
     await screen.findByText(/山小孩咖啡/);
     expect(screen.getByText(/improve shop information/i)).toBeInTheDocument();
   });
+
+  it('includes review data in check-in submission when stars are selected', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        id: 'ci-2',
+        shop_id: 'shop-d4e5f6',
+        photo_urls: [
+          'https://example.supabase.co/storage/v1/object/public/checkin-photos/user-abc/photo.webp',
+        ],
+        created_at: '2026-03-04T10:00:00Z',
+      }),
+    });
+
+    render(<CheckInPage />);
+    await screen.findByText(/山小孩咖啡/);
+
+    const input = screen.getByTestId('photo-input');
+    const file = new File(['photo'], 'latte.jpg', { type: 'image/jpeg' });
+    await userEvent.upload(input, file);
+
+    const star4 = screen.getByRole('button', { name: /4 stars/i });
+    await userEvent.click(star4);
+
+    const submitBtn = screen.getByRole('button', { name: /check in/i });
+    await userEvent.click(submitBtn);
+
+    await waitFor(() => {
+      const postCall = mockFetch.mock.calls.find(
+        (c) => c[0] === '/api/checkins' && c[1]?.method === 'POST'
+      );
+      expect(postCall).toBeDefined();
+      const body = JSON.parse(postCall![1].body);
+      expect(body.stars).toBe(4);
+    });
+  });
+
+  it('submits without review data when stars are not selected', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        id: 'ci-3',
+        shop_id: 'shop-d4e5f6',
+        photo_urls: [
+          'https://example.supabase.co/storage/v1/object/public/checkin-photos/user-abc/photo.webp',
+        ],
+        created_at: '2026-03-04T10:00:00Z',
+      }),
+    });
+
+    render(<CheckInPage />);
+    await screen.findByText(/山小孩咖啡/);
+
+    const input = screen.getByTestId('photo-input');
+    const file = new File(['photo'], 'latte.jpg', { type: 'image/jpeg' });
+    await userEvent.upload(input, file);
+
+    const submitBtn = screen.getByRole('button', { name: /check in/i });
+    await userEvent.click(submitBtn);
+
+    await waitFor(() => {
+      const postCall = mockFetch.mock.calls.find(
+        (c) => c[0] === '/api/checkins' && c[1]?.method === 'POST'
+      );
+      expect(postCall).toBeDefined();
+      const body = JSON.parse(postCall![1].body);
+      expect(body.stars).toBeUndefined();
+    });
+  });
 });

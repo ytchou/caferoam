@@ -571,7 +571,7 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 - [x] CheckInService: create with review, update_review, validation with TDD
 - [x] Checkins API: review fields in POST, PATCH /checkins/{id}/review with TDD
 - [x] Shops API: GET /shops/{shop_id}/reviews endpoint with TDD
-- [ ] Backend verification (pytest, ruff, mypy)
+- [x] Backend verification (pytest, ruff, mypy)
 
 **Chunk 3 — Frontend Components (Wave 3-4):**
 
@@ -581,7 +581,7 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 
 **Chunk 4 — Frontend Integration (Wave 4-5):**
 
-- [ ] Check-in page: add optional review fields with TDD
+- [x] Check-in page: add optional review fields with TDD
 - [ ] ReviewCard + ReviewsSection for shop detail with TDD
 - [x] Proxy routes (shop reviews, checkin review update)
 - [x] Update CheckInSummary types
