@@ -91,6 +91,10 @@ class CheckIn(BaseModel):
     photo_urls: list[str]
     menu_photo_url: str | None = None
     note: str | None = None
+    stars: int | None = None
+    review_text: str | None = None
+    confirmed_tags: list[str] | None = None
+    reviewed_at: datetime | None = None
     created_at: datetime
 
     @field_validator("photo_urls")
@@ -116,12 +120,34 @@ class ShopCheckInSummary(BaseModel):
     display_name: str | None = None
     photo_url: str
     note: str | None = None
+    stars: int | None = None
+    review_text: str | None = None
+    confirmed_tags: list[str] | None = None
+    reviewed_at: datetime | None = None
     created_at: datetime
 
 
 class ShopCheckInPreview(BaseModel):
     count: int
     preview_photo_url: str | None = None
+
+
+class ShopReview(BaseModel):
+    """A check-in with review data for the shop reviews section."""
+
+    id: str
+    user_id: str
+    display_name: str | None = None
+    stars: int
+    review_text: str | None = None
+    confirmed_tags: list[str] | None = None
+    reviewed_at: datetime
+
+
+class ShopReviewsResponse(BaseModel):
+    reviews: list[ShopReview]
+    total_count: int
+    average_rating: float
 
 
 class SearchFilters(BaseModel):

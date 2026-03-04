@@ -10,6 +10,10 @@ interface CheckInSummary {
   display_name: string | null;
   photo_url: string;
   note: string | null;
+  stars: number | null;
+  review_text: string | null;
+  confirmed_tags: string[] | null;
+  reviewed_at: string | null;
   created_at: string;
 }
 

@@ -558,10 +558,37 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 
 ### Reviews
 
-- [ ] Review system: star rating + text, available only after at least one check-in at that shop
-- [ ] One review per user per shop (latest overwrites); reviews visible to logged-in users only on Shop Detail
-- [ ] Review DB table + API routes (`GET /shops/:id/reviews`, `POST /shops/:id/reviews`)
-- [ ] Check-in count + single representative photo visible to unauthenticated visitors on Shop Detail (full strip + @username shown to logged-in users only)
+> **Design Doc:** [docs/designs/2026-03-04-reviews-design.md](docs/designs/2026-03-04-reviews-design.md)
+> **Plan:** [docs/plans/2026-03-04-reviews-plan.md](docs/plans/2026-03-04-reviews-plan.md)
+
+**Chunk 1 — DB + Backend Models (Wave 1-2):**
+
+- [x] DB migration: add review columns to check_ins (stars, review_text, confirmed_tags, reviewed_at)
+- [x] Backend models: add review fields to CheckIn, ShopCheckInSummary; add ShopReview, ShopReviewsResponse
+
+**Chunk 2 — Backend Service + API (Wave 3-4):**
+
+- [x] CheckInService: create with review, update_review, validation with TDD
+- [x] Checkins API: review fields in POST, PATCH /checkins/{id}/review with TDD
+- [x] Shops API: GET /shops/{shop_id}/reviews endpoint with TDD
+- [x] Backend verification (pytest, ruff, mypy)
+
+**Chunk 3 — Frontend Components (Wave 3-4):**
+
+- [x] StarRating component (interactive + display modes) with TDD
+- [x] TagConfirmation component (taxonomy tag chips) with TDD
+- [x] ReviewForm component (stars + tags + text) with TDD
+
+**Chunk 4 — Frontend Integration (Wave 4-5):**
+
+- [x] Check-in page: add optional review fields with TDD
+- [x] ReviewCard + ReviewsSection for shop detail with TDD
+- [x] Proxy routes (shop reviews, checkin review update)
+- [x] Update CheckInSummary types
+
+**Chunk 5 — Verification (Wave 6):**
+
+- [x] Full verification (pytest, vitest, ruff, mypy, pnpm build)
 
 ### User Profile
 

@@ -6,6 +6,8 @@ import useSWR from 'swr';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { PhotoUploader } from '@/components/checkins/photo-uploader';
+import { StarRating } from '@/components/reviews/star-rating';
+import { TagConfirmation } from '@/components/reviews/tag-confirmation';
 import { fetchWithAuth } from '@/lib/api/fetch';
 import { uploadCheckInPhoto, uploadMenuPhoto } from '@/lib/supabase/storage';
 
@@ -31,8 +33,29 @@ export default function CheckInPage() {
     };
   }, [menuPhotoPreviewUrl]);
   const [note, setNote] = useState('');
+  const [stars, setStars] = useState(0);
+  const [reviewText, setReviewText] = useState('');
+  const [confirmedTags, setConfirmedTags] = useState<string[]>([]);
   const [submitState, setSubmitState] = useState<SubmitState>('idle');
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const shopTags = useMemo(
+    () =>
+      shop?.taxonomy_tags?.map(
+        (t: {
+          id: string;
+          label_zh: string;
+          dimension: string;
+          label: string;
+        }) => ({
+          id: t.id,
+          dimension: t.dimension,
+          label: t.label,
+          labelZh: t.label_zh,
+        })
+      ) ?? [],
+    [shop?.taxonomy_tags]
+  );
 
   const canSubmit = photos.length > 0 && submitState === 'idle';
 
@@ -56,6 +79,11 @@ export default function CheckInPage() {
           photo_urls: photoUrls,
           menu_photo_url: menuPhotoUrl ?? null,
           note: note.trim() || null,
+          ...(stars > 0 && {
+            stars,
+            review_text: reviewText.trim() || null,
+            confirmed_tags: confirmedTags,
+          }),
         }),
       });
 
@@ -77,7 +105,18 @@ export default function CheckInPage() {
     } finally {
       setSubmitState('idle');
     }
-  }, [canSubmit, photos, menuPhoto, note, shopId, shop, router]);
+  }, [
+    canSubmit,
+    photos,
+    menuPhoto,
+    note,
+    stars,
+    reviewText,
+    confirmedTags,
+    shopId,
+    shop,
+    router,
+  ]);
 
   return (
     <main className="mx-auto max-w-lg px-4 py-6">
@@ -150,6 +189,28 @@ export default function CheckInPage() {
           <p className="mt-2 text-xs text-gray-400">
             Menu photos may be used to improve shop information on CafeRoam.
           </p>
+        </div>
+
+        <div className="border-t pt-4">
+          <StarRating value={stars} onChange={setStars} size="lg" />
+          {stars > 0 && (
+            <div className="mt-4 space-y-4">
+              {shopTags.length > 0 && (
+                <TagConfirmation
+                  tags={shopTags}
+                  confirmedIds={confirmedTags}
+                  onChange={setConfirmedTags}
+                />
+              )}
+              <textarea
+                value={reviewText}
+                onChange={(e) => setReviewText(e.target.value)}
+                placeholder="How was your visit? 這次體驗如何？"
+                rows={3}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none"
+              />
+            </div>
+          )}
         </div>
 
         <Button type="submit" disabled={!canSubmit} className="w-full">

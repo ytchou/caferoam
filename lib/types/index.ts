@@ -67,7 +67,27 @@ export interface CheckIn {
   photoUrls: [string, ...string[]];
   menuPhotoUrl: string | null;
   note: string | null;
+  stars: number | null;
+  reviewText: string | null;
+  confirmedTags: string[] | null;
+  reviewedAt: string | null;
   createdAt: string;
+}
+
+export interface ShopReview {
+  id: string;
+  user_id: string;
+  display_name: string | null;
+  stars: number;
+  review_text: string | null;
+  confirmed_tags: string[] | null;
+  reviewed_at: string;
+}
+
+export interface ShopReviewsResponse {
+  reviews: ShopReview[];
+  total_count: number;
+  average_rating: number;
 }
 
 export interface Stamp {

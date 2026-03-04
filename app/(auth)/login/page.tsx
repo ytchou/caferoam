@@ -39,7 +39,8 @@ function LoginForm() {
   async function handleOAuthLogin(provider: 'google' | 'line_oidc') {
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
-      provider,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      provider: provider as any,
       options: {
         redirectTo: `${window.location.origin}/auth/callback?returnTo=${encodeURIComponent(returnTo)}`,
       },

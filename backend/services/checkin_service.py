@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import Any, cast
 
 from supabase import Client
@@ -10,6 +11,11 @@ class CheckInService:
     def __init__(self, db: Client):
         self._db = db
 
+    @staticmethod
+    def _validate_stars(stars: int) -> None:
+        if not (1 <= stars <= 5):
+            raise ValueError("Stars must be between 1 and 5")
+
     async def create(
         self,
         user_id: str,
@@ -17,21 +23,63 @@ class CheckInService:
         photo_urls: list[str],
         menu_photo_url: str | None = None,
         note: str | None = None,
+        stars: int | None = None,
+        review_text: str | None = None,
+        confirmed_tags: list[str] | None = None,
     ) -> CheckIn:
         """Create a check-in. DB trigger handles stamp creation and job queueing."""
         if len(photo_urls) < 1:
             raise ValueError("At least one photo is required for check-in")
+        if review_text is not None and stars is None:
+            raise ValueError("review_text requires a star rating")
+        if stars is not None:
+            self._validate_stars(stars)
 
-        checkin_data = {
+        checkin_data: dict[str, Any] = {
             "user_id": user_id,
             "shop_id": shop_id,
             "photo_urls": photo_urls,
             "menu_photo_url": menu_photo_url,
             "note": note,
         }
+        if stars is not None:
+            checkin_data["stars"] = stars
+            checkin_data["review_text"] = review_text
+            checkin_data["confirmed_tags"] = confirmed_tags
+            checkin_data["reviewed_at"] = datetime.now(timezone.utc).isoformat()  # noqa: UP017
+
         response = self._db.table("check_ins").insert(checkin_data).execute()
         rows = cast("list[dict[str, Any]]", response.data)
         return CheckIn(**first(rows, "create check-in"))
+
+    async def update_review(
+        self,
+        checkin_id: str,
+        user_id: str,
+        stars: int,
+        review_text: str | None = None,
+        confirmed_tags: list[str] | None = None,
+    ) -> CheckIn:
+        """Add or update a review on an existing check-in. Only the owner can update."""
+        self._validate_stars(stars)
+
+        update_data: dict[str, Any] = {
+            "stars": stars,
+            "review_text": review_text,
+            "confirmed_tags": confirmed_tags,
+            "reviewed_at": datetime.now(timezone.utc).isoformat(),  # noqa: UP017
+        }
+        response = (
+            self._db.table("check_ins")
+            .update(update_data)
+            .eq("id", checkin_id)
+            .eq("user_id", user_id)
+            .execute()
+        )
+        rows = cast("list[dict[str, Any]]", response.data)
+        if not rows:
+            raise ValueError("Check-in not found")
+        return CheckIn(**rows[0])
 
     async def get_by_user(self, user_id: str) -> list[CheckIn]:
         response = (

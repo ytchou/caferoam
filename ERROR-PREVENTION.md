@@ -153,4 +153,28 @@ count = int(result.data or 0)
 
 ---
 
+## RLS UPDATE Policy Missing — PATCH Endpoint Silently Returns 404
+
+**Symptom:** PATCH endpoint appears correct in application logic but always returns 404. No Python exception. Supabase returns `data=[]` with no error.
+
+**Root cause:** Supabase RLS silently blocks UPDATE operations when no matching `FOR UPDATE` policy exists. The application sees empty `data=[]` and treats it as "not found".
+
+**Fix:** Add `CREATE POLICY "check_ins_own_update" ON check_ins FOR UPDATE USING (auth.uid() = user_id);` in the feature's migration.
+
+**Prevention:** When adding any PATCH/PUT/DELETE endpoint, check the RLS migration for a corresponding `FOR UPDATE`/`FOR DELETE` policy before writing application code. Add the policy in the same migration as the feature's schema changes.
+
+---
+
+## Python snake_case → TypeScript Interface Must Match Wire Format
+
+**Symptom:** All fields from an API response render as `undefined` in the UI. No network error. Response JSON is correct when inspected in DevTools.
+
+**Root cause:** Pydantic `model_dump()` outputs snake_case. `fetchWithAuth()` does NOT camelCase-convert responses. TypeScript interface was written in camelCase (JavaScript convention), so all fields are `undefined` at runtime.
+
+**Fix:** Change TypeScript interface fields to snake_case to match the Python Pydantic model. Update all component references.
+
+**Prevention:** TypeScript interfaces for API responses must mirror Python Pydantic model field names (snake_case). camelCase convention applies only to locally-computed state and component props. When writing a new Pydantic model + TypeScript interface pair, write the TS interface immediately after the Python model and verify field names match exactly.
+
+---
+
 _Add entries here as you discover them._
