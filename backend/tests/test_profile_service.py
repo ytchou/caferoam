@@ -1,11 +1,10 @@
 # backend/tests/test_profile_service.py
-from unittest.mock import AsyncMock, MagicMock, patch
-from typing import Any, cast
+from unittest.mock import MagicMock
 
 import pytest
 
-from services.profile_service import ProfileService
 from models.types import ProfileResponse
+from services.profile_service import ProfileService
 
 
 @pytest.fixture
@@ -19,12 +18,12 @@ class TestGetProfile:
     async def test_returns_profile_with_counts(self, mock_db: MagicMock):
         user_id = "user-123"
 
-        # Use side_effect to return distinct mocks per table("...") call
+        # Dispatch by table name — order is non-deterministic with asyncio.gather
         profile_table = MagicMock()
         stamp_table = MagicMock()
         checkin_table = MagicMock()
-
-        mock_db.table.side_effect = [profile_table, stamp_table, checkin_table]
+        table_map = {"profiles": profile_table, "stamps": stamp_table, "check_ins": checkin_table}
+        mock_db.table.side_effect = lambda name: table_map[name]
 
         # Mock profiles query
         profile_table.select.return_value.eq.return_value.single.return_value.execute.return_value.data = {

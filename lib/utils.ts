@@ -12,3 +12,11 @@ export function safeReturnTo(value: string | null | undefined): string {
   if (!value || !value.startsWith('/') || value.startsWith('//')) return '/';
   return value;
 }
+
+export function formatDate(isoString: string): string {
+  return new Date(isoString).toLocaleDateString('zh-TW', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}

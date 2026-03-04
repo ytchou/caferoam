@@ -8,6 +8,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
+import { formatDate } from '@/lib/utils';
 
 interface StampDetailSheetProps {
   stamp: {
@@ -17,23 +18,14 @@ interface StampDetailSheetProps {
     design_url: string;
     earned_at: string;
   };
-  open: boolean;
   onClose: () => void;
 }
 
-export function StampDetailSheet({
-  stamp,
-  open,
-  onClose,
-}: StampDetailSheetProps) {
-  const earnedDate = new Date(stamp.earned_at).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+export function StampDetailSheet({ stamp, onClose }: StampDetailSheetProps) {
+  const earnedDate = formatDate(stamp.earned_at);
 
   return (
-    <Drawer open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Drawer open onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DrawerContent>
         <DrawerHeader className="flex flex-col items-center gap-3 pb-6">
           <img

@@ -1,4 +1,5 @@
 # backend/services/profile_service.py
+import asyncio
 from typing import Any, cast
 
 from supabase import Client
@@ -11,39 +12,33 @@ class ProfileService:
         self._db = db
 
     async def get_profile(self, user_id: str) -> ProfileResponse:
-        # Get profile data
-        profile_resp = (
-            self._db.table("profiles")
-            .select("display_name, avatar_url")
-            .eq("id", user_id)
-            .single()
-            .execute()
+        profile_resp, stamp_resp, checkin_resp = await asyncio.gather(
+            asyncio.to_thread(
+                lambda: self._db.table("profiles")
+                .select("display_name, avatar_url")
+                .eq("id", user_id)
+                .single()
+                .execute()
+            ),
+            asyncio.to_thread(
+                lambda: self._db.table("stamps")
+                .select("id", count="exact")
+                .eq("user_id", user_id)
+                .execute()
+            ),
+            asyncio.to_thread(
+                lambda: self._db.table("check_ins")
+                .select("id", count="exact")
+                .eq("user_id", user_id)
+                .execute()
+            ),
         )
         profile = cast("dict[str, Any]", profile_resp.data)
-
-        # Get stamp count
-        stamp_resp = (
-            self._db.table("stamps")
-            .select("id", count="exact")
-            .eq("user_id", user_id)
-            .execute()
-        )
-        stamp_count = stamp_resp.count or 0
-
-        # Get check-in count
-        checkin_resp = (
-            self._db.table("check_ins")
-            .select("id", count="exact")
-            .eq("user_id", user_id)
-            .execute()
-        )
-        checkin_count = checkin_resp.count or 0
-
         return ProfileResponse(
             display_name=profile.get("display_name"),
             avatar_url=profile.get("avatar_url"),
-            stamp_count=stamp_count,
-            checkin_count=checkin_count,
+            stamp_count=stamp_resp.count or 0,
+            checkin_count=checkin_resp.count or 0,
         )
 
     async def update_profile(

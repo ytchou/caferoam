@@ -10,12 +10,10 @@ export interface ListSummaryData {
   preview_photos: string[];
 }
 
-const fetcher = (url: string) => fetchWithAuth(url);
-
 export function useListSummaries() {
   const { data, error, isLoading } = useSWR<ListSummaryData[]>(
     '/api/lists/summaries',
-    fetcher
+    fetchWithAuth
   );
 
   return {

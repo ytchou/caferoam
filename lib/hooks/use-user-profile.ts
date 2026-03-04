@@ -10,12 +10,10 @@ export interface ProfileData {
   checkin_count: number;
 }
 
-const fetcher = (url: string) => fetchWithAuth(url);
-
 export function useUserProfile() {
   const { data, error, isLoading, mutate } = useSWR<ProfileData>(
     '/api/profile',
-    fetcher
+    fetchWithAuth
   );
 
   return {

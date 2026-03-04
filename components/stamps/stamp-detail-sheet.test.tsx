@@ -13,20 +13,21 @@ describe('StampDetailSheet', () => {
     shop_name: 'Fika Coffee',
   };
 
-  it('renders shop name and earned date when open', () => {
-    render(<StampDetailSheet stamp={stamp} open={true} onClose={vi.fn()} />);
+  it('renders shop name and earned date when mounted', () => {
+    render(<StampDetailSheet stamp={stamp} onClose={vi.fn()} />);
     expect(screen.getByText('Fika Coffee')).toBeInTheDocument();
-    expect(screen.getByText(/2026/)).toBeInTheDocument(); // Date appears
+    expect(screen.getByText(/2026/)).toBeInTheDocument();
   });
 
   it('renders a link to the shop page', () => {
-    render(<StampDetailSheet stamp={stamp} open={true} onClose={vi.fn()} />);
+    render(<StampDetailSheet stamp={stamp} onClose={vi.fn()} />);
     const link = screen.getByRole('link', { name: /visit again/i });
     expect(link).toHaveAttribute('href', '/shop/shop-a');
   });
 
-  it('does not render content when closed', () => {
-    render(<StampDetailSheet stamp={stamp} open={false} onClose={vi.fn()} />);
+  it('is not rendered when parent unmounts it', () => {
+    const { unmount } = render(<StampDetailSheet stamp={stamp} onClose={vi.fn()} />);
+    unmount();
     expect(screen.queryByText('Fika Coffee')).not.toBeInTheDocument();
   });
 });

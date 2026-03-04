@@ -15,12 +15,10 @@ export interface CheckInData {
   created_at: string;
 }
 
-const fetcher = (url: string) => fetchWithAuth(url);
-
 export function useUserCheckins() {
   const { data, error, isLoading, mutate } = useSWR<CheckInData[]>(
     '/api/checkins',
-    fetcher
+    fetchWithAuth
   );
 
   return {

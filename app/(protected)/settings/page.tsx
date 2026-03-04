@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useUserProfile } from '@/lib/hooks/use-user-profile';
@@ -19,11 +19,13 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [profileSuccess, setProfileSuccess] = useState(false);
+  const profileInitialized = useRef(false);
 
   useEffect(() => {
-    if (profile) {
+    if (profile && !profileInitialized.current) {
       setDisplayName(profile.display_name ?? '');
       setAvatarUrl(profile.avatar_url ?? null);
+      profileInitialized.current = true;
     }
   }, [profile]);
 
@@ -105,7 +107,7 @@ export default function SettingsPage() {
     } = await supabase.auth.getSession();
     if (!session) return;
 
-    const ext = file.name.split('.').pop();
+    const ext = file.name.split('.').pop() ?? 'jpg';
     const path = `${session.user.id}/${Date.now()}.${ext}`;
     const { error: uploadError } = await supabase.storage
       .from('avatars')

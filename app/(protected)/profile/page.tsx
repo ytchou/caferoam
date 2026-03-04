@@ -68,7 +68,6 @@ export default function ProfilePage() {
       {selectedStamp && (
         <StampDetailSheet
           stamp={selectedStamp}
-          open={!!selectedStamp}
           onClose={() => setSelectedStamp(null)}
         />
       )}

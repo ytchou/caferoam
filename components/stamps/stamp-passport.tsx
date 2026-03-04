@@ -8,7 +8,7 @@ const COLS = 4;
 
 interface StampPassportProps {
   stamps: StampData[];
-  onStampClick?: (stamp: StampData & { shop_name?: string }) => void;
+  onStampClick?: (stamp: StampData) => void;
 }
 
 export function StampPassport({ stamps, onStampClick }: StampPassportProps) {

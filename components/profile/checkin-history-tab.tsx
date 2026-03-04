@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { CheckInData } from '@/lib/hooks/use-user-checkins';
+import { formatDate } from '@/lib/utils';
 
 interface CheckinHistoryTabProps {
   checkins: CheckInData[];
@@ -33,11 +34,7 @@ export function CheckinHistoryTab({ checkins, isLoading }: CheckinHistoryTabProp
 }
 
 function CheckinCard({ checkin }: { checkin: CheckInData }) {
-  const date = new Date(checkin.created_at).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
+  const date = formatDate(checkin.created_at);
 
   return (
     <div className="flex gap-3 rounded-lg border p-3">
