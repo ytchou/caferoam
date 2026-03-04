@@ -139,5 +139,5 @@ async def get_shop_reviews(
     return ShopReviewsResponse(
         reviews=reviews,
         total_count=total_count,
-        average_rating=round(average_rating, 2),
+        average_rating=round(average_rating, 1),
     ).model_dump()
