@@ -42,12 +42,10 @@ vi.mock('@/lib/supabase/client', () => ({
     },
     storage: {
       from: () => ({
-        upload: vi
-          .fn()
-          .mockResolvedValue({
-            data: { path: 'user-abc/photo.webp' },
-            error: null,
-          }),
+        upload: vi.fn().mockResolvedValue({
+          data: { path: 'user-abc/photo.webp' },
+          error: null,
+        }),
         getPublicUrl: () => ({
           data: {
             publicUrl:
