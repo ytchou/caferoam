@@ -592,6 +592,39 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 
 ### User Profile
 
+> **Design Doc:** [docs/designs/2026-03-04-user-profile-design.md](docs/designs/2026-03-04-user-profile-design.md)
+> **Plan:** [docs/plans/2026-03-04-user-profile-plan.md](docs/plans/2026-03-04-user-profile-plan.md)
+
+**Chunk 1 — Foundation (Wave 1-2):**
+
+- [ ] Install shadcn Tabs/Avatar + create avatars storage bucket
+- [ ] Backend Pydantic models (ProfileResponse, StampWithShop, CheckInWithShop, ListSummary)
+- [ ] ProfileService with TDD (get_profile + update_profile)
+- [ ] Extend GET /stamps with shop_name JOIN
+- [ ] Extend GET /checkins with shop data JOIN
+- [ ] Add GET /lists/summaries endpoint
+
+**Chunk 2 — API + Data Layer (Wave 3-4):**
+
+- [ ] Profile API router (GET/PATCH /profile) with TDD
+- [ ] Frontend proxy routes + SWR hooks (useUserProfile, useUserCheckins, useListSummaries)
+- [ ] Update StampData type + factory with shop_name
+
+**Chunk 3 — UI Components (Wave 5):**
+
+- [ ] ProfileHeader component with TDD
+- [ ] StampDetailSheet + enhance StampPassport tap-to-open
+- [ ] CheckinHistoryTab component with TDD
+- [ ] ListsTab component with TDD
+
+**Chunk 4 — Pages + Verification (Wave 6-7):**
+
+- [ ] Rebuild profile page (header + passport hero + tabbed check-ins/lists)
+- [ ] Add profile editing to settings (display name + avatar upload)
+- [ ] Full integration verification (all tests, type-check, lint)
+
+**Deferred:**
+
 - [ ] `profile_stamps_viewed` PostHog event: stamp_count
 
 ### UGC Analytics Instrumentation
