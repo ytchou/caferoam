@@ -524,12 +524,31 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 - [x] Full test suite + type-check + lint pass
 
 ### Check-in & Stamps
+> **Design Doc:** [docs/designs/2026-03-04-checkin-stamps-design.md](docs/designs/2026-03-04-checkin-stamps-design.md)
+> **Plan:** [docs/plans/2026-03-04-checkin-stamps-plan.md](docs/plans/2026-03-04-checkin-stamps-plan.md)
 
-- [ ] Check-in page (`/checkin/[shopId]`): standalone page, NOT a tab on Shop Detail
-- [ ] Check-in form: photo upload (required), text note (optional), menu photo (optional)
-- [ ] Menu photo pipeline: optional check-in menu photo → enrichment worker queue
-- [ ] Stamp/collectible: one stamp design per shop, earned on check-in
+**Chunk 1 — Infrastructure (Wave 1):**
+- [ ] Supabase Storage migration: `checkin-photos` + `menu-photos` buckets with RLS
+- [ ] Backend `GET /shops/{shop_id}/checkins` endpoint (auth-gated response shape)
+- [ ] Photo upload utility (`lib/supabase/storage.ts`)
+
+**Chunk 2 — Components (Wave 1-2):**
+- [ ] PhotoUploader component (camera-first mobile, file picker desktop, max 3)
+- [ ] StampPassport component (4×5 grid, swipeable pages)
+- [ ] `useUserStamps` SWR hook
+
+**Chunk 3 — Pages (Wave 2):**
+- [ ] Check-in page (`/checkin/[shopId]`): upload → submit → stamp toast
+- [ ] Profile page: stamp passport collection (replace placeholder)
+- [ ] Next.js proxy route for shop check-ins
+
+**Chunk 4 — Shop Detail Integration (Wave 3):**
+- [ ] CheckInPhotoGrid component (auth-gated: photo grid vs. preview + login CTA)
+
+**Deferred:**
+- [ ] Menu photo enrichment worker (job queueing already works via DB trigger)
 - [ ] `checkin_completed` PostHog event: shop_id, is_first_checkin_at_shop, has_text_note, has_menu_photo
+- [ ] `profile_stamps_viewed` PostHog event: stamp_count
 
 ### Reviews
 
@@ -540,7 +559,6 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 
 ### User Profile
 
-- [ ] Private user profile page: check-in history, stamp collection, lists
 - [ ] `profile_stamps_viewed` PostHog event: stamp_count
 
 ### UGC Analytics Instrumentation
