@@ -569,7 +569,7 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 **Chunk 2 — Backend Service + API (Wave 3-4):**
 
 - [x] CheckInService: create with review, update_review, validation with TDD
-- [ ] Checkins API: review fields in POST, PATCH /checkins/{id}/review with TDD
+- [x] Checkins API: review fields in POST, PATCH /checkins/{id}/review with TDD
 - [ ] Shops API: GET /shops/{shop_id}/reviews endpoint with TDD
 - [ ] Backend verification (pytest, ruff, mypy)
 
