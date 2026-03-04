@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const MAX_SIZE_DEFAULT = 5; // MB
 const MAX_PHOTOS_DEFAULT = 3;
@@ -20,6 +20,10 @@ export function PhotoUploader({
 }: PhotoUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const previewUrls = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
+  useEffect(() => {
+    return () => previewUrls.forEach((url) => URL.revokeObjectURL(url));
+  }, [previewUrls]);
 
   // Detect mobile via pointer: coarse media query
   const isMobile =
@@ -72,7 +76,7 @@ export function PhotoUploader({
           {files.map((file, i) => (
             <div key={i} className="relative h-24 w-24">
               <img
-                src={URL.createObjectURL(file)}
+                src={previewUrls[i]}
                 alt={`Photo ${i + 1}`}
                 className="h-full w-full rounded-lg object-cover"
               />
