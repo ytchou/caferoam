@@ -1,16 +1,10 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
+import type { StampData } from '@/lib/hooks/use-user-stamps';
 
 const SLOTS_PER_PAGE = 20;
 const COLS = 4;
-
-interface StampData {
-  id: string;
-  shop_id: string;
-  design_url: string;
-  earned_at: string;
-}
 
 interface StampPassportProps {
   stamps: StampData[];
