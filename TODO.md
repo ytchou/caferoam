@@ -583,8 +583,8 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 
 - [ ] Check-in page: add optional review fields with TDD
 - [ ] ReviewCard + ReviewsSection for shop detail with TDD
-- [ ] Proxy routes (shop reviews, checkin review update)
-- [ ] Update CheckInSummary types
+- [x] Proxy routes (shop reviews, checkin review update)
+- [x] Update CheckInSummary types
 
 **Chunk 5 — Verification (Wave 6):**
 
