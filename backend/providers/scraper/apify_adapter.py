@@ -1,10 +1,11 @@
 import asyncio
 from typing import Any
+from urllib.parse import urlparse
 
 import structlog
 from apify_client import ApifyClient
 
-from providers.scraper.interface import ScrapedShopData
+from providers.scraper.interface import BatchScrapeInput, BatchScrapeResult, ScrapedShopData
 
 logger = structlog.get_logger()
 
@@ -33,9 +34,88 @@ class ApifyScraperAdapter:
             logger.warning("Apify returned no results", url=google_maps_url)
             return None
 
-        place = results[0]
-        location = place.get("location", {})
+        return self._parse_place(results[0])
 
+    async def scrape_batch(self, shops: list[BatchScrapeInput]) -> list[BatchScrapeResult]:
+        """Scrape multiple shops in a single Apify actor run.
+
+        Matches results back to input shops by URL path (handles Google Maps redirects).
+        """
+        if not shops:
+            return []
+
+        seen_urls: set[str] = set()
+        for s in shops:
+            if s.google_maps_url in seen_urls:
+                logger.warning(
+                    "Duplicate URL in batch — result matching ambiguous",
+                    url=s.google_maps_url,
+                )
+            seen_urls.add(s.google_maps_url)
+
+        url_to_shop_id = {s.google_maps_url: s.shop_id for s in shops}
+        # Pre-compute normalised paths for O(1) redirect/UTM fallback matching
+        path_to_shop_id = {
+            _url_path(s.google_maps_url): s.shop_id
+            for s in shops
+            if _url_path(s.google_maps_url)
+        }
+        start_urls = [{"url": s.google_maps_url} for s in shops]
+
+        results = await self._run_actor(
+            {
+                "startUrls": start_urls,
+                "maxCrawledPlacesPerSearch": 1,
+                "maxReviews": 20,
+                "maxImages": 10,
+                "language": "zh-TW",
+                "scrapeReviewerName": False,
+            }
+        )
+
+        matched: dict[str, ScrapedShopData] = {}
+        for place in results:
+            scraped_url = place.get("url", "")
+            shop_id = url_to_shop_id.get(scraped_url) or path_to_shop_id.get(
+                _url_path(scraped_url)
+            )
+            if shop_id:
+                matched[shop_id] = self._parse_place(place)
+
+        return [
+            BatchScrapeResult(shop_id=s.shop_id, data=matched.get(s.shop_id))
+            for s in shops
+        ]
+
+    async def scrape_reviews_only(self, google_place_id: str) -> list[dict[str, str | int | None]]:
+        results = await self._run_actor(
+            {
+                "startUrls": [
+                    {"url": f"https://www.google.com/maps/place/?q=place_id:{google_place_id}"}
+                ],
+                "maxCrawledPlacesPerSearch": 1,
+                "maxReviews": 5,
+                "maxImages": 0,
+                "scrapeReviewerName": False,
+            }
+        )
+
+        if not results:
+            return []
+
+        return [
+            {
+                "text": r.get("text", ""),
+                "stars": r.get("stars"),
+                "published_at": r.get("publishedAtDate"),
+            }
+            for r in results[0].get("reviews", [])
+            if r.get("text")
+        ]
+
+    def _parse_place(self, place: dict[str, Any]) -> ScrapedShopData:
+        """Parse a raw Apify place dict into ScrapedShopData."""
+        location = place.get("location", {})
         return ScrapedShopData(
             name=place.get("title", ""),
             address=place.get("address", ""),
@@ -66,32 +146,6 @@ class ApifyScraperAdapter:
             photo_urls=place.get("imageUrls", [])[:10],
         )
 
-    async def scrape_reviews_only(self, google_place_id: str) -> list[dict[str, str | int | None]]:
-        results = await self._run_actor(
-            {
-                "startUrls": [
-                    {"url": f"https://www.google.com/maps/place/?q=place_id:{google_place_id}"}
-                ],
-                "maxCrawledPlacesPerSearch": 1,
-                "maxReviews": 5,
-                "maxImages": 0,
-                "scrapeReviewerName": False,
-            }
-        )
-
-        if not results:
-            return []
-
-        return [
-            {
-                "text": r.get("text", ""),
-                "stars": r.get("stars"),
-                "published_at": r.get("publishedAtDate"),
-            }
-            for r in results[0].get("reviews", [])
-            if r.get("text")
-        ]
-
     async def _run_actor(self, run_input: dict[str, Any]) -> list[dict[str, Any]]:
         """Run Apify actor synchronously in a thread pool (client is sync)."""
 
@@ -106,3 +160,11 @@ class ApifyScraperAdapter:
 
     async def close(self) -> None:
         pass
+
+
+def _url_path(url: str) -> str:
+    """Extract normalised path from a URL for fuzzy matching."""
+    try:
+        return urlparse(url).path.rstrip("/")
+    except Exception:
+        return ""

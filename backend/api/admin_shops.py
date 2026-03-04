@@ -1,12 +1,13 @@
 from datetime import UTC, datetime
 from typing import Any, cast
+from uuid import uuid4
 
 import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, Form, HTTPException, Query, UploadFile
 from pydantic import BaseModel
 
 from api.deps import require_admin
-from core.db import first
+from core.db import escape_ilike, first
 from core.regions import DEFAULT_REGION, REGIONS
 from db.supabase_client import get_service_role_client
 from middleware.admin_audit import log_admin_action
@@ -55,6 +56,20 @@ class CheckUrlsRequest(BaseModel):
     pass
 
 
+@router.get("/pipeline-status")
+async def pipeline_status(
+    user: dict[str, Any] = Depends(require_admin),  # noqa: B008
+) -> dict[str, int]:
+    """Return shop counts grouped by processing_status."""
+    db = get_service_role_client()
+    response = db.table("shops").select("processing_status").execute()
+    counts: dict[str, int] = {}
+    for row in response.data or []:
+        s = row["processing_status"]
+        counts[s] = counts.get(s, 0) + 1
+    return counts
+
+
 @router.get("/")
 async def list_shops(
     processing_status: str | None = None,
@@ -76,8 +91,7 @@ async def list_shops(
     if source:
         query = query.eq("source", source)
     if search:
-        escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-        query = query.ilike("name", f"%{escaped}%")
+        query = query.ilike("name", f"%{escape_ilike(search)}%")
 
     query = query.order("created_at", desc=True).range(offset, offset + limit - 1)
     response = query.execute()
@@ -127,10 +141,15 @@ async def create_shop(
 @router.post("/import/cafe-nomad", status_code=202)
 async def import_cafe_nomad(
     body: CafeNomadImportRequest,
+    background_tasks: BackgroundTasks,
     user: dict[str, Any] = Depends(require_admin),  # noqa: B008
 ) -> dict[str, Any]:
-    """Trigger a Cafe Nomad import for the given region."""
+    """Trigger a Cafe Nomad import for the given region.
+
+    Automatically kicks off URL validation as a background task when shops are imported.
+    """
     from importers.cafe_nomad import fetch_and_import_cafenomad
+    from workers.handlers.check_urls import check_urls_for_region
 
     if body.region not in REGIONS:
         raise HTTPException(status_code=400, detail=f"Unknown region: {body.region}")
@@ -142,6 +161,9 @@ async def import_cafe_nomad(
         result = await fetch_and_import_cafenomad(db=db, region=region)
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Cafe Nomad API error: {exc}") from exc
+
+    if result.get("pending_url_check", 0) > 0:
+        background_tasks.add_task(check_urls_for_region, db=db)
 
     log_admin_action(
         admin_user_id=user["id"],
@@ -155,46 +177,65 @@ async def import_cafe_nomad(
 @router.post("/import/google-takeout", status_code=202)
 async def import_google_takeout(
     file: UploadFile,
+    background_tasks: BackgroundTasks,
     region: str = Form(DEFAULT_REGION),
     user: dict[str, Any] = Depends(require_admin),  # noqa: B008
 ) -> dict[str, Any]:
-    """Upload a Google Takeout GeoJSON and import shops for the given region."""
+    """Upload a Google Takeout GeoJSON or CSV and import shops.
+
+    Accepts:
+    - GeoJSON FeatureCollection (.json/.geojson) — includes coordinates, filtered to region bounds.
+    - CSV with columns Title, Note, URL, Tags, Comment (.csv) — no coordinates; scraper fills them in.
+    """
     import json
 
-    from importers.google_takeout import import_takeout_to_queue
+    from importers.google_takeout import (
+        import_takeout_to_queue,
+        parse_takeout_csv,
+        parse_takeout_geojson,
+    )
+    from workers.handlers.check_urls import check_urls_for_region
 
     if region not in REGIONS:
         raise HTTPException(status_code=400, detail=f"Unknown region: {region}")
 
     region_obj = REGIONS[region]
 
-    # 10MB file size limit
     content = await file.read(10 * 1024 * 1024 + 1)
     if len(content) > 10 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="File exceeds 10MB limit")
 
-    try:
-        geojson = json.loads(content)
-    except json.JSONDecodeError as exc:
-        raise HTTPException(status_code=422, detail=f"Invalid JSON: {exc}") from exc
+    filename = (file.filename or "").lower()
+    is_csv = filename.endswith(".csv")
 
-    if not isinstance(geojson, dict) or geojson.get("type") != "FeatureCollection":
-        raise HTTPException(status_code=422, detail="File must be a GeoJSON FeatureCollection")
+    if is_csv:
+        places = parse_takeout_csv(content.decode("utf-8-sig"))  # utf-8-sig strips Excel BOM
+    else:
+        try:
+            geojson = json.loads(content)
+        except json.JSONDecodeError as exc:
+            raise HTTPException(status_code=422, detail=f"Invalid JSON: {exc}") from exc
+        if not isinstance(geojson, dict) or geojson.get("type") != "FeatureCollection":
+            raise HTTPException(status_code=422, detail="File must be a GeoJSON FeatureCollection")
+        places = parse_takeout_geojson(geojson, bounds=region_obj.bounds)
 
     db = get_service_role_client()
 
     result = await import_takeout_to_queue(
-        geojson=geojson,
+        places=places,
         db=db,
         bounds=region_obj.bounds,
         region_name=region,
     )
 
+    if result.get("pending_url_check", 0) > 0:
+        background_tasks.add_task(check_urls_for_region, db=db)
+
     log_admin_action(
         admin_user_id=user["id"],
         action="POST /admin/shops/import/google-takeout",
         target_type="import",
-        payload={"region": region, "imported": result.get("imported", 0)},
+        payload={"region": region, "imported": result.get("imported", 0), "format": "csv" if is_csv else "geojson"},
     )
     return result
 
@@ -228,48 +269,54 @@ async def bulk_approve(
     if not shops_to_approve:
         return {"approved": 0, "queued": 0}
 
+    batch_id = str(uuid4())
     queue = JobQueue(db=db)
+
+    # Batch SELECT — one round-trip to get all URLs, filtered to pending_review only
+    url_resp = (
+        db.table("shops")
+        .select("id, google_maps_url")
+        .in_("id", shops_to_approve)
+        .eq("processing_status", ProcessingStatus.PENDING_REVIEW.value)
+        .execute()
+    )
+    eligible = cast("list[dict[str, Any]]", url_resp.data or [])
+    eligible_ids = [row["id"] for row in eligible]
+
     approved = 0
+    if eligible_ids:
+        # Batch UPDATE — conditional on status to guard against concurrent changes
+        update_resp = (
+            db.table("shops")
+            .update({"processing_status": ProcessingStatus.PENDING.value})
+            .in_("id", eligible_ids)
+            .eq("processing_status", ProcessingStatus.PENDING_REVIEW.value)
+            .execute()
+        )
+        approved = len(update_resp.data or [])
+
+    batch_shops = [
+        {"shop_id": row["id"], "google_maps_url": row["google_maps_url"]}
+        for row in eligible
+        if row.get("google_maps_url")
+    ]
+
     queued = 0
-    total = len(shops_to_approve)
-
-    for i, shop_id in enumerate(shops_to_approve):
-        try:
-            # UPDATE ... RETURNING: only update shops in pending_review to prevent
-            # reverting live/failed shops. .single() raises if no rows match.
-            shop_resp = (
-                db.table("shops")
-                .update({"processing_status": ProcessingStatus.PENDING.value})
-                .eq("id", shop_id)
-                .eq("processing_status", ProcessingStatus.PENDING_REVIEW.value)
-                .select("google_maps_url")  # type: ignore[attr-defined]
-                .single()
-                .execute()
-            )
-            approved += 1
-
-            shop_data = cast("dict[str, Any]", shop_resp.data) if shop_resp.data else None
-            google_maps_url = shop_data.get("google_maps_url") if shop_data else None
-
-            if google_maps_url:
-                await queue.enqueue(
-                    job_type=JobType.SCRAPE_SHOP,
-                    payload={"shop_id": shop_id, "google_maps_url": google_maps_url},
-                    # Queue uses DESC priority: earlier shops get higher numbers → processed first
-                    priority=total - i,
-                )
-                queued += 1
-        except Exception:
-            logger.warning("Failed to approve shop", shop_id=shop_id)
-            continue
+    if batch_shops:
+        await queue.enqueue(
+            job_type=JobType.SCRAPE_BATCH,
+            payload={"batch_id": batch_id, "shops": batch_shops},
+            priority=5,
+        )
+        queued = len(batch_shops)
 
     log_admin_action(
         admin_user_id=user["id"],
         action="POST /admin/shops/bulk-approve",
         target_type="import",
-        payload={"approved": approved, "queued": queued},
+        payload={"approved": approved, "queued": queued, "batch_id": batch_id},
     )
-    return {"approved": approved, "queued": queued}
+    return {"approved": approved, "queued": queued, "batch_id": batch_id}
 
 
 @router.post("/import/check-urls", status_code=202)
@@ -291,8 +338,10 @@ async def trigger_url_check(
         .execute()
     )
     checking = count_resp.count or 0
+    logger.info("url_check: trigger received", checking=checking)
 
     background_tasks.add_task(check_urls_for_region, db=db)
+    logger.info("url_check: background task queued")
 
     log_admin_action(
         admin_user_id=user["id"],
