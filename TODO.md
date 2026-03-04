@@ -606,7 +606,7 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 
 **Chunk 2 — API + Data Layer (Wave 3-4):**
 
-- [ ] Profile API router (GET/PATCH /profile) with TDD
+- [x] Profile API router (GET/PATCH /profile) with TDD
 - [ ] Frontend proxy routes + SWR hooks (useUserProfile, useUserCheckins, useListSummaries)
 - [ ] Update StampData type + factory with shop_name
 
