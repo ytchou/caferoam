@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 from api.admin import router as admin_router
+from api.profile import router as profile_router
 from api.admin_shops import router as admin_shops_router
 from api.admin_taxonomy import router as admin_taxonomy_router
 from api.auth import router as auth_router
@@ -106,6 +107,7 @@ async def deep_health_check() -> JSONResponse:
 
 
 app.include_router(auth_router)
+app.include_router(profile_router)
 app.include_router(shops_router)
 app.include_router(search_router)
 app.include_router(checkins_router)
