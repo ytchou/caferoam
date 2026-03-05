@@ -1,8 +1,9 @@
 """Tests for the check_urls background URL validation handler."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import httpx
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
 
 from workers.handlers.check_urls import check_urls_for_region
 
@@ -44,7 +45,7 @@ class TestCheckUrlsForRegion:
         mock_response = AsyncMock()
         mock_response.status_code = 200
 
-        with patch("workers.handlers.check_urls.httpx.AsyncClient") as MockClient:
+        with patch("workers.handlers.check_urls.httpx.AsyncClient") as MockClient:  # noqa: N806
             client_instance = AsyncMock()
             client_instance.head = AsyncMock(return_value=mock_response)
             MockClient.return_value.__aenter__ = AsyncMock(return_value=client_instance)
@@ -73,7 +74,7 @@ class TestCheckUrlsForRegion:
         mock_response = AsyncMock()
         mock_response.status_code = 404
 
-        with patch("workers.handlers.check_urls.httpx.AsyncClient") as MockClient:
+        with patch("workers.handlers.check_urls.httpx.AsyncClient") as MockClient:  # noqa: N806
             client_instance = AsyncMock()
             client_instance.head = AsyncMock(return_value=mock_response)
             MockClient.return_value.__aenter__ = AsyncMock(return_value=client_instance)
@@ -101,7 +102,7 @@ class TestCheckUrlsForRegion:
         update_chain.in_.return_value.execute.return_value = MagicMock()
         mock_db.table.return_value.update.return_value = update_chain
 
-        with patch("workers.handlers.check_urls.httpx.AsyncClient") as MockClient:
+        with patch("workers.handlers.check_urls.httpx.AsyncClient") as MockClient:  # noqa: N806
             client_instance = AsyncMock()
             client_instance.head = AsyncMock(side_effect=httpx.TimeoutException("timeout"))
             MockClient.return_value.__aenter__ = AsyncMock(return_value=client_instance)
@@ -136,7 +137,7 @@ class TestCheckUrlsForRegion:
                 return ok_response
             return bad_response
 
-        with patch("workers.handlers.check_urls.httpx.AsyncClient") as MockClient:
+        with patch("workers.handlers.check_urls.httpx.AsyncClient") as MockClient:  # noqa: N806
             client_instance = AsyncMock()
             client_instance.head = AsyncMock(side_effect=mock_head)
             MockClient.return_value.__aenter__ = AsyncMock(return_value=client_instance)

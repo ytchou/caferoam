@@ -46,7 +46,8 @@ async def get_shop_checkins(
         response = (
             db.table("check_ins")
             .select(
-                "id, user_id, photo_urls, note, created_at, stars, review_text, confirmed_tags, reviewed_at, profiles(display_name)"
+                "id, user_id, photo_urls, note, created_at, stars, review_text, "
+                "confirmed_tags, reviewed_at, profiles(display_name)"
             )
             .eq("shop_id", shop_id)
             .order("created_at", desc=True)
