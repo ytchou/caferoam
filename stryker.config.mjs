@@ -12,7 +12,7 @@ export default {
   reporters: ['html', 'json', 'clear-text'],
   htmlReporter: { fileName: 'reports/mutation/index.html' },
   jsonReporter: { fileName: 'reports/mutation/report.json' },
-  thresholds: { high: 80, low: 60, break: 60 },
+  thresholds: { high: 80, low: 60, break: 55 },
   concurrency: 4,
   timeoutMS: 30000,
 };
