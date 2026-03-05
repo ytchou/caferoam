@@ -1,0 +1,83 @@
+name: Quality Gate
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: quality-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mutation-frontend:
+    name: Mutation Testing (Frontend)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Stryker mutation testing
+        run: pnpm mutation:frontend
+
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-frontend-report
+          path: reports/mutation/
+          retention-days: 7
+
+  mutation-backend:
+    name: Mutation Testing (Backend)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install dependencies
+        run: cd backend && uv sync --all-extras
+
+      - name: Run mutmut mutation testing
+        run: cd backend && uv run mutmut run --paths-to-mutate api/,services/,providers/
+
+      - name: Show mutmut results
+        if: always()
+        run: cd backend && uv run mutmut results
+
+  # E2E smoke tests — commented out until staging env or docker-compose is available.
+  # Currently runs locally only via /e2e-smoke skill.
+  #
+  # e2e-smoke:
+  #   name: E2E Smoke Tests
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Setup Node + Playwright
+  #       ...
+  #     - name: Start services
+  #       ...
+  #     - name: Run Playwright tests
+  #       ...
