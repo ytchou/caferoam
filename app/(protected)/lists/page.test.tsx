@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SWRConfig } from 'swr';
 
@@ -68,6 +69,13 @@ vi.mock('next/link', () => ({
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
+vi.mock('sonner', () => ({
+  toast: Object.assign(vi.fn(), {
+    success: vi.fn(),
+    error: vi.fn(),
+  }),
+}));
+
 import ListsPage from './page';
 
 describe('/lists page', () => {
@@ -124,6 +132,112 @@ describe('/lists page', () => {
         (c) => typeof c[0] === 'string' && (c[0] as string).includes('/pins')
       );
       expect(pinsFetch).toBeUndefined();
+    });
+  });
+
+  it('user can create a new list when under the cap', async () => {
+    const user = userEvent.setup();
+    const oneList = [THREE_LISTS[0]];
+    mockFetch.mockReset();
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => oneList,
+    });
+
+    render(
+      <SWRConfig value={{ provider: () => new Map() }}>
+        <ListsPage />
+      </SWRConfig>
+    );
+
+    expect(await screen.findByText('Work spots')).toBeInTheDocument();
+    expect(screen.getByText('1 / 3')).toBeInTheDocument();
+
+    const input = screen.getByPlaceholderText(/create new list/i);
+    await user.type(input, '我的最愛');
+
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [
+        ...oneList,
+        {
+          id: 'list-new',
+          user_id: USER_ID,
+          name: '我的最愛',
+          items: [],
+          created_at: '2026-03-05T10:00:00Z',
+          updated_at: '2026-03-05T10:00:00Z',
+        },
+      ],
+    });
+
+    await user.click(screen.getByText('Add'));
+
+    await waitFor(() => {
+      expect(screen.getByText('我的最愛')).toBeInTheDocument();
+    });
+  });
+
+  it('user sees an error when trying to create a list at the 3-list cap', async () => {
+    const user = userEvent.setup();
+    const twoLists = THREE_LISTS.slice(0, 2);
+    mockFetch.mockReset();
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => twoLists,
+    });
+
+    render(
+      <SWRConfig value={{ provider: () => new Map() }}>
+        <ListsPage />
+      </SWRConfig>
+    );
+
+    expect(await screen.findByText('Work spots')).toBeInTheDocument();
+
+    const input = screen.getByPlaceholderText(/create new list/i);
+    await user.type(input, 'Fourth list');
+
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ detail: 'Maximum 3 lists per user' }),
+    });
+
+    await user.click(screen.getByText('Add'));
+
+    const { toast } = await import('sonner');
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        expect.stringContaining('3-list limit')
+      );
+    });
+  });
+
+  it('user can delete a list via the delete button', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    render(
+      <SWRConfig value={{ provider: () => new Map() }}>
+        <ListsPage />
+      </SWRConfig>
+    );
+
+    expect(await screen.findByText('Work spots')).toBeInTheDocument();
+
+    const deleteButtons = screen.getAllByRole('button', { name: /delete list/i });
+
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => THREE_LISTS.slice(1),
+    });
+
+    await user.click(deleteButtons[0]);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Work spots')).not.toBeInTheDocument();
     });
   });
 });

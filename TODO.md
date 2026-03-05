@@ -647,7 +647,7 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 
 **Chunk 4 — User Journey Tests (Wave 1, 3):**
 
-- [ ] Lists page tests (create, cap enforcement, delete)
+- [x] Lists page tests (create, cap enforcement, delete)
 - [ ] Profile page tests (stamp detail, empty states, check-in history)
 
 **Chunk 5 — Verification:**
