@@ -636,7 +636,7 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 **Chunk 2 — Backend Changes (Wave 1-2):**
 
 - [ ] Backend: is_first_checkin_at_shop in check-in response with TDD
-- [ ] DB migration: session tracking columns
+- [x] DB migration: session tracking columns
 - [ ] Backend: session heartbeat endpoint with TDD
 
 **Chunk 3 — Frontend Analytics Events (Wave 3):**
