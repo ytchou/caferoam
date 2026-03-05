@@ -64,6 +64,7 @@ async def check_urls_for_region(
 
     total_passed = 0
     total_failed = 0
+    total_errored = 0
     batch_num = 0
 
     async with httpx.AsyncClient() as client:
@@ -93,6 +94,7 @@ async def check_urls_for_region(
                 total_passed += len(passed_ids)
                 total_failed += len(failed_ids)
             except Exception:
+                total_errored += len(passed_ids) + len(failed_ids)
                 logger.exception(
                     "url_check: DB write failed for batch",
                     batch_num=batch_num,
@@ -120,4 +122,4 @@ async def check_urls_for_region(
         passed=total_passed,
         failed=total_failed,
     )
-    return {"checked": total, "passed": total_passed, "failed": total_failed}
+    return {"checked": total, "passed": total_passed, "failed": total_failed, "errored": total_errored}

@@ -629,28 +629,28 @@ Discovered gaps moved to → Quality Gate: Pre-Phase 2B section below.
 
 ### DB Migration — Missing Indexes
 
-- [ ] DB migration: `idx_shop_reviews_shop ON shop_reviews(shop_id)` — prevents full-table scan on shop detail
-- [ ] DB migration: `idx_shops_processing_status ON shops(processing_status)` — speeds pipeline state queries
-- [ ] DB migration: `idx_profiles_deletion_requested ON profiles(deletion_requested_at) WHERE NOT NULL` — speeds hard-delete scheduler
-- [ ] DB migration: `idx_shops_source ON shops(source)` — speeds analytics/admin filtering
+- [x] DB migration: `idx_shop_reviews_shop ON shop_reviews(shop_id)` — prevents full-table scan on shop detail
+- [x] DB migration: `idx_shops_processing_status ON shops(processing_status)` — speeds pipeline state queries
+- [x] DB migration: `idx_profiles_deletion_requested ON profiles(deletion_requested_at) WHERE NOT NULL` — speeds hard-delete scheduler
+- [x] DB migration: `idx_shops_source ON shops(source)` — speeds analytics/admin filtering
 
 ### Frontend Tests — Auth Pages
 
-- [ ] Login page tests: email form submit, OAuth buttons (Google/LINE), error display, redirect
-- [ ] Signup page tests: signup form, PDPA checkbox required, email confirmation, error display
-- [ ] PDPA consent page tests: consent checkbox + submit, redirect to home, consent API call
-- [ ] Account recovery page tests: cancel-deletion API call, success message, error state
+- [x] Login page tests: email form submit, OAuth buttons (Google/LINE), error display, redirect
+- [x] Signup page tests: signup form, PDPA checkbox required, email confirmation, error display
+- [x] PDPA consent page tests: consent checkbox + submit, redirect to home, consent API call
+- [x] Account recovery page tests: cancel-deletion API call, success message, error state
 
 ### Frontend Tests — SWR Hooks
 
-- [ ] `useUserProfile` hook tests: fetch profile, null while loading, error state, mutate
-- [ ] `useUserCheckins` hook tests: fetch check-ins, empty array while loading, error
-- [ ] `useListSummaries` hook tests: fetch summaries, empty array while loading, error
+- [x] `useUserProfile` hook tests: fetch profile, null while loading, error state, mutate
+- [x] `useUserCheckins` hook tests: fetch check-ins, empty array while loading, error
+- [x] `useListSummaries` hook tests: fetch summaries, empty array while loading, error
 
 ### Backend Test + Validation
 
-- [ ] Dedicated test for `check_urls.py` handler: valid URL, dead URL, batch processing, status updates
-- [ ] Validate `confirmed_tags` against taxonomy in CheckInService (reject unknown tag IDs with 400)
+- [x] Dedicated test for `check_urls.py` handler: valid URL, dead URL, batch processing, status updates
+- [x] Validate `confirmed_tags` against taxonomy in CheckInService (reject unknown tag IDs with 400)
 
 ### Verification
 

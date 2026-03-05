@@ -51,6 +51,8 @@ class CheckInService:
             raise ValueError("At least one photo is required for check-in")
         if review_text is not None and stars is None:
             raise ValueError("review_text requires a star rating")
+        if confirmed_tags and stars is None:
+            raise ValueError("confirmed_tags requires a star rating")
         if stars is not None:
             self._validate_stars(stars)
         if confirmed_tags:
@@ -106,9 +108,10 @@ class CheckInService:
         update_data: dict[str, Any] = {
             "stars": stars,
             "review_text": review_text,
-            "confirmed_tags": confirmed_tags,
             "reviewed_at": datetime.now(timezone.utc).isoformat(),  # noqa: UP017
         }
+        if confirmed_tags is not None:
+            update_data["confirmed_tags"] = confirmed_tags
         response = await asyncio.to_thread(
             lambda: (
                 self._db.table("check_ins")
