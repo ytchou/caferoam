@@ -59,8 +59,9 @@ class TestCheckInService:
         )
         assert result.id == "ci-1"
         # Service should only call table("check_ins") — NOT stamps or job_queue
+        # (Two calls expected: one count query + one insert)
         table_calls = [c[0][0] for c in mock_supabase.table.call_args_list]
-        assert table_calls == ["check_ins"]
+        assert set(table_calls) == {"check_ins"}
 
     async def test_create_with_menu_photo_still_only_inserts_checkin(
         self, checkin_service, mock_supabase
@@ -95,8 +96,10 @@ class TestCheckInService:
             photo_urls=["https://example.com/photo.jpg"],
             menu_photo_url="https://example.com/menu.jpg",
         )
+        # Service should only call table("check_ins") — NOT stamps or job_queue
+        # (Two calls expected: one count query + one insert)
         table_calls = [c[0][0] for c in mock_supabase.table.call_args_list]
-        assert table_calls == ["check_ins"]
+        assert set(table_calls) == {"check_ins"}
 
     async def test_user_checkin_history_includes_shop_name_and_mrt(
         self, checkin_service, mock_supabase
