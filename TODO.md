@@ -437,7 +437,16 @@ Core infrastructure everything else depends on. No user-facing product yet.
 - [x] Profile page tests (completed in Phase 2A Completion)
 - Search page tests → moved to Phase 2B (blocked until semantic search UI)
 
-Discovered gaps moved to → Quality Gate: Pre-Phase 2B section below.
+**Discovered gaps (progress review 2026-03-05) — pre-launch P1:**
+
+- [ ] **[P1]** Frontend: login page tests (auth entry point — 0 coverage)
+- [ ] **[P1]** Frontend: signup page tests (auth entry point — 0 coverage)
+- [ ] **[P1]** Frontend: PDPA consent page tests (`/onboarding/consent` — compliance flow, 0 coverage)
+- [ ] **[P2]** Frontend: account recovery page tests (`/account/recover` — 0 coverage)
+- [ ] **[P2]** Frontend: `useUserProfile` hook tests (used in profile + settings, 0 coverage)
+- [ ] **[P2]** Frontend: `useUserCheckins` hook tests (used in profile tab, 0 coverage)
+- [ ] **[P2]** Frontend: `useListSummaries` hook tests (used in profile tab, 0 coverage)
+- [ ] **[P2]** Backend: dedicated test for `check_urls.py` handler (tested indirectly only)
 
 **Phase 1 is done when:** Auth works end-to-end including PDPA consent and account deletion. Admin can add and edit shop data. `git clone` → running app in under 15 minutes. (200+ shop data gate moved to Phase 2B.)
 
@@ -789,6 +798,15 @@ _Better Stack:_
 - [ ] Map performance audit: test on low-end Android devices
 - [ ] Security review: RLS policies, PDPA flow, Sentry error baseline
 - [ ] SQL lint passing on all migrations
+
+### DB Performance Indexes (discovered 2026-03-05)
+
+> Single migration bundling all missing indexes found in progress review.
+
+- [ ] `CREATE INDEX idx_shop_reviews_shop ON shop_reviews(shop_id)` — prevents full-table scan on shop detail page
+- [ ] `CREATE INDEX idx_shops_processing_status ON shops(processing_status)` — speeds pipeline state queries
+- [ ] `CREATE INDEX idx_profiles_deletion_requested ON profiles(deletion_requested_at) WHERE deletion_requested_at IS NOT NULL` — speeds daily hard-delete scheduler
+- [ ] `CREATE INDEX idx_shops_source ON shops(source)` — speeds analytics/filtering by source
 
 ### Launch
 
