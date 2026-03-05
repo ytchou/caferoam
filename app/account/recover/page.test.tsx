@@ -48,9 +48,7 @@ describe('/account/recover page', () => {
     const user = userEvent.setup();
     render(<RecoverPage />);
 
-    await user.click(
-      screen.getByRole('button', { name: /cancel deletion/i })
-    );
+    await user.click(screen.getByRole('button', { name: /cancel deletion/i }));
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
@@ -75,9 +73,7 @@ describe('/account/recover page', () => {
     const user = userEvent.setup();
     render(<RecoverPage />);
 
-    await user.click(
-      screen.getByRole('button', { name: /cancel deletion/i })
-    );
+    await user.click(screen.getByRole('button', { name: /cancel deletion/i }));
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent(
@@ -92,9 +88,7 @@ describe('/account/recover page', () => {
     const user = userEvent.setup();
     render(<RecoverPage />);
 
-    await user.click(
-      screen.getByRole('button', { name: /cancel deletion/i })
-    );
+    await user.click(screen.getByRole('button', { name: /cancel deletion/i }));
 
     await waitFor(() => {
       expect(mockRouter.push).toHaveBeenCalledWith('/login');

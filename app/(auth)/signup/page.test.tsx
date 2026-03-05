@@ -28,9 +28,7 @@ describe('/signup page', () => {
 
   it('submit button is disabled until PDPA checkbox is checked', () => {
     render(<SignupPage />);
-    expect(
-      screen.getByRole('button', { name: /sign up/i })
-    ).toBeDisabled();
+    expect(screen.getByRole('button', { name: /sign up/i })).toBeDisabled();
   });
 
   it('user can sign up after checking PDPA consent and sees email confirmation', async () => {

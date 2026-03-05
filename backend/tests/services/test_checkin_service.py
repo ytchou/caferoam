@@ -211,7 +211,9 @@ class TestCheckInService:
             ]
         )
 
-        mock_supabase.table.side_effect = _make_table_router(taxonomy_table, count_table, insert_table)
+        mock_supabase.table.side_effect = _make_table_router(
+            taxonomy_table, count_table, insert_table
+        )
 
         with patch("services.checkin_service.datetime") as mock_dt:
             mock_dt.now.return_value = frozen_now
@@ -327,8 +329,8 @@ class TestConfirmedTagsValidation:
     async def test_create_rejects_unknown_tags(self, mock_supabase, checkin_service):
         """When a user submits tag IDs not in taxonomy, return ValueError."""
         taxonomy_table = MagicMock()
-        taxonomy_table.select.return_value.in_.return_value.execute.return_value = (
-            MagicMock(data=[{"id": "quiet"}, {"id": "wifi"}])
+        taxonomy_table.select.return_value.in_.return_value.execute.return_value = MagicMock(
+            data=[{"id": "quiet"}, {"id": "wifi"}]
         )
 
         count_table = MagicMock()
@@ -353,8 +355,8 @@ class TestConfirmedTagsValidation:
     async def test_create_accepts_valid_tags(self, mock_supabase, checkin_service):
         """When all tag IDs exist in taxonomy, check-in succeeds."""
         taxonomy_table = MagicMock()
-        taxonomy_table.select.return_value.in_.return_value.execute.return_value = (
-            MagicMock(data=[{"id": "quiet"}, {"id": "wifi"}])
+        taxonomy_table.select.return_value.in_.return_value.execute.return_value = MagicMock(
+            data=[{"id": "quiet"}, {"id": "wifi"}]
         )
 
         count_table = MagicMock()
@@ -364,22 +366,26 @@ class TestConfirmedTagsValidation:
 
         insert_table = MagicMock()
         insert_table.insert.return_value.execute.return_value = MagicMock(
-            data=[{
-                "id": "ci-new",
-                "user_id": "user-1",
-                "shop_id": "shop-1",
-                "photo_urls": ["https://example.com/photo.jpg"],
-                "menu_photo_url": None,
-                "note": None,
-                "stars": 4,
-                "review_text": None,
-                "confirmed_tags": ["quiet", "wifi"],
-                "reviewed_at": "2026-03-05T00:00:00Z",
-                "created_at": "2026-03-05T00:00:00Z",
-            }]
+            data=[
+                {
+                    "id": "ci-new",
+                    "user_id": "user-1",
+                    "shop_id": "shop-1",
+                    "photo_urls": ["https://example.com/photo.jpg"],
+                    "menu_photo_url": None,
+                    "note": None,
+                    "stars": 4,
+                    "review_text": None,
+                    "confirmed_tags": ["quiet", "wifi"],
+                    "reviewed_at": "2026-03-05T00:00:00Z",
+                    "created_at": "2026-03-05T00:00:00Z",
+                }
+            ]
         )
 
-        mock_supabase.table.side_effect = _make_table_router(taxonomy_table, count_table, insert_table)
+        mock_supabase.table.side_effect = _make_table_router(
+            taxonomy_table, count_table, insert_table
+        )
 
         result = await checkin_service.create(
             user_id="user-1",
@@ -399,19 +405,21 @@ class TestConfirmedTagsValidation:
 
         insert_table = MagicMock()
         insert_table.insert.return_value.execute.return_value = MagicMock(
-            data=[{
-                "id": "ci-no-tags",
-                "user_id": "user-1",
-                "shop_id": "shop-1",
-                "photo_urls": ["https://example.com/photo.jpg"],
-                "menu_photo_url": None,
-                "note": None,
-                "stars": None,
-                "review_text": None,
-                "confirmed_tags": None,
-                "reviewed_at": None,
-                "created_at": "2026-03-05T00:00:00Z",
-            }]
+            data=[
+                {
+                    "id": "ci-no-tags",
+                    "user_id": "user-1",
+                    "shop_id": "shop-1",
+                    "photo_urls": ["https://example.com/photo.jpg"],
+                    "menu_photo_url": None,
+                    "note": None,
+                    "stars": None,
+                    "review_text": None,
+                    "confirmed_tags": None,
+                    "reviewed_at": None,
+                    "created_at": "2026-03-05T00:00:00Z",
+                }
+            ]
         )
 
         mock_supabase.table.side_effect = [count_table, insert_table]

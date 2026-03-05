@@ -122,4 +122,9 @@ async def check_urls_for_region(
         passed=total_passed,
         failed=total_failed,
     )
-    return {"checked": total, "passed": total_passed, "failed": total_failed, "errored": total_errored}
+    return {
+        "checked": total,
+        "passed": total_passed,
+        "failed": total_failed,
+        "errored": total_errored,
+    }

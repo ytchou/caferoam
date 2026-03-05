@@ -53,9 +53,7 @@ class TestCheckUrlsForRegion:
 
         assert result["passed"] == 1
         assert result["failed"] == 0
-        mock_db.table.return_value.update.assert_any_call(
-            {"processing_status": "pending_review"}
-        )
+        mock_db.table.return_value.update.assert_any_call({"processing_status": "pending_review"})
 
     @pytest.mark.asyncio
     async def test_marks_dead_urls_as_filtered(self, mock_db):

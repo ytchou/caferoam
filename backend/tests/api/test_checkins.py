@@ -85,8 +85,8 @@ class TestCheckinsAPI:
         app.dependency_overrides[get_current_user] = lambda: {"id": "user-abc123"}
         app.dependency_overrides[get_user_db] = lambda: mock_db
         try:
-            mock_db.table.return_value.select.return_value.in_.return_value.execute.return_value = MagicMock(
-                data=[{"id": "wifi"}, {"id": "quiet"}, {"id": "good-coffee"}]
+            mock_db.table.return_value.select.return_value.in_.return_value.execute.return_value = (
+                MagicMock(data=[{"id": "wifi"}, {"id": "quiet"}, {"id": "good-coffee"}])
             )
             mock_db.table.return_value.insert.return_value.execute.return_value = MagicMock(
                 data=[
@@ -139,8 +139,8 @@ class TestCheckinsAPI:
         app.dependency_overrides[get_current_user] = lambda: {"id": "user-abc123"}
         app.dependency_overrides[get_user_db] = lambda: mock_db
         try:
-            mock_db.table.return_value.select.return_value.in_.return_value.execute.return_value = MagicMock(
-                data=[{"id": "good-coffee"}, {"id": "cozy"}]
+            mock_db.table.return_value.select.return_value.in_.return_value.execute.return_value = (
+                MagicMock(data=[{"id": "good-coffee"}, {"id": "cozy"}])
             )
             mock_db.table.return_value.update.return_value.eq.return_value.eq.return_value.execute.return_value = MagicMock(
                 data=[

@@ -22,12 +22,7 @@ class CheckInService:
         if not tags:
             return
         response = await asyncio.to_thread(
-            lambda: (
-                self._db.table("taxonomy_tags")
-                .select("id")
-                .in_("id", tags)
-                .execute()
-            )
+            lambda: self._db.table("taxonomy_tags").select("id").in_("id", tags).execute()
         )
         rows: list[dict[str, Any]] = cast("list[dict[str, Any]]", response.data or [])
         found_ids = {row["id"] for row in rows}
