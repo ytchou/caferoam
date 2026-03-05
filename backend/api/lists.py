@@ -61,6 +61,17 @@ async def get_list_pins(
     return [r.model_dump() for r in results]
 
 
+@router.get("/summaries")
+async def get_list_summaries(
+    user: dict[str, Any] = Depends(get_current_user),  # noqa: B008
+    db: Client = Depends(get_user_db),  # noqa: B008
+) -> list[dict[str, Any]]:
+    """Get lightweight list summaries for profile display. Auth required."""
+    service = ListsService(db=db)
+    results = await service.get_summaries(user["id"])
+    return [r.model_dump() for r in results]
+
+
 @router.delete("/{list_id}")
 async def delete_list(
     list_id: str,

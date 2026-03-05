@@ -82,6 +82,7 @@ export function PhotoUploader({
         <div className="flex gap-2">
           {files.map((file, i) => (
             <div key={i} className="relative h-24 w-24">
+              {/* eslint-disable-next-line @next/next/no-img-element -- blob: URL from URL.createObjectURL, not supported by next/image */}
               <img
                 src={previewUrls[i]}
                 alt={`Photo ${i + 1}`}

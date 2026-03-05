@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import useSWR from 'swr';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -89,7 +90,12 @@ export default function CheckInPage() {
 
       toast('打卡成功！Stamp earned.', {
         icon: (
-          <img src={`/stamps/${shopId}.svg`} alt="Stamp" className="h-8 w-8" />
+          <Image
+            src={`/stamps/${shopId}.svg`}
+            alt="Stamp"
+            width={32}
+            height={32}
+          />
         ),
         description: shop?.name ?? 'Check-in recorded',
         action: {
@@ -178,6 +184,7 @@ export default function CheckInPage() {
                 className="block w-full text-sm text-gray-500 file:mr-2 file:rounded file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-sm"
               />
               {menuPhotoPreviewUrl && (
+                // eslint-disable-next-line @next/next/no-img-element -- blob: URL from URL.createObjectURL, not supported by next/image
                 <img
                   src={menuPhotoPreviewUrl}
                   alt="Menu photo preview"

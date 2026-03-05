@@ -75,7 +75,7 @@ describe('AdminShopsList', () => {
       screen.getByText('台北市大安區溫州街74巷5弄2號')
     ).toBeInTheDocument();
     const table = screen.getByRole('table');
-    expect(within(table).getByText('cafe_nomad')).toBeInTheDocument();
+    expect(within(table).getByText('Cafe Nomad')).toBeInTheDocument();
     expect(within(table).getByText('google_maps')).toBeInTheDocument();
     const rows = table.querySelectorAll('tbody tr');
     expect(rows).toHaveLength(2);

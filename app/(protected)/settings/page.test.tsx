@@ -1,6 +1,8 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { SWRConfig } from 'swr';
+import React from 'react';
 import {
   createMockSupabaseAuth,
   createMockRouter,
@@ -8,8 +10,14 @@ import {
 import { makeSession } from '@/lib/test-utils/factories';
 
 const mockAuth = createMockSupabaseAuth();
+const mockUpload = vi.fn();
+const mockGetPublicUrl = vi.fn();
+const mockStorageFrom = vi.fn(() => ({
+  upload: mockUpload,
+  getPublicUrl: mockGetPublicUrl,
+}));
 vi.mock('@/lib/supabase/client', () => ({
-  createClient: () => ({ auth: mockAuth }),
+  createClient: () => ({ auth: mockAuth, storage: { from: mockStorageFrom } }),
 }));
 
 const mockRouter = createMockRouter();
@@ -40,7 +48,7 @@ describe('SettingsPage', () => {
     ).toBeInTheDocument();
   });
 
-  it('logout calls signOut and redirects to /', async () => {
+  it('user can log out and is redirected to the home page', async () => {
     render(<SettingsPage />);
     await userEvent.click(screen.getByRole('button', { name: /logout/i }));
     expect(mockAuth.signOut).toHaveBeenCalledOnce();
@@ -74,7 +82,7 @@ describe('SettingsPage', () => {
     expect(confirmBtn).not.toBeDisabled();
   });
 
-  it('successful account deletion calls API, signs out, and redirects', async () => {
+  it('user can request account deletion and is signed out', async () => {
     mockFetch.mockResolvedValue({ ok: true });
     render(<SettingsPage />);
 
@@ -133,7 +141,10 @@ describe('SettingsPage', () => {
     expect(
       screen.queryByPlaceholderText(/type delete/i)
     ).not.toBeInTheDocument();
-    expect(mockFetch).not.toHaveBeenCalled();
+    expect(mockFetch).not.toHaveBeenCalledWith(
+      '/api/auth/account',
+      expect.anything()
+    );
   });
 
   it('redirects to /login when session is null without calling API', async () => {
@@ -148,5 +159,152 @@ describe('SettingsPage', () => {
     );
     await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith('/login'));
     expect(mockFetch).not.toHaveBeenCalled();
+  });
+});
+
+function wrapper({ children }: { children: React.ReactNode }) {
+  return React.createElement(
+    SWRConfig,
+    { value: { provider: () => new Map() } },
+    children
+  );
+}
+
+describe('Profile editing', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockAuth.getSession.mockResolvedValue({ data: { session: testSession } });
+    mockAuth.signOut.mockResolvedValue({});
+    // Mock GET /api/profile for the initial load
+    mockFetch.mockImplementation((url: string, init?: RequestInit) => {
+      if (
+        typeof url === 'string' &&
+        url.includes('/api/profile') &&
+        (!init || init.method !== 'PATCH')
+      ) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            display_name: 'Mei-Ling',
+            avatar_url: null,
+            stamp_count: 0,
+            checkin_count: 0,
+          }),
+        });
+      }
+      if (
+        typeof url === 'string' &&
+        url.includes('/api/profile') &&
+        init?.method === 'PATCH'
+      ) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ message: 'Profile updated' }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({}) });
+    });
+  });
+
+  it('renders display name input with current value', async () => {
+    render(<SettingsPage />, { wrapper });
+    await waitFor(() => {
+      const input = screen.getByLabelText(/display name/i);
+      expect(input).toHaveValue('Mei-Ling');
+    });
+  });
+
+  it('saves updated display name on submit', async () => {
+    const user = userEvent.setup();
+    render(<SettingsPage />, { wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/display name/i)).toBeInTheDocument();
+    });
+
+    const input = screen.getByLabelText(/display name/i);
+    await user.clear(input);
+    await user.type(input, 'New Name');
+    await user.click(screen.getByRole('button', { name: /save changes/i }));
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/profile'),
+        expect.objectContaining({ method: 'PATCH' })
+      );
+    });
+  });
+
+  it('rejects non-image files with an error message', async () => {
+    render(<SettingsPage />, { wrapper });
+    const fileInput = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
+
+    // userEvent respects accept="image/*" and drops non-image files before firing onChange.
+    // Use fireEvent to simulate a file arriving via drag-and-drop (bypasses accept filter).
+    const pdfFile = new File(['content'], 'document.pdf', {
+      type: 'application/pdf',
+    });
+    Object.defineProperty(fileInput, 'files', {
+      value: [pdfFile],
+      configurable: true,
+    });
+    fireEvent.change(fileInput);
+
+    await waitFor(() => {
+      expect(screen.getByText(/file must be an image/i)).toBeInTheDocument();
+    });
+    expect(mockUpload).not.toHaveBeenCalled();
+  });
+
+  it('rejects images over 1MB with an error message', async () => {
+    render(<SettingsPage />, { wrapper });
+    const fileInput = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
+
+    const largeFile = new File(
+      [new ArrayBuffer(1024 * 1024 + 1)],
+      'large-photo.jpg',
+      { type: 'image/jpeg' }
+    );
+    await userEvent.upload(fileInput, largeFile);
+
+    await waitFor(() => {
+      expect(screen.getByText(/under 1MB/i)).toBeInTheDocument();
+    });
+    expect(mockUpload).not.toHaveBeenCalled();
+  });
+
+  it('uploads valid avatar image and shows Save changes button', async () => {
+    mockUpload.mockResolvedValue({ error: null });
+    mockGetPublicUrl.mockReturnValue({
+      data: {
+        publicUrl:
+          'http://127.0.0.1:54321/storage/v1/object/public/avatars/user-123/avatar',
+      },
+    });
+    render(<SettingsPage />, { wrapper });
+    const fileInput = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
+
+    const avatarFile = new File(['img'], 'selfie.jpg', { type: 'image/jpeg' });
+    await userEvent.upload(fileInput, avatarFile);
+
+    await waitFor(() => {
+      expect(mockUpload).toHaveBeenCalledWith(
+        expect.stringContaining('/avatar'),
+        avatarFile,
+        expect.objectContaining({ upsert: true, contentType: 'image/jpeg' })
+      );
+    });
+    // Save button re-enables after upload completes
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: /save changes/i })
+      ).not.toBeDisabled();
+    });
   });
 });

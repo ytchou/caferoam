@@ -54,6 +54,69 @@ class User(BaseModel):
     created_at: datetime
 
 
+class ProfileResponse(BaseModel):
+    display_name: str | None = None
+    avatar_url: str | None = None
+    stamp_count: int
+    checkin_count: int
+
+
+class ProfileUpdateRequest(BaseModel):
+    display_name: str | None = None
+    avatar_url: str | None = None
+
+    @field_validator("display_name")
+    @classmethod
+    def validate_display_name(cls, v: str | None) -> str | None:
+        if v is not None:
+            v = v.strip()
+            if len(v) == 0:
+                raise ValueError("Display name cannot be empty")
+            if len(v) > 30:
+                raise ValueError("Display name must be 30 characters or less")
+        return v
+
+    @field_validator("avatar_url")
+    @classmethod
+    def validate_avatar_url(cls, v: str | None) -> str | None:
+        if v is not None and "/storage/v1/object/public/avatars/" not in v:
+            raise ValueError("Avatar URL must point to the project's Supabase Storage avatars bucket")
+        return v
+
+
+class StampWithShop(BaseModel):
+    id: str
+    user_id: str
+    shop_id: str
+    check_in_id: str
+    design_url: str
+    earned_at: datetime
+    shop_name: str | None = None
+
+
+class CheckInWithShop(BaseModel):
+    id: str
+    user_id: str
+    shop_id: str
+    shop_name: str | None = None
+    shop_mrt: str | None = None
+    photo_urls: list[str]
+    menu_photo_url: str | None = None
+    note: str | None = None
+    stars: int | None = None
+    review_text: str | None = None
+    confirmed_tags: list[str] | None = None
+    reviewed_at: datetime | None = None
+    created_at: datetime
+
+
+class ListSummary(BaseModel):
+    id: str
+    name: str
+    shop_count: int
+    preview_photos: list[str]
+
+
 class List(BaseModel):
     id: str
     user_id: str

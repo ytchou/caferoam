@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
+import Image from 'next/image';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 
@@ -400,11 +401,15 @@ export default function AdminShopDetail() {
           <h2 className="mb-4 text-lg font-semibold">Photos</h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {shop.photos.map((photo, idx) => (
-              <div key={idx} className="overflow-hidden rounded border">
-                <img
+              <div
+                key={idx}
+                className="relative h-40 overflow-hidden rounded border"
+              >
+                <Image
                   src={photo.url}
                   alt={`${photo.category} photo`}
-                  className="h-40 w-full object-cover"
+                  fill
+                  className="object-cover"
                 />
                 <div className="flex items-center justify-between p-2 text-xs text-gray-500">
                   <span>{photo.category}</span>

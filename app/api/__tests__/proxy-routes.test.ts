@@ -52,6 +52,14 @@ import { GET as searchGET } from '../search/route';
 import { GET as shopGET } from '../shops/[id]/route';
 import { GET as shopsGET } from '../shops/route';
 import { GET as stampsGET } from '../stamps/route';
+import { GET as listsSummariesGET } from '../lists/summaries/route';
+import { GET as profileGET, PATCH as profilePATCH } from '../profile/route';
+import { GET as batchesGET } from '../admin/pipeline/batches/route';
+import { GET as batchDetailGET } from '../admin/pipeline/batches/[batchId]/route';
+import { GET as pipelineStatusGET } from '../admin/shops/pipeline-status/route';
+import { PATCH as checkinReviewPATCH } from '../checkins/[id]/review/route';
+import { GET as shopCheckinsGET } from '../shops/[id]/checkins/route';
+import { GET as shopReviewsGET } from '../shops/[id]/reviews/route';
 
 const mockProxy = vi.mocked(proxyToBackend);
 const mockResponse = new Response('{}', { status: 200 });
@@ -376,6 +384,96 @@ describe('admin/taxonomy/stats route', () => {
     expect(mockProxy).toHaveBeenCalledWith(
       expect.any(NextRequest),
       '/admin/taxonomy/stats'
+    );
+  });
+});
+
+describe('lists/summaries route', () => {
+  it('GET proxies to /lists/summaries', async () => {
+    await listsSummariesGET(makeRequest());
+    expect(mockProxy).toHaveBeenCalledWith(
+      expect.any(NextRequest),
+      '/lists/summaries'
+    );
+  });
+});
+
+describe('profile route', () => {
+  it('GET proxies to /profile', async () => {
+    await profileGET(makeRequest());
+    expect(mockProxy).toHaveBeenCalledWith(expect.any(NextRequest), '/profile');
+  });
+
+  it('PATCH proxies to /profile', async () => {
+    await profilePATCH(makeRequest());
+    expect(mockProxy).toHaveBeenCalledWith(expect.any(NextRequest), '/profile');
+  });
+});
+
+describe('admin/pipeline/batches route', () => {
+  it('GET proxies to /admin/pipeline/batches', async () => {
+    await batchesGET(makeRequest());
+    expect(mockProxy).toHaveBeenCalledWith(
+      expect.any(NextRequest),
+      '/admin/pipeline/batches'
+    );
+  });
+});
+
+describe('admin/pipeline/batches/[batchId] route', () => {
+  it('GET proxies to /admin/pipeline/batches/:batchId', async () => {
+    await batchDetailGET(makeRequest(), {
+      params: Promise.resolve({ batchId: 'batch-1' }),
+    });
+    expect(mockProxy).toHaveBeenCalledWith(
+      expect.any(NextRequest),
+      '/admin/pipeline/batches/batch-1'
+    );
+  });
+});
+
+describe('admin/shops/pipeline-status route', () => {
+  it('GET proxies to /admin/shops/pipeline-status', async () => {
+    await pipelineStatusGET(makeRequest());
+    expect(mockProxy).toHaveBeenCalledWith(
+      expect.any(NextRequest),
+      '/admin/shops/pipeline-status'
+    );
+  });
+});
+
+describe('checkins/[id]/review route', () => {
+  it('PATCH proxies to /checkins/:id/review', async () => {
+    await checkinReviewPATCH(makeRequest(), {
+      params: Promise.resolve({ id: 'checkin-1' }),
+    });
+    expect(mockProxy).toHaveBeenCalledWith(
+      expect.any(NextRequest),
+      '/checkins/checkin-1/review'
+    );
+  });
+});
+
+describe('shops/[id]/checkins route', () => {
+  it('GET proxies to /shops/:id/checkins', async () => {
+    await shopCheckinsGET(makeRequest(), {
+      params: Promise.resolve({ id: 'shop-1' }),
+    });
+    expect(mockProxy).toHaveBeenCalledWith(
+      expect.any(NextRequest),
+      '/shops/shop-1/checkins'
+    );
+  });
+});
+
+describe('shops/[id]/reviews route', () => {
+  it('GET proxies to /shops/:id/reviews', async () => {
+    await shopReviewsGET(makeRequest(), {
+      params: Promise.resolve({ id: 'shop-1' }),
+    });
+    expect(mockProxy).toHaveBeenCalledWith(
+      expect.any(NextRequest),
+      '/shops/shop-1/reviews'
     );
   });
 });

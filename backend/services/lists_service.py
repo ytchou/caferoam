@@ -1,19 +1,51 @@
+import asyncio
 from typing import Any, cast
 
 from postgrest.exceptions import APIError
 from supabase import Client
 
 from core.db import first
-from models.types import List, ListItem, ListPin, ListWithItems, Shop
+from models.types import List, ListItem, ListPin, ListSummary, ListWithItems, Shop
 
 
 class ListsService:
     def __init__(self, db: Client):
         self._db = db
 
+    async def get_summaries(self, user_id: str) -> list[ListSummary]:
+        """Get lightweight list summaries for profile display."""
+        response = await asyncio.to_thread(
+            lambda: self._db.table("lists")
+            .select("id, name, list_items(shop_id, shops(shop_photos(url)))")
+            .eq("user_id", user_id)
+            .order("created_at", desc=True)
+            .execute()
+        )
+        rows = cast("list[dict[str, Any]]", response.data)
+        summaries = []
+        for row in rows:
+            items = row.get("list_items", [])
+            shop_count = len(items)
+            # Extract first photo from each shop, up to 3
+            preview_photos = []
+            for item in items[:3]:
+                shop_data = item.get("shops", {}) or {}
+                photos = shop_data.get("shop_photos", [])
+                if photos:
+                    preview_photos.append(photos[0]["url"])
+            summaries.append(
+                ListSummary(
+                    id=row["id"],
+                    name=row["name"],
+                    shop_count=shop_count,
+                    preview_photos=preview_photos,
+                )
+            )
+        return summaries
+
     async def get_by_user(self, user_id: str) -> list[ListWithItems]:
-        response = (
-            self._db.table("lists")
+        response = await asyncio.to_thread(
+            lambda: self._db.table("lists")
             .select("*, list_items(shop_id, added_at)")
             .eq("user_id", user_id)
             .order("created_at", desc=True)

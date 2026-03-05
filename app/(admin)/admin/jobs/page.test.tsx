@@ -85,12 +85,23 @@ describe('AdminJobsPage', () => {
       },
     ]);
 
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(jobsResponse),
+    mockFetch.mockImplementation((url: string) => {
+      if (url.includes('/api/admin/pipeline/batches')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ batches: [], total: 0 }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(jobsResponse),
+      });
     });
 
+    const user = userEvent.setup();
     render(<AdminJobsPage />);
+
+    await user.click(screen.getByRole('button', { name: /raw jobs/i }));
 
     await waitFor(() => {
       expect(screen.getByText('Jobs Queue')).toBeInTheDocument();
@@ -131,15 +142,25 @@ describe('AdminJobsPage', () => {
       },
     ]);
 
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(jobsResponse),
+    mockFetch.mockImplementation((url: string) => {
+      if (url.includes('/api/admin/pipeline/batches')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ batches: [], total: 0 }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(jobsResponse),
+      });
     });
 
     vi.spyOn(window, 'confirm').mockReturnValue(true);
 
     const user = userEvent.setup();
     render(<AdminJobsPage />);
+
+    await user.click(screen.getByRole('button', { name: /raw jobs/i }));
 
     await waitFor(() => {
       const tbody = screen.getAllByRole('rowgroup')[1];
@@ -174,13 +195,23 @@ describe('AdminJobsPage', () => {
       },
     ]);
 
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(jobsResponse),
+    mockFetch.mockImplementation((url: string) => {
+      if (url.includes('/api/admin/pipeline/batches')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ batches: [], total: 0 }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(jobsResponse),
+      });
     });
 
     const user = userEvent.setup();
     render(<AdminJobsPage />);
+
+    await user.click(screen.getByRole('button', { name: /raw jobs/i }));
 
     await waitFor(() => {
       const tbody = screen.getAllByRole('rowgroup')[1];

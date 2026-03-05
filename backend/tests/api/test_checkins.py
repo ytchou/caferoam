@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock
 
 from fastapi.testclient import TestClient
 
@@ -23,49 +23,59 @@ class TestCheckinsAPI:
         response = client.get("/checkins")
         assert response.status_code == 401
 
-    def test_create_checkin_empty_photos_returns_400(self):
-        """Empty photo_urls must return 400, not 500 (ValueError caught in route)."""
+    def test_create_checkin_without_photos_is_rejected(self):
+        """When a user submits a check-in with no photos, the server rejects it with 400."""
         mock_db = MagicMock()
-        app.dependency_overrides[get_current_user] = lambda: {"id": "user-1"}
+        app.dependency_overrides[get_current_user] = lambda: {"id": "user-coffee-explorer"}
         app.dependency_overrides[get_user_db] = lambda: mock_db
         try:
-            with patch("api.checkins.CheckInService") as mock_cls:
-                mock_svc = AsyncMock()
-                mock_svc.create.side_effect = ValueError(
-                    "At least one photo is required for check-in"
-                )
-                mock_cls.return_value = mock_svc
-                response = client.post(
-                    "/checkins/",
-                    json={
-                        "shop_id": "shop-1",
-                        "photo_urls": [],
-                    },
-                )
+            response = client.post(
+                "/checkins/",
+                json={
+                    "shop_id": "shop-taipei-yongkang",
+                    "photo_urls": [],
+                },
+            )
             assert response.status_code == 400
             assert "photo" in response.json()["detail"].lower()
         finally:
             app.dependency_overrides.clear()
 
-    def test_create_checkin_uses_user_db(self):
-        """Route must use per-request JWT client, not anon singleton."""
+    def test_create_checkin_with_valid_photo_records_check_in(self):
+        """When a user submits a check-in with a photo, the response includes the check-in record."""
         mock_db = MagicMock()
-        app.dependency_overrides[get_current_user] = lambda: {"id": "user-1"}
+        app.dependency_overrides[get_current_user] = lambda: {"id": "user-mei-ling"}
         app.dependency_overrides[get_user_db] = lambda: mock_db
+        mock_db.table.return_value.insert.return_value.execute.return_value = MagicMock(
+            data=[
+                {
+                    "id": "ci-shida-001",
+                    "user_id": "user-mei-ling",
+                    "shop_id": "shop-taipei-shida",
+                    "photo_urls": ["https://storage.supabase.co/checkins/flat-white.jpg"],
+                    "menu_photo_url": None,
+                    "note": None,
+                    "stars": None,
+                    "review_text": None,
+                    "confirmed_tags": None,
+                    "reviewed_at": None,
+                    "created_at": "2026-03-05T10:00:00Z",
+                }
+            ]
+        )
         try:
-            with patch("api.checkins.CheckInService") as mock_cls:
-                mock_svc = AsyncMock()
-                mock_svc.create.return_value = MagicMock(model_dump=lambda: {"id": "ci-1"})
-                mock_cls.return_value = mock_svc
-                client.post(
-                    "/checkins/",
-                    json={
-                        "shop_id": "shop-1",
-                        "photo_urls": ["https://example.com/photo.jpg"],
-                    },
-                )
-                # Verify service was constructed with the user's DB client
-                mock_cls.assert_called_once_with(db=mock_db)
+            response = client.post(
+                "/checkins/",
+                json={
+                    "shop_id": "shop-taipei-shida",
+                    "photo_urls": ["https://storage.supabase.co/checkins/flat-white.jpg"],
+                },
+            )
+            assert response.status_code == 200
+            assert response.json()["id"] == "ci-shida-001"
+            assert response.json()["photo_urls"] == [
+                "https://storage.supabase.co/checkins/flat-white.jpg"
+            ]
         finally:
             app.dependency_overrides.clear()
 
@@ -190,5 +200,39 @@ class TestCheckinsAPI:
                 json={"stars": 2},
             )
             assert response.status_code == 403
+        finally:
+            app.dependency_overrides.clear()
+
+
+class TestGetMyCheckins:
+    def test_checkins_include_shop_data(self):
+        """When a user fetches their check-ins, each record includes shop_name and shop_mrt."""
+        mock_db = MagicMock()
+        app.dependency_overrides[get_current_user] = lambda: {"id": "user-123"}
+        app.dependency_overrides[get_user_db] = lambda: mock_db
+        try:
+            mock_db.table.return_value.select.return_value.eq.return_value.order.return_value.execute.return_value = MagicMock(
+                data=[
+                    {
+                        "id": "ci-1",
+                        "user_id": "user-123",
+                        "shop_id": "shop-a",
+                        "photo_urls": ["https://example.com/photo1.jpg"],
+                        "menu_photo_url": None,
+                        "note": None,
+                        "stars": 4,
+                        "review_text": None,
+                        "confirmed_tags": [],
+                        "reviewed_at": None,
+                        "created_at": "2026-03-01T00:00:00Z",
+                        "shops": {"name": "Fika Coffee", "mrt": "Daan"},
+                    }
+                ]
+            )
+            resp = client.get("/checkins")
+            assert resp.status_code == 200
+            data = resp.json()
+            assert data[0]["shop_name"] == "Fika Coffee"
+            assert data[0]["shop_mrt"] == "Daan"
         finally:
             app.dependency_overrides.clear()

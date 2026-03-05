@@ -21,7 +21,7 @@
       "**/middleware.ts",
       "**/scripts/prebuild/**",
       "layout.tsx",
-      "components/ui/*.tsx"
+      "*/components/ui/*.tsx"
     ]
   },
   "backend": {

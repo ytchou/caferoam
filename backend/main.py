@@ -15,6 +15,7 @@ from api.auth import router as auth_router
 from api.checkins import router as checkins_router
 from api.feed import router as feed_router
 from api.lists import router as lists_router
+from api.profile import router as profile_router
 from api.search import router as search_router
 from api.shops import router as shops_router
 from api.stamps import router as stamps_router
@@ -106,6 +107,7 @@ async def deep_health_check() -> JSONResponse:
 
 
 app.include_router(auth_router)
+app.include_router(profile_router)
 app.include_router(shops_router)
 app.include_router(search_router)
 app.include_router(checkins_router)

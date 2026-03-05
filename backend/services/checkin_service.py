@@ -1,10 +1,11 @@
+import asyncio
 from datetime import datetime, timezone
 from typing import Any, cast
 
 from supabase import Client
 
 from core.db import first
-from models.types import CheckIn
+from models.types import CheckIn, CheckInWithShop
 
 
 class CheckInService:
@@ -48,7 +49,9 @@ class CheckInService:
             checkin_data["confirmed_tags"] = confirmed_tags
             checkin_data["reviewed_at"] = datetime.now(timezone.utc).isoformat()  # noqa: UP017
 
-        response = self._db.table("check_ins").insert(checkin_data).execute()
+        response = await asyncio.to_thread(
+            lambda: self._db.table("check_ins").insert(checkin_data).execute()
+        )
         rows = cast("list[dict[str, Any]]", response.data)
         return CheckIn(**first(rows, "create check-in"))
 
@@ -69,8 +72,8 @@ class CheckInService:
             "confirmed_tags": confirmed_tags,
             "reviewed_at": datetime.now(timezone.utc).isoformat(),  # noqa: UP017
         }
-        response = (
-            self._db.table("check_ins")
+        response = await asyncio.to_thread(
+            lambda: self._db.table("check_ins")
             .update(update_data)
             .eq("id", checkin_id)
             .eq("user_id", user_id)
@@ -81,20 +84,26 @@ class CheckInService:
             raise ValueError("Check-in not found")
         return CheckIn(**rows[0])
 
-    async def get_by_user(self, user_id: str) -> list[CheckIn]:
-        response = (
-            self._db.table("check_ins")
-            .select("*")
+    async def get_by_user(self, user_id: str) -> list[CheckInWithShop]:
+        response = await asyncio.to_thread(
+            lambda: self._db.table("check_ins")
+            .select("*, shops(name, mrt)")
             .eq("user_id", user_id)
             .order("created_at", desc=True)
             .execute()
         )
         rows = cast("list[dict[str, Any]]", response.data)
-        return [CheckIn(**row) for row in rows]
+        results = []
+        for row in rows:
+            shop_data = row.pop("shops", {}) or {}
+            row["shop_name"] = shop_data.get("name")
+            row["shop_mrt"] = shop_data.get("mrt")
+            results.append(CheckInWithShop(**row))
+        return results
 
     async def get_by_shop(self, shop_id: str) -> list[CheckIn]:
-        response = (
-            self._db.table("check_ins")
+        response = await asyncio.to_thread(
+            lambda: self._db.table("check_ins")
             .select("*")
             .eq("shop_id", shop_id)
             .order("created_at", desc=True)

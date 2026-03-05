@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
+import Image from 'next/image';
 import useSWR from 'swr';
 import { fetchWithAuth } from '@/lib/api/fetch';
 
@@ -62,12 +63,14 @@ export function CheckInPhotoGrid({
         <CheckInHeader count={data.length} />
         <div className="grid grid-cols-3 gap-1">
           {data.slice(0, 9).map((checkin: CheckInSummary) => (
-            <img
-              key={checkin.id}
-              src={checkin.photo_url}
-              alt={`Check-in by ${checkin.display_name ?? 'user'}`}
-              className="aspect-square w-full rounded object-cover"
-            />
+            <div key={checkin.id} className="relative aspect-square w-full">
+              <Image
+                src={checkin.photo_url}
+                alt={`Check-in by ${checkin.display_name ?? 'user'}`}
+                fill
+                className="rounded object-cover"
+              />
+            </div>
           ))}
         </div>
       </section>
@@ -81,12 +84,13 @@ export function CheckInPhotoGrid({
   return (
     <section>
       <CheckInHeader count={preview.count} />
-      <div className="relative overflow-hidden rounded-lg">
+      <div className="relative h-32 overflow-hidden rounded-lg">
         {preview.preview_photo_url && (
-          <img
+          <Image
             src={preview.preview_photo_url}
             alt="Recent check-in"
-            className="h-32 w-full object-cover blur-sm brightness-75"
+            fill
+            className="object-cover blur-sm brightness-75"
           />
         )}
         <div className="absolute inset-0 flex items-center justify-center">

@@ -171,3 +171,45 @@ class TestListsAPI:
         app.dependency_overrides[get_user_db] = lambda: mock_db
         response = client.get(f"/lists/{lid}/shops")
         assert response.status_code == 403
+
+
+class TestGetMyListsSummary:
+    def test_lists_include_shop_count_and_preview_photos(self):
+        """When a user has a list with shops, summaries include shop count and preview photos."""
+        uid = _new_id()
+        mock_db = MagicMock()
+        mock_db.table.return_value.select.return_value.eq.return_value.order.return_value.execute.return_value.data = [
+            {
+                "id": "list-1",
+                "user_id": uid,
+                "name": "My Favourites",
+                "created_at": _now(),
+                "updated_at": _now(),
+                "list_items": [
+                    {
+                        "shop_id": "shop-a",
+                        "added_at": _now(),
+                        "shops": {
+                            "name": "Fika Coffee",
+                            "shop_photos": [{"url": "https://example.com/fika.jpg"}],
+                        },
+                    },
+                    {
+                        "shop_id": "shop-b",
+                        "added_at": _now(),
+                        "shops": {
+                            "name": "Rufous",
+                            "shop_photos": [{"url": "https://example.com/rufous.jpg"}],
+                        },
+                    },
+                ],
+            }
+        ]
+        app.dependency_overrides[get_current_user] = lambda: {"id": uid}
+        app.dependency_overrides[get_user_db] = lambda: mock_db
+
+        response = client.get("/lists/summaries")
+        assert response.status_code == 200
+        data = response.json()
+        assert data[0]["shop_count"] == 2
+        assert len(data[0]["preview_photos"]) == 2

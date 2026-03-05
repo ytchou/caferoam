@@ -219,7 +219,7 @@ export default function AdminShopsList() {
     fetchPipelineStatus();
     const id = setInterval(fetchPipelineStatus, 5000);
     return () => clearInterval(id);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleSearchChange(value: string) {
     setSearch(value);

@@ -4,6 +4,7 @@ import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import type { Provider } from '@supabase/supabase-js';
 import { safeReturnTo } from '@/lib/utils';
 
 function LoginForm() {
@@ -39,8 +40,7 @@ function LoginForm() {
   async function handleOAuthLogin(provider: 'google' | 'line_oidc') {
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      provider: provider as any,
+      provider: provider as Provider,
       options: {
         redirectTo: `${window.location.origin}/auth/callback?returnTo=${encodeURIComponent(returnTo)}`,
       },
