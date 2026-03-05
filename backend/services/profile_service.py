@@ -1,5 +1,6 @@
 # backend/services/profile_service.py
 import asyncio
+from datetime import UTC, datetime, timedelta
 from typing import Any, cast
 
 from supabase import Client
@@ -64,9 +65,12 @@ class ProfileService:
         )
 
     async def session_heartbeat(self, user_id: str) -> dict[str, int]:
-        """Track session start for analytics. Deduplicates within 30 min."""
-        from datetime import UTC, datetime, timedelta
+        """Track session start for analytics. Deduplicates within 30 min.
 
+        Note: read-modify-write race exists on session_count (concurrent requests
+        could lose an increment). Acceptable for analytics — an atomic RPC can
+        replace this if precision becomes important.
+        """
         profile_resp = await asyncio.to_thread(
             lambda: self._db.table("profiles")
             .select("session_count, first_session_at, last_session_at")

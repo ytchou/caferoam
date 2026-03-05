@@ -6,6 +6,7 @@ from supabase import Client
 
 from api.deps import get_admin_db, get_current_user, get_user_db
 from core.db import first
+from services.profile_service import ProfileService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -113,7 +114,5 @@ async def session_heartbeat(
     db: Client = Depends(get_user_db),  # noqa: B008
 ) -> dict[str, int]:
     """Track session start for analytics. Deduplicates within 30 min."""
-    from services.profile_service import ProfileService
-
     service = ProfileService(db=db)
     return await service.session_heartbeat(user["id"])

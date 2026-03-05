@@ -54,7 +54,9 @@ describe('SessionTracker', () => {
 
     render(<SessionTracker />);
 
-    await new Promise((r) => setTimeout(r, 100));
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalled();
+    });
     expect(mockCapture).not.toHaveBeenCalled();
   });
 });

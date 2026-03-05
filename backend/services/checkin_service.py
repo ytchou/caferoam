@@ -36,7 +36,9 @@ class CheckInService:
         if stars is not None:
             self._validate_stars(stars)
 
-        # Check if this is the user's first check-in at this shop
+        # Check if this is the user's first check-in at this shop.
+        # Note: TOCTOU race exists (concurrent requests could both see count=0).
+        # Acceptable because this field is analytics-only metadata, not business logic.
         count_resp = await asyncio.to_thread(
             lambda: self._db.table("check_ins")
             .select("id", count="exact")

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useAnalytics } from '@/lib/posthog/use-analytics';
+import { createClient } from '@/lib/supabase/client';
 import { fetchWithAuth } from '@/lib/api/fetch';
 
 export function SessionTracker() {
@@ -12,18 +13,21 @@ export function SessionTracker() {
     if (hasFiredRef.current) return;
     hasFiredRef.current = true;
 
-    fetchWithAuth('/api/auth/session-heartbeat', { method: 'POST' })
-      .then(
-        (data: { days_since_first_session: number; previous_sessions: number }) => {
-          capture('session_start', {
-            days_since_first_session: data.days_since_first_session,
-            previous_sessions: data.previous_sessions,
-          });
-        }
-      )
-      .catch(() => {
-        // Silently ignore — user may not be authenticated yet
-      });
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) return;
+
+      fetchWithAuth('/api/auth/session-heartbeat', { method: 'POST' })
+        .then(
+          (result: { days_since_first_session: number; previous_sessions: number }) => {
+            capture('session_start', {
+              days_since_first_session: result.days_since_first_session,
+              previous_sessions: result.previous_sessions,
+            });
+          }
+        )
+        .catch(() => {});
+    });
   }, [capture]);
 
   return null;
