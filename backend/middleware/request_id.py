@@ -1,5 +1,6 @@
 import time
 import uuid
+from typing import Any
 
 import sentry_sdk
 import structlog
@@ -14,7 +15,7 @@ _SKIP_LOG_PATHS = {"/health", "/health/deep"}
 
 
 class RequestIDMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next) -> Response:
+    async def dispatch(self, request: Request, call_next: Any) -> Response:
         request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
 
         structlog.contextvars.bind_contextvars(request_id=request_id)
@@ -22,7 +23,7 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
 
         start = time.monotonic()
         try:
-            response = await call_next(request)
+            response: Response = await call_next(request)
         finally:
             structlog.contextvars.clear_contextvars()
 

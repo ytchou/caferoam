@@ -1,3 +1,5 @@
+from typing import Any
+
 import structlog
 
 from db.supabase_client import get_service_role_client
@@ -10,7 +12,7 @@ def log_admin_action(
     action: str,
     target_type: str,
     target_id: str | None = None,
-    payload: dict | None = None,
+    payload: dict[str, Any] | None = None,
 ) -> None:
     """Log an admin action to the audit trail. Fire-and-forget — never raises."""
     try:

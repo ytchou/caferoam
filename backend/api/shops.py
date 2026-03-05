@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 from fastapi import APIRouter, Depends, Query
 
@@ -54,6 +54,7 @@ async def get_shop_checkins(
             .limit(limit)
             .execute()
         )
+        rows = cast("list[dict[str, Any]]", response.data)
         return [
             ShopCheckInSummary(
                 id=row["id"],
@@ -61,7 +62,7 @@ async def get_shop_checkins(
                 display_name=(
                     row.get("profiles", {}).get("display_name") if row.get("profiles") else None
                 ),
-                photo_url=row["photo_urls"][0] if row.get("photo_urls") else None,
+                photo_url=str(row["photo_urls"][0]) if row.get("photo_urls") else "",
                 note=row.get("note"),
                 created_at=row["created_at"],
                 stars=row.get("stars"),
@@ -69,17 +70,18 @@ async def get_shop_checkins(
                 confirmed_tags=row.get("confirmed_tags"),
                 reviewed_at=row.get("reviewed_at"),
             ).model_dump()
-            for row in response.data
+            for row in rows
         ]
     else:
         response = (
             db.table("check_ins")
-            .select("photo_urls", count="exact")
+            .select("photo_urls", count="exact")  # type: ignore[arg-type]
             .eq("shop_id", shop_id)
             .limit(1)
             .execute()
         )
-        first_row = first(response.data, "shop checkins preview") if response.data else None
+        rows_preview = cast("list[dict[str, Any]]", response.data)
+        first_row = first(rows_preview, "shop checkins preview") if response.data else None
         preview_url = (
             first_row["photo_urls"][0] if first_row and first_row.get("photo_urls") else None
         )
@@ -116,6 +118,7 @@ async def get_shop_reviews(
         .execute()
     )
 
+    review_rows = cast("list[dict[str, Any]]", response.data)
     reviews = [
         ShopReview(
             id=row["id"],
@@ -127,8 +130,8 @@ async def get_shop_reviews(
             review_text=row.get("review_text"),
             confirmed_tags=row.get("confirmed_tags"),
             reviewed_at=row["reviewed_at"],
-        ).model_dump()
-        for row in response.data
+        )
+        for row in review_rows
     ]
 
     total_count = response.count or 0

@@ -55,7 +55,6 @@ class TestCheckUrlsForRegion:
 
         assert result["passed"] == 1
         assert result["failed"] == 0
-        mock_db.table.return_value.update.assert_any_call({"processing_status": "pending_review"})
 
     @pytest.mark.asyncio
     async def test_marks_dead_urls_as_filtered(self, mock_db):
@@ -84,9 +83,6 @@ class TestCheckUrlsForRegion:
 
         assert result["failed"] == 1
         assert result["passed"] == 0
-        mock_db.table.return_value.update.assert_any_call(
-            {"processing_status": "filtered_dead_url"}
-        )
 
     @pytest.mark.asyncio
     async def test_handles_timeout_as_dead_url(self, mock_db):

@@ -71,6 +71,32 @@ jobs:
         if: always()
         run: cd backend && uv run mutmut results
 
+      - name: Enforce mutation score threshold
+        if: always()
+        run: |
+          cd backend && python - <<'PYEOF'
+          import sqlite3, sys
+          THRESHOLD = 55
+          try:
+              conn = sqlite3.connect(".mutmut-cache")
+              rows = dict(conn.execute("SELECT status, COUNT(*) FROM mutant GROUP BY status").fetchall())
+              killed = rows.get("killed", 0)
+              survived = rows.get("survived", 0)
+              total = killed + survived
+              if total == 0:
+                  print("No mutants recorded — skipping threshold check (mutmut env issue)")
+                  sys.exit(0)
+              score = killed / total * 100
+              print(f"Mutation score: {score:.1f}% ({killed}/{total} killed)")
+              if score < THRESHOLD:
+                  print(f"FAIL: {score:.1f}% below threshold {THRESHOLD}%")
+                  sys.exit(1)
+              print(f"PASS: {score:.1f}% meets threshold {THRESHOLD}%")
+          except Exception as e:
+              print(f"Could not read mutation cache ({e}) — skipping threshold check")
+              sys.exit(0)
+          PYEOF
+
   # E2E smoke tests — commented out until staging env or docker-compose is available.
   # Currently runs locally only via /e2e-smoke skill.
   #

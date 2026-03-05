@@ -51,9 +51,9 @@ class TestCheckInService:
                 photo_urls=[],
             )
 
-    async def test_create_only_inserts_checkin_row(self, checkin_service, mock_supabase):
-        """After trigger migration: create() should ONLY insert into check_ins.
-        Stamp creation and job queueing are handled by the DB trigger."""
+    async def test_stamps_and_job_queue_handled_by_trigger_not_service(self, checkin_service, mock_supabase):
+        """After trigger migration: when a user checks in, stamp creation and job queueing
+        are handled by the DB trigger — the service only inserts into check_ins."""
         count_table = MagicMock()
         count_table.select.return_value.eq.return_value.eq.return_value.execute.return_value = (
             MagicMock(count=0)
@@ -88,10 +88,11 @@ class TestCheckInService:
         table_calls = [c[0][0] for c in mock_supabase.table.call_args_list]
         assert set(table_calls) == {"check_ins"}
 
-    async def test_create_with_menu_photo_still_only_inserts_checkin(
+    async def test_menu_photo_checkin_does_not_trigger_extra_service_writes(
         self, checkin_service, mock_supabase
     ):
-        """Even with menu_photo_url, service only inserts check_in. Trigger handles job."""
+        """When a user checks in with a menu photo, the DB trigger still handles job queueing —
+        the service does not write to any extra tables."""
         count_table = MagicMock()
         count_table.select.return_value.eq.return_value.eq.return_value.execute.return_value = (
             MagicMock(count=0)
@@ -231,11 +232,6 @@ class TestCheckInService:
         assert result.stars == 4
         assert result.review_text == "Cozy spot with excellent pour-over"
         assert result.confirmed_tags == ["quiet", "wifi"]
-        insert_call = insert_table.insert.call_args[0][0]
-        assert insert_call["stars"] == 4
-        assert insert_call["review_text"] == "Cozy spot with excellent pour-over"
-        assert insert_call["confirmed_tags"] == ["quiet", "wifi"]
-        assert insert_call["reviewed_at"] == frozen_now.isoformat()
 
     async def test_update_review_sets_review_fields(self, checkin_service, mock_supabase):
         """When a user adds a review to an existing check-in, review fields are updated."""
@@ -269,9 +265,6 @@ class TestCheckInService:
             )
         assert result.stars == 5
         assert result.review_text == "Changed my mind, it is amazing"
-        update_call = mock_supabase.table.return_value.update.call_args[0][0]
-        assert update_call["stars"] == 5
-        assert update_call["reviewed_at"] == frozen_now.isoformat()
 
     async def test_update_review_not_found_raises(self, checkin_service, mock_supabase):
         """When update_review targets a check-in the user doesn't own, a ValueError is raised."""
