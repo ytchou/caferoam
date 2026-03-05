@@ -146,7 +146,9 @@ describe('BatchDetail', () => {
       expect(mockFetch.mock.calls.length).toBeGreaterThan(callsBefore);
     });
 
-    const lastUrl = mockFetch.mock.calls[mockFetch.mock.calls.length - 1][0] as string;
+    const lastUrl = mockFetch.mock.calls[
+      mockFetch.mock.calls.length - 1
+    ][0] as string;
     expect(lastUrl).toContain('status=live');
   });
 

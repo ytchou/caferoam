@@ -25,7 +25,9 @@ describe('RenameListDialog', () => {
   it('renders the dialog with the current list name pre-filled', () => {
     render(<RenameListDialog {...defaultProps} />);
 
-    expect(screen.getByRole('heading', { name: /rename list/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /rename list/i })
+    ).toBeInTheDocument();
     const input = screen.getByRole('textbox');
     expect(input).toHaveValue('適合工作的咖啡店');
   });
@@ -33,7 +35,9 @@ describe('RenameListDialog', () => {
   it('does not render when open is false', () => {
     render(<RenameListDialog {...defaultProps} open={false} />);
 
-    expect(screen.queryByRole('heading', { name: /rename list/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: /rename list/i })
+    ).not.toBeInTheDocument();
   });
 
   it('closes without calling onRename when the admin clicks Cancel', async () => {
@@ -67,7 +71,10 @@ describe('RenameListDialog', () => {
 
     await user.click(screen.getByRole('button', { name: /save/i }));
 
-    expect(defaultProps.onRename).toHaveBeenCalledWith('list-g7h8i9', '週末悠閒咖啡廳');
+    expect(defaultProps.onRename).toHaveBeenCalledWith(
+      'list-g7h8i9',
+      '週末悠閒咖啡廳'
+    );
     expect(defaultProps.onOpenChange).toHaveBeenCalledWith(false);
   });
 
@@ -102,7 +109,11 @@ describe('RenameListDialog', () => {
     );
 
     rerender(
-      <RenameListDialog {...defaultProps} open={true} currentName='週末精選咖啡' />
+      <RenameListDialog
+        {...defaultProps}
+        open={true}
+        currentName="週末精選咖啡"
+      />
     );
 
     expect(screen.getByRole('textbox')).toHaveValue('週末精選咖啡');
