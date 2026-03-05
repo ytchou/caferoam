@@ -630,7 +630,7 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 
 **Chunk 1 — Type Fix + Analytics Hook (Wave 1):**
 
-- [ ] Fix Stamp type: add shopName field
+- [x] Fix Stamp type: add shopName field
 - [ ] Create useAnalytics hook with TDD
 
 **Chunk 2 — Backend Changes (Wave 1-2):**

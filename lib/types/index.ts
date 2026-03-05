@@ -97,6 +97,7 @@ export interface Stamp {
   checkInId: string;
   designUrl: string;
   earnedAt: string;
+  shopName: string | null;
 }
 
 export interface SearchResult {
