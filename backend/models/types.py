@@ -168,6 +168,23 @@ class CheckIn(BaseModel):
         return v
 
 
+class CreateCheckInResponse(BaseModel):
+    """Check-in creation response with analytics metadata."""
+
+    id: str
+    user_id: str
+    shop_id: str
+    photo_urls: list[str]
+    menu_photo_url: str | None = None
+    note: str | None = None
+    stars: int | None = None
+    review_text: str | None = None
+    confirmed_tags: list[str] | None = None
+    reviewed_at: datetime | None = None
+    created_at: datetime
+    is_first_checkin_at_shop: bool
+
+
 class Stamp(BaseModel):
     id: str
     user_id: str
