@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SWRConfig } from 'swr';
@@ -237,13 +237,15 @@ describe('Profile editing', () => {
 
   it('rejects non-image files with an error message', async () => {
     render(<SettingsPage />, { wrapper });
-    const fileInput = screen.getByRole('button', { name: /upload photo/i })
-      .parentElement!.querySelector('input[type="file"]')!;
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
 
+    // userEvent respects accept="image/*" and drops non-image files before firing onChange.
+    // Use fireEvent to simulate a file arriving via drag-and-drop (bypasses accept filter).
     const pdfFile = new File(['content'], 'document.pdf', {
       type: 'application/pdf',
     });
-    await userEvent.upload(fileInput, pdfFile);
+    Object.defineProperty(fileInput, 'files', { value: [pdfFile], configurable: true });
+    fireEvent.change(fileInput);
 
     await waitFor(() => {
       expect(screen.getByText(/file must be an image/i)).toBeInTheDocument();
@@ -253,8 +255,7 @@ describe('Profile editing', () => {
 
   it('rejects images over 1MB with an error message', async () => {
     render(<SettingsPage />, { wrapper });
-    const fileInput = screen.getByRole('button', { name: /upload photo/i })
-      .parentElement!.querySelector('input[type="file"]')!;
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
 
     const largeFile = new File(
       [new ArrayBuffer(1024 * 1024 + 1)],
@@ -278,8 +279,7 @@ describe('Profile editing', () => {
       },
     });
     render(<SettingsPage />, { wrapper });
-    const fileInput = screen.getByRole('button', { name: /upload photo/i })
-      .parentElement!.querySelector('input[type="file"]')!;
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
 
     const avatarFile = new File(['img'], 'selfie.jpg', { type: 'image/jpeg' });
     await userEvent.upload(fileInput, avatarFile);
