@@ -17,6 +17,7 @@ export default function SettingsPage() {
   const [displayName, setDisplayName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [profileSuccess, setProfileSuccess] = useState(false);
   const profileInitialized = useRef(false);
@@ -111,20 +112,25 @@ export default function SettingsPage() {
     } = await supabase.auth.getSession();
     if (!session) return;
 
-    // Use a fixed path so upsert overwrites the previous avatar (no orphaned files)
-    const ext = file.name.split('.').pop() ?? 'jpg';
-    const path = `${session.user.id}/avatar.${ext}`;
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(path, file, { upsert: true });
-    if (uploadError) {
-      setProfileError('Failed to upload avatar');
-      return;
+    setUploading(true);
+    setProfileError(null);
+    try {
+      // Extension-less path ensures upsert always overwrites regardless of file format
+      const path = `${session.user.id}/avatar`;
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (uploadError) {
+        setProfileError('Failed to upload avatar');
+        return;
+      }
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('avatars').getPublicUrl(path);
+      setAvatarUrl(publicUrl);
+    } finally {
+      setUploading(false);
     }
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from('avatars').getPublicUrl(path);
-    setAvatarUrl(publicUrl);
   }
 
   return (
@@ -188,10 +194,10 @@ export default function SettingsPage() {
           </div>
           <button
             onClick={handleSaveProfile}
-            disabled={saving}
+            disabled={saving || uploading}
             className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm disabled:opacity-50"
           >
-            {saving ? 'Saving...' : 'Save changes'}
+            {uploading ? 'Uploading...' : saving ? 'Saving...' : 'Save changes'}
           </button>
           {profileError && (
             <p className="text-sm text-red-600">{profileError}</p>

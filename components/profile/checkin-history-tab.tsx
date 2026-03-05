@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { CheckInData } from '@/lib/hooks/use-user-checkins';
-import { formatDate } from '@/lib/utils';
+import { formatRelativeTime } from '@/lib/utils';
 
 interface CheckinHistoryTabProps {
   checkins: CheckInData[];
@@ -37,7 +37,7 @@ export function CheckinHistoryTab({
 }
 
 function CheckinCard({ checkin }: { checkin: CheckInData }) {
-  const date = formatDate(checkin.created_at);
+  const date = formatRelativeTime(checkin.created_at);
 
   return (
     <div className="flex gap-3 rounded-lg border p-3">
