@@ -29,8 +29,8 @@ All are additive — zero risk, no app code changes.
 
 | Page | Test File | Key Scenarios |
 |------|-----------|---------------|
-| `/login` | `app/(public)/login/page.test.tsx` | Email form submit, OAuth buttons (Google/LINE), error display, redirect after login |
-| `/signup` | `app/(public)/signup/page.test.tsx` | Signup form, PDPA checkbox required, email confirmation message, error display |
+| `/login` | `app/(auth)/login/page.test.tsx` | Email form submit, OAuth buttons (Google/LINE), error display, redirect after login |
+| `/signup` | `app/(auth)/signup/page.test.tsx` | Signup form, PDPA checkbox required, email confirmation message, error display |
 | `/onboarding/consent` | `app/onboarding/consent/page.test.tsx` | PDPA consent checkbox + submit, redirect to home, consent API call |
 | `/account/recover` | `app/account/recover/page.test.tsx` | Cancel-deletion API call, success message, error state |
 

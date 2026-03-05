@@ -1,9 +1,33 @@
 from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
+from typing import Callable
 
 import pytest
 
 from services.checkin_service import CheckInService
+
+
+def _make_table_router(
+    taxonomy_table: MagicMock,
+    count_table: MagicMock,
+    insert_table: MagicMock,
+) -> Callable[[str], MagicMock]:
+    """Returns a side_effect function that routes table() calls by name.
+
+    taxonomy_tags → taxonomy_table
+    check_ins (1st call) → count_table
+    check_ins (2nd call) → insert_table
+    """
+    call_count = 0
+
+    def router(name: str) -> MagicMock:
+        nonlocal call_count
+        if name == "taxonomy_tags":
+            return taxonomy_table
+        call_count += 1
+        return count_table if call_count == 1 else insert_table
+
+    return router
 
 
 @pytest.fixture
@@ -187,18 +211,7 @@ class TestCheckInService:
             ]
         )
 
-        call_count = 0
-
-        def table_router(name):
-            nonlocal call_count
-            if name == "taxonomy_tags":
-                return taxonomy_table
-            call_count += 1
-            if call_count == 1:
-                return count_table
-            return insert_table
-
-        mock_supabase.table.side_effect = table_router
+        mock_supabase.table.side_effect = _make_table_router(taxonomy_table, count_table, insert_table)
 
         with patch("services.checkin_service.datetime") as mock_dt:
             mock_dt.now.return_value = frozen_now
@@ -270,6 +283,16 @@ class TestCheckInService:
                 stars=3,
             )
 
+    async def test_create_with_confirmed_tags_but_no_stars_raises(self, checkin_service):
+        """When a user provides confirmed tags without a star rating, validation fails."""
+        with pytest.raises(ValueError, match="confirmed_tags requires a star rating"):
+            await checkin_service.create(
+                user_id="user-mei-ling-001",
+                shop_id="shop-fuji-zhongshan",
+                photo_urls=["https://cdn.caferoam.tw/photo1.jpg"],
+                confirmed_tags=["quiet", "wifi"],
+            )
+
     async def test_create_with_review_text_but_no_stars_raises(self, checkin_service):
         """When a user provides review text without a star rating, validation fails."""
         with pytest.raises(ValueError, match="review_text requires a star rating"):
@@ -301,7 +324,6 @@ class TestCheckInService:
 class TestConfirmedTagsValidation:
     """Confirmed tags must exist in taxonomy_tags table."""
 
-    @pytest.mark.asyncio
     async def test_create_rejects_unknown_tags(self, mock_supabase, checkin_service):
         """When a user submits tag IDs not in taxonomy, return ValueError."""
         taxonomy_table = MagicMock()
@@ -328,7 +350,6 @@ class TestConfirmedTagsValidation:
                 confirmed_tags=["quiet", "wifi", "fake_tag"],
             )
 
-    @pytest.mark.asyncio
     async def test_create_accepts_valid_tags(self, mock_supabase, checkin_service):
         """When all tag IDs exist in taxonomy, check-in succeeds."""
         taxonomy_table = MagicMock()
@@ -358,18 +379,7 @@ class TestConfirmedTagsValidation:
             }]
         )
 
-        call_count = 0
-
-        def table_router(name):
-            nonlocal call_count
-            if name == "taxonomy_tags":
-                return taxonomy_table
-            call_count += 1
-            if call_count == 1:
-                return count_table
-            return insert_table
-
-        mock_supabase.table.side_effect = table_router
+        mock_supabase.table.side_effect = _make_table_router(taxonomy_table, count_table, insert_table)
 
         result = await checkin_service.create(
             user_id="user-1",
@@ -380,7 +390,6 @@ class TestConfirmedTagsValidation:
         )
         assert result.id == "ci-new"
 
-    @pytest.mark.asyncio
     async def test_create_skips_validation_when_no_tags(self, mock_supabase, checkin_service):
         """When confirmed_tags is None, skip taxonomy validation entirely."""
         count_table = MagicMock()

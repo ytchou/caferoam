@@ -1,7 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SWRConfig } from 'swr';
-import React from 'react';
+import { createSWRWrapper } from '@/lib/test-utils/wrappers';
 
 vi.mock('@/lib/supabase/client', () => ({
   createClient: () => ({
@@ -33,13 +32,7 @@ const SUMMARIES = [
   },
 ];
 
-function wrapper({ children }: { children: React.ReactNode }) {
-  return React.createElement(
-    SWRConfig,
-    { value: { provider: () => new Map() } },
-    children
-  );
-}
+const wrapper = createSWRWrapper();
 
 describe('useListSummaries', () => {
   beforeEach(() => {
@@ -50,23 +43,34 @@ describe('useListSummaries', () => {
     });
   });
 
-  it('fetches list summaries from /api/lists/summaries', async () => {
+  it('given a user with saved lists, list names and shop counts are available', async () => {
     const { result } = renderHook(() => useListSummaries(), { wrapper });
     await waitFor(() => expect(result.current.lists).toHaveLength(2));
     expect(result.current.lists[0].name).toBe('適合工作的咖啡店');
     expect(result.current.lists[0].shop_count).toBe(3);
   });
 
-  it('returns empty array while loading', () => {
+  it('shows empty state while data is loading', () => {
     const { result } = renderHook(() => useListSummaries(), { wrapper });
     expect(result.current.lists).toEqual([]);
     expect(result.current.isLoading).toBe(true);
   });
 
-  it('returns empty array when user has no lists', async () => {
+  it('given a new user with no lists, shows empty collection', async () => {
     mockFetch.mockResolvedValue({ ok: true, json: async () => [] });
     const { result } = renderHook(() => useListSummaries(), { wrapper });
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.lists).toEqual([]);
+  });
+
+  it('given a server error, surfaces the error to the consumer', async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ detail: 'Server error' }),
+    });
+    const { result } = renderHook(() => useListSummaries(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.error).toBeDefined();
   });
 });

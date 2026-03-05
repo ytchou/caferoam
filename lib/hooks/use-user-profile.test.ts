@@ -1,7 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SWRConfig } from 'swr';
-import React from 'react';
+import { createSWRWrapper } from '@/lib/test-utils/wrappers';
 
 vi.mock('@/lib/supabase/client', () => ({
   createClient: () => ({
@@ -25,13 +24,7 @@ const PROFILE = {
   checkin_count: 12,
 };
 
-function wrapper({ children }: { children: React.ReactNode }) {
-  return React.createElement(
-    SWRConfig,
-    { value: { provider: () => new Map() } },
-    children
-  );
-}
+const wrapper = createSWRWrapper();
 
 describe('useUserProfile', () => {
   beforeEach(() => {
@@ -42,7 +35,7 @@ describe('useUserProfile', () => {
     });
   });
 
-  it('fetches profile data from /api/profile', async () => {
+  it('given a logged-in user, display name and stamp count are available', async () => {
     const { result } = renderHook(() => useUserProfile(), { wrapper });
     await waitFor(() =>
       expect(result.current.profile?.display_name).toBe('Mei-Ling')
@@ -51,13 +44,13 @@ describe('useUserProfile', () => {
     expect(result.current.profile?.checkin_count).toBe(12);
   });
 
-  it('returns null profile while loading', () => {
+  it('shows null profile while data is loading', () => {
     const { result } = renderHook(() => useUserProfile(), { wrapper });
     expect(result.current.profile).toBeNull();
     expect(result.current.isLoading).toBe(true);
   });
 
-  it('handles fetch error gracefully', async () => {
+  it('given a server error, surfaces the error to the consumer', async () => {
     mockFetch.mockResolvedValue({
       ok: false,
       status: 500,

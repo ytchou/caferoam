@@ -1,7 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SWRConfig } from 'swr';
-import React from 'react';
+import { createSWRWrapper } from '@/lib/test-utils/wrappers';
 
 vi.mock('@/lib/supabase/client', () => ({
   createClient: () => ({
@@ -32,13 +31,7 @@ const CHECKINS = [
   },
 ];
 
-function wrapper({ children }: { children: React.ReactNode }) {
-  return React.createElement(
-    SWRConfig,
-    { value: { provider: () => new Map() } },
-    children
-  );
-}
+const wrapper = createSWRWrapper();
 
 describe('useUserCheckins', () => {
   beforeEach(() => {
@@ -49,22 +42,33 @@ describe('useUserCheckins', () => {
     });
   });
 
-  it('fetches check-ins from /api/checkins', async () => {
+  it('given a user with check-ins, shop names and ratings are available', async () => {
     const { result } = renderHook(() => useUserCheckins(), { wrapper });
     await waitFor(() => expect(result.current.checkins).toHaveLength(1));
     expect(result.current.checkins[0].shop_name).toBe('山小孩咖啡');
   });
 
-  it('returns empty array while loading', () => {
+  it('shows empty state while data is loading', () => {
     const { result } = renderHook(() => useUserCheckins(), { wrapper });
     expect(result.current.checkins).toEqual([]);
     expect(result.current.isLoading).toBe(true);
   });
 
-  it('returns empty array when no check-ins exist', async () => {
+  it('given a new user with no check-ins, shows empty collection', async () => {
     mockFetch.mockResolvedValue({ ok: true, json: async () => [] });
     const { result } = renderHook(() => useUserCheckins(), { wrapper });
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.checkins).toEqual([]);
+  });
+
+  it('given a server error, surfaces the error to the consumer', async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ detail: 'Server error' }),
+    });
+    const { result } = renderHook(() => useUserCheckins(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.error).toBeDefined();
   });
 });
