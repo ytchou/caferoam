@@ -6,11 +6,11 @@ import { fetchWithAuth } from '@/lib/api/fetch';
 
 export function SessionTracker() {
   const { capture } = useAnalytics();
-  const hasFired = useRef(false);
+  const hasFiredRef = useRef(false);
 
   useEffect(() => {
-    if (hasFired.current) return;
-    hasFired.current = true;
+    if (hasFiredRef.current) return;
+    hasFiredRef.current = true;
 
     fetchWithAuth('/api/auth/session-heartbeat', { method: 'POST' })
       .then(

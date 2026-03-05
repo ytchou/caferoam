@@ -83,11 +83,7 @@ class ProfileService:
 
         should_increment = True
         if last_session_at:
-            last_dt = (
-                datetime.fromisoformat(last_session_at)
-                if isinstance(last_session_at, str)
-                else last_session_at
-            )
+            last_dt = datetime.fromisoformat(last_session_at)
             if (now - last_dt) < timedelta(minutes=30):
                 should_increment = False
 
@@ -111,12 +107,7 @@ class ProfileService:
 
         days = 0
         if first_session_at:
-            first_dt = (
-                datetime.fromisoformat(first_session_at)
-                if isinstance(first_session_at, str)
-                else first_session_at
-            )
-            days = (now - first_dt).days
+            days = (now - datetime.fromisoformat(first_session_at)).days
 
         return {
             "days_since_first_session": days,
