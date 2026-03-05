@@ -177,4 +177,54 @@ count = int(result.data or 0)
 
 ---
 
+## Blocking Event Loop with Supabase SDK in Async Handlers
+
+**Symptom:** FastAPI responses are slow or hang under load; `asyncio.gather` doesn't provide any speedup.
+
+**Root cause:** supabase-py is a synchronous library. Calling it directly in `async def` blocks uvicorn's event loop for the duration of the DB call.
+
+**Fix:**
+```python
+# Wrap every supabase-py call in asyncio.to_thread
+result = await asyncio.to_thread(lambda: db.table("profiles").select("*").eq("id", uid).execute())
+```
+
+**Prevention:** Every supabase-py SDK call inside an `async def` must be wrapped in `asyncio.to_thread`. Use `asyncio.gather` to parallelize independent queries.
+
+---
+
+## PostgREST `.single()` Raises on Empty / Multiple Results
+
+**Symptom:** New users get a 500 error when loading their profile page; logs show `APIError` from the supabase-py client.
+
+**Root cause:** PostgREST `.single()` raises `APIError` when the query matches 0 or 2+ rows. New users have no `profiles` row yet.
+
+**Fix:**
+```python
+# Use .limit(1) for optional rows; handle empty list
+rows = db.table("profiles").select("*").eq("id", uid).limit(1).execute().data
+profile = rows[0] if rows else {}
+```
+
+**Prevention:** Never use `.single()` for rows that may not exist (user preferences, optional profiles, etc.). Use `.limit(1)` and handle the empty list.
+
+---
+
+## asyncio.gather + Mock side_effect List = Order-Dependent Failures
+
+**Symptom:** Backend tests pass individually but fail when gather is introduced; mock returns wrong table data.
+
+**Root cause:** `asyncio.gather` dispatches coroutines concurrently. `side_effect = [table_a, table_b, table_c]` assumes a deterministic call order that no longer holds.
+
+**Fix:**
+```python
+# Dispatch by argument instead of by call order
+table_map = {"profiles": profile_table, "stamps": stamp_table, "check_ins": checkin_table}
+mock_db.table.side_effect = lambda name: table_map[name]
+```
+
+**Prevention:** Whenever a service uses `asyncio.gather`, use `lambda name: table_map[name]` dispatch in tests instead of a list-based `side_effect`.
+
+---
+
 _Add entries here as you discover them._
