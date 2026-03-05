@@ -10,8 +10,14 @@ import {
 import { makeSession } from '@/lib/test-utils/factories';
 
 const mockAuth = createMockSupabaseAuth();
+const mockUpload = vi.fn();
+const mockGetPublicUrl = vi.fn();
+const mockStorageFrom = vi.fn(() => ({
+  upload: mockUpload,
+  getPublicUrl: mockGetPublicUrl,
+}));
 vi.mock('@/lib/supabase/client', () => ({
-  createClient: () => ({ auth: mockAuth }),
+  createClient: () => ({ auth: mockAuth, storage: { from: mockStorageFrom } }),
 }));
 
 const mockRouter = createMockRouter();
@@ -226,6 +232,70 @@ describe('Profile editing', () => {
         expect.stringContaining('/api/profile'),
         expect.objectContaining({ method: 'PATCH' })
       );
+    });
+  });
+
+  it('rejects non-image files with an error message', async () => {
+    render(<SettingsPage />, { wrapper });
+    const fileInput = screen.getByRole('button', { name: /upload photo/i })
+      .parentElement!.querySelector('input[type="file"]')!;
+
+    const pdfFile = new File(['content'], 'document.pdf', {
+      type: 'application/pdf',
+    });
+    await userEvent.upload(fileInput, pdfFile);
+
+    await waitFor(() => {
+      expect(screen.getByText(/file must be an image/i)).toBeInTheDocument();
+    });
+    expect(mockUpload).not.toHaveBeenCalled();
+  });
+
+  it('rejects images over 1MB with an error message', async () => {
+    render(<SettingsPage />, { wrapper });
+    const fileInput = screen.getByRole('button', { name: /upload photo/i })
+      .parentElement!.querySelector('input[type="file"]')!;
+
+    const largeFile = new File(
+      [new ArrayBuffer(1024 * 1024 + 1)],
+      'large-photo.jpg',
+      { type: 'image/jpeg' }
+    );
+    await userEvent.upload(fileInput, largeFile);
+
+    await waitFor(() => {
+      expect(screen.getByText(/under 1MB/i)).toBeInTheDocument();
+    });
+    expect(mockUpload).not.toHaveBeenCalled();
+  });
+
+  it('uploads valid avatar image and shows Save changes button', async () => {
+    mockUpload.mockResolvedValue({ error: null });
+    mockGetPublicUrl.mockReturnValue({
+      data: {
+        publicUrl:
+          'http://127.0.0.1:54321/storage/v1/object/public/avatars/user-123/avatar',
+      },
+    });
+    render(<SettingsPage />, { wrapper });
+    const fileInput = screen.getByRole('button', { name: /upload photo/i })
+      .parentElement!.querySelector('input[type="file"]')!;
+
+    const avatarFile = new File(['img'], 'selfie.jpg', { type: 'image/jpeg' });
+    await userEvent.upload(fileInput, avatarFile);
+
+    await waitFor(() => {
+      expect(mockUpload).toHaveBeenCalledWith(
+        expect.stringContaining('/avatar'),
+        avatarFile,
+        expect.objectContaining({ upsert: true, contentType: 'image/jpeg' })
+      );
+    });
+    // Save button re-enables after upload completes
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: /save changes/i })
+      ).not.toBeDisabled();
     });
   });
 });

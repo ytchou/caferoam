@@ -21,8 +21,8 @@ class TestCheckInService:
     async def test_create_requires_at_least_one_photo(self, checkin_service):
         with pytest.raises(ValueError, match="At least one photo"):
             await checkin_service.create(
-                user_id="user-1",
-                shop_id="shop-1",
+                user_id="user-mei-ling-001",
+                shop_id="shop-fuji-zhongshan",
                 photo_urls=[],
             )
 
@@ -98,47 +98,58 @@ class TestCheckInService:
         table_calls = [c[0][0] for c in mock_supabase.table.call_args_list]
         assert table_calls == ["check_ins"]
 
-    async def test_get_by_user(self, checkin_service, mock_supabase):
-        mock_supabase.table = MagicMock(
-            return_value=MagicMock(
-                select=MagicMock(
-                    return_value=MagicMock(
-                        eq=MagicMock(
-                            return_value=MagicMock(
-                                order=MagicMock(
-                                    return_value=MagicMock(
-                                        execute=MagicMock(return_value=MagicMock(data=[]))
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
+    async def test_user_checkin_history_includes_shop_name_and_mrt(
+        self, checkin_service, mock_supabase
+    ):
+        """When a user fetches their check-ins, each record includes shop name and MRT line."""
+        mock_supabase.table.return_value.select.return_value.eq.return_value.order.return_value.execute.return_value = MagicMock(
+            data=[
+                {
+                    "id": "ci-yongkang-001",
+                    "user_id": "user-mei-ling-001",
+                    "shop_id": "shop-fuji-zhongshan",
+                    "photo_urls": ["https://cdn.caferoam.tw/checkins/latte-art.jpg"],
+                    "menu_photo_url": None,
+                    "note": "Cozy corner spot",
+                    "stars": 4,
+                    "review_text": None,
+                    "confirmed_tags": [],
+                    "reviewed_at": None,
+                    "created_at": "2026-03-01T10:00:00+00:00",
+                    "shops": {"name": "Fuji Coffee", "mrt": "Zhongshan"},
+                }
+            ]
         )
-        results = await checkin_service.get_by_user("user-1")
-        assert isinstance(results, list)
+        results = await checkin_service.get_by_user("user-mei-ling-001")
+        assert len(results) == 1
+        assert results[0].shop_name == "Fuji Coffee"
+        assert results[0].shop_mrt == "Zhongshan"
+        assert results[0].photo_urls == ["https://cdn.caferoam.tw/checkins/latte-art.jpg"]
 
-    async def test_get_by_shop(self, checkin_service, mock_supabase):
-        mock_supabase.table = MagicMock(
-            return_value=MagicMock(
-                select=MagicMock(
-                    return_value=MagicMock(
-                        eq=MagicMock(
-                            return_value=MagicMock(
-                                order=MagicMock(
-                                    return_value=MagicMock(
-                                        execute=MagicMock(return_value=MagicMock(data=[]))
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
+    async def test_shop_checkin_list_is_returned_for_shop_page(
+        self, checkin_service, mock_supabase
+    ):
+        """When the shop detail page requests check-ins for a shop, all records are returned."""
+        mock_supabase.table.return_value.select.return_value.eq.return_value.order.return_value.execute.return_value = MagicMock(
+            data=[
+                {
+                    "id": "ci-yongkang-001",
+                    "user_id": "user-mei-ling-001",
+                    "shop_id": "shop-fuji-zhongshan",
+                    "photo_urls": ["https://cdn.caferoam.tw/checkins/flat-white.jpg"],
+                    "menu_photo_url": None,
+                    "note": None,
+                    "stars": None,
+                    "review_text": None,
+                    "confirmed_tags": None,
+                    "reviewed_at": None,
+                    "created_at": "2026-03-01T10:00:00+00:00",
+                }
+            ]
         )
-        results = await checkin_service.get_by_shop("shop-1")
-        assert isinstance(results, list)
+        results = await checkin_service.get_by_shop("shop-fuji-zhongshan")
+        assert len(results) == 1
+        assert results[0].shop_id == "shop-fuji-zhongshan"
 
     async def test_create_with_review_includes_review_fields(self, checkin_service, mock_supabase):
         """When a user checks in with a star rating, review fields are persisted."""
