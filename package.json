@@ -23,7 +23,10 @@
     "prebuild:pass5": "tsx --env-file=.env.local scripts/prebuild/data-pipeline/pass5-search-test.ts",
     "prebuild:all": "pnpm prebuild:pass0 && pnpm prebuild:pass1 && pnpm prebuild:pass2 && echo 'Run pass3a, curate taxonomy, then pass3b → pass3c → pass4 → pass5 manually'",
     "backend:dev": "cd backend && uv run uvicorn main:app --reload --port 8000",
-    "backend:test": "cd backend && uv run python -m pytest -v"
+    "backend:test": "cd backend && uv run python -m pytest -v",
+    "backend:test:coverage": "cd backend && uv run pytest --cov --cov-report=xml:coverage.xml --cov-branch -v",
+    "mutation:frontend": "npx stryker run",
+    "mutation:backend": "cd backend && uv run mutmut run"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
@@ -49,6 +52,8 @@
     "vaul": "^1.1.2"
   },
   "devDependencies": {
+    "@stryker-mutator/core": "^9.6.0",
+    "@stryker-mutator/vitest-runner": "^9.6.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",

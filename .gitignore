@@ -75,3 +75,6 @@ __pycache__/
 
 # Pre-build pipeline data (large JSON files)
 data/
+
+# Mutation testing reports
+reports/mutation/

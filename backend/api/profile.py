@@ -1,7 +1,7 @@
 # backend/api/profile.py
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from supabase import Client
 
 from api.deps import get_current_user, get_user_db
@@ -13,8 +13,8 @@ router = APIRouter(prefix="/profile", tags=["profile"])
 
 @router.get("")
 async def get_profile(
-    user: dict[str, Any] = Depends(get_current_user),
-    db: Client = Depends(get_user_db),
+    user: dict[str, Any] = Depends(get_current_user),  # noqa: B008
+    db: Client = Depends(get_user_db),  # noqa: B008
 ) -> dict[str, Any]:
     service = ProfileService(db=db)
     result = await service.get_profile(user["id"])
@@ -24,8 +24,8 @@ async def get_profile(
 @router.patch("")
 async def update_profile(
     body: ProfileUpdateRequest,
-    user: dict[str, Any] = Depends(get_current_user),
-    db: Client = Depends(get_user_db),
+    user: dict[str, Any] = Depends(get_current_user),  # noqa: B008
+    db: Client = Depends(get_user_db),  # noqa: B008
 ) -> dict[str, str]:
     service = ProfileService(db=db)
     await service.update_profile(

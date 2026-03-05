@@ -57,13 +57,14 @@ async def check_urls_for_region(
 
     if not shops:
         logger.info("url_check: no pending shops")
-        return {"checked": 0, "passed": 0, "failed": 0}
+        return {"checked": 0, "passed": 0, "failed": 0, "errored": 0}
 
     total = len(shops)
     logger.info("url_check: starting", total=total, batch_size=_BATCH_SIZE)
 
     total_passed = 0
     total_failed = 0
+    total_errored = 0
     batch_num = 0
 
     async with httpx.AsyncClient() as client:
@@ -71,14 +72,16 @@ async def check_urls_for_region(
             batch = shops[batch_start : batch_start + _BATCH_SIZE]
             batch_num += 1
 
+            no_url_ids = [shop["id"] for shop in batch if not shop.get("google_maps_url")]
             tasks = [
-                _check_single_url(client, shop["id"], shop.get("google_maps_url", ""))
+                _check_single_url(client, shop["id"], shop["google_maps_url"])
                 for shop in batch
+                if shop.get("google_maps_url")
             ]
             results = await asyncio.gather(*tasks)
 
             passed_ids = [sid for sid, ok in results if ok]
-            failed_ids = [sid for sid, ok in results if not ok]
+            failed_ids = no_url_ids + [sid for sid, ok in results if not ok]
 
             # Write each batch immediately — progress is visible in pipeline-status
             try:
@@ -93,6 +96,7 @@ async def check_urls_for_region(
                 total_passed += len(passed_ids)
                 total_failed += len(failed_ids)
             except Exception:
+                total_errored += len(passed_ids) + len(failed_ids)
                 logger.exception(
                     "url_check: DB write failed for batch",
                     batch_num=batch_num,
@@ -119,5 +123,11 @@ async def check_urls_for_region(
         total=total,
         passed=total_passed,
         failed=total_failed,
+        errored=total_errored,
     )
-    return {"checked": total, "passed": total_passed, "failed": total_failed}
+    return {
+        "checked": total,
+        "passed": total_passed,
+        "failed": total_failed,
+        "errored": total_errored,
+    }

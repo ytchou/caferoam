@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, cast
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from supabase import Client
@@ -37,8 +37,8 @@ async def record_consent(
             .single()
             .execute()
         )
-        return existing.data
-    return first(response.data, "record consent")
+        return cast("dict[str, Any]", existing.data)
+    return first(cast("list[dict[str, Any]]", response.data), "record consent")
 
 
 @router.delete("/account")
@@ -67,11 +67,11 @@ async def delete_account(
             .single()
             .execute()
         )
-        return existing.data
+        return cast("dict[str, Any]", existing.data)
     admin_db.auth.admin.update_user_by_id(
         user["id"], {"app_metadata": {"deletion_requested": True}}
     )
-    return first(response.data, "delete account")
+    return first(cast("list[dict[str, Any]]", response.data), "delete account")
 
 
 @router.post("/cancel-deletion")
@@ -89,7 +89,8 @@ async def cancel_deletion(
         .execute()
     )
     # .single() returns data as a dict (not a list)
-    if not profile.data or profile.data.get("deletion_requested_at") is None:
+    profile_data = cast("dict[str, Any]", profile.data)
+    if not profile_data or profile_data.get("deletion_requested_at") is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Account deletion is not pending",
@@ -105,7 +106,7 @@ async def cancel_deletion(
     admin_db.auth.admin.update_user_by_id(
         user["id"], {"app_metadata": {"deletion_requested": False}}
     )
-    return first(response.data, "cancel deletion")
+    return first(cast("list[dict[str, Any]]", response.data), "cancel deletion")
 
 
 @router.post("/session-heartbeat")

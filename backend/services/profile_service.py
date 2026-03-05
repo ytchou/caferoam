@@ -26,7 +26,7 @@ class ProfileService:
             asyncio.to_thread(
                 lambda: (
                     self._db.table("stamps")
-                    .select("id", count="exact")
+                    .select("id", count="exact")  # type: ignore[arg-type]
                     .eq("user_id", user_id)
                     .execute()
                 )
@@ -34,7 +34,7 @@ class ProfileService:
             asyncio.to_thread(
                 lambda: (
                     self._db.table("check_ins")
-                    .select("id", count="exact")
+                    .select("id", count="exact")  # type: ignore[arg-type]
                     .eq("user_id", user_id)
                     .execute()
                 )

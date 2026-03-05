@@ -84,7 +84,7 @@ class ApifyScraperAdapter:
             shop_id = (
                 url_to_shop_id.get(scraped_url)
                 or path_to_shop_id.get(_url_path(scraped_url))
-                or cid_to_shop_id.get(_url_cid(scraped_url))
+                or cid_to_shop_id.get(_url_cid(scraped_url) or "")
             )
             if shop_id:
                 matched[shop_id] = self._parse_place(place)

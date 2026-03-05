@@ -59,7 +59,7 @@ class MapboxMapsAdapter:
             features = data.get("features", [])
             if not features:
                 return None
-            return features[0]["properties"]["full_address"]
+            return str(features[0]["properties"]["full_address"])
         except (httpx.HTTPStatusError, httpx.TimeoutException, httpx.ConnectError, KeyError) as e:
             logger.warning("Mapbox reverse geocode failed: %s", e)
             return None

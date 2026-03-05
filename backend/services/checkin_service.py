@@ -5,6 +5,7 @@ from typing import Any, cast
 from supabase import Client
 
 from core.db import first
+from core.exceptions import NotFoundError
 from models.types import CheckIn, CheckInWithShop, CreateCheckInResponse
 
 
@@ -16,6 +17,19 @@ class CheckInService:
     def _validate_stars(stars: int) -> None:
         if not (1 <= stars <= 5):
             raise ValueError("Stars must be between 1 and 5")
+
+    async def _validate_confirmed_tags(self, tags: list[str]) -> None:
+        """Validate that all confirmed_tags exist in taxonomy_tags table."""
+        if not tags:
+            return
+        response = await asyncio.to_thread(
+            lambda: self._db.table("taxonomy_tags").select("id").in_("id", tags).execute()
+        )
+        rows: list[dict[str, Any]] = cast("list[dict[str, Any]]", response.data or [])
+        found_ids = {row["id"] for row in rows}
+        unknown = set(tags) - found_ids
+        if unknown:
+            raise ValueError(f"Unknown tag IDs: {sorted(unknown)}")
 
     async def create(
         self,
@@ -29,12 +43,16 @@ class CheckInService:
         confirmed_tags: list[str] | None = None,
     ) -> CreateCheckInResponse:
         """Create a check-in. DB trigger handles stamp creation and job queueing."""
-        if len(photo_urls) < 1:
+        if not photo_urls:
             raise ValueError("At least one photo is required for check-in")
         if review_text is not None and stars is None:
             raise ValueError("review_text requires a star rating")
+        if confirmed_tags and stars is None:
+            raise ValueError("confirmed_tags requires a star rating")
         if stars is not None:
             self._validate_stars(stars)
+        if confirmed_tags:
+            await self._validate_confirmed_tags(confirmed_tags)
 
         # Check if this is the user's first check-in at this shop.
         # Note: TOCTOU race exists (concurrent requests could both see count=0).
@@ -42,7 +60,7 @@ class CheckInService:
         count_resp = await asyncio.to_thread(
             lambda: (
                 self._db.table("check_ins")
-                .select("id", count="exact")
+                .select("", count="exact")  # type: ignore[arg-type]
                 .eq("user_id", user_id)
                 .eq("shop_id", shop_id)
                 .execute()
@@ -80,13 +98,16 @@ class CheckInService:
     ) -> CheckIn:
         """Add or update a review on an existing check-in. Only the owner can update."""
         self._validate_stars(stars)
+        if confirmed_tags:
+            await self._validate_confirmed_tags(confirmed_tags)
 
         update_data: dict[str, Any] = {
             "stars": stars,
             "review_text": review_text,
-            "confirmed_tags": confirmed_tags,
             "reviewed_at": datetime.now(timezone.utc).isoformat(),  # noqa: UP017
         }
+        if confirmed_tags is not None:
+            update_data["confirmed_tags"] = confirmed_tags
         response = await asyncio.to_thread(
             lambda: (
                 self._db.table("check_ins")
@@ -98,7 +119,7 @@ class CheckInService:
         )
         rows = cast("list[dict[str, Any]]", response.data)
         if not rows:
-            raise ValueError("Check-in not found")
+            raise NotFoundError("Check-in not found")
         return CheckIn(**rows[0])
 
     async def get_by_user(self, user_id: str) -> list[CheckInWithShop]:

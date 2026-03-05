@@ -287,11 +287,6 @@ Core infrastructure everything else depends on. No user-facing product yet.
 - [x] ruff + mypy pass
 - [x] Frontend tests + build pass
 
-**Deferred (post-pipeline):**
-
-- [ ] Incremental tag classification: re-classify only delta tags when taxonomy grows
-- [ ] Embedding regeneration trigger: re-embed only when enrichment actually changes
-
 ### Provider Abstractions
 
 > **Design Doc:** [docs/designs/2026-02-26-provider-adapter-implementations-design.md](docs/designs/2026-02-26-provider-adapter-implementations-design.md)
@@ -436,43 +431,15 @@ Core infrastructure everything else depends on. No user-facing product yet.
 - [x] Signup: successful signup shows email confirmation
 - [x] Signup: error display on failed signup
 
-**Blocked — D-grade page tests (need features built in Phase 2):**
+**Previously blocked page tests (unblocked by Phase 2A):**
 
-- [ ] Lists page tests (blocked until lists CRUD feature)
-- [ ] Search page tests (blocked until semantic search UI)
-- [ ] Profile page tests (blocked until profile page)
+- [x] Lists page tests (completed in Phase 2A Completion)
+- [x] Profile page tests (completed in Phase 2A Completion)
+- Search page tests → moved to Phase 2B (blocked until semantic search UI)
 
-### Data Seeding — Get Shops Into Supabase
+Discovered gaps moved to → Quality Gate: Pre-Phase 2B section below.
 
-This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shops to unblock Phase 2 dev immediately; full pipeline reaches the 200+ shop target.
-
-**Chunk 1 — Local environment:**
-
-- [ ] Run `supabase start` and confirm Studio accessible at http://localhost:54323
-- [ ] Run `supabase db push` and confirm all migrations applied (check for errors in output)
-- [ ] Confirm `supabase/migrations/20260302000003_tagged_shop_count_rpc.sql` is the latest — `supabase db diff` should show no pending changes
-- [ ] Set required env vars in `backend/.env`: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `APIFY_API_TOKEN`
-
-**Chunk 2 — Full pipeline: import via Google Takeout + reach 200+ shops:**
-
-> Requires a Google Takeout export of your saved places. The importer reads the GeoJSON, inserts shops as `pending`, and queues SCRAPE_SHOP jobs. The worker chain then handles SCRAPE → ENRICH → EMBED → PUBLISH automatically.
-
-- [ ] Export Google Maps saved places: Google Account → Data & Privacy → Download your data → select "Saved" → export as JSON → unzip and locate `Takeout/Maps/Saved Places.json`
-- [ ] Write `backend/scripts/run_takeout_import.py`:
-  - Accept GeoJSON file path as CLI arg (`sys.argv[1]`)
-  - Load and parse the file
-  - Call `import_takeout_to_queue(geojson, db, queue)` from `importers/google_takeout.py`
-  - Print count of shops queued
-- [ ] Start backend: `cd backend && uvicorn main:app --reload --port 8000`
-- [ ] Run import: `cd backend && uv run python scripts/run_takeout_import.py /path/to/Saved\ Places.json`
-- [ ] Confirm SCRAPE_SHOP jobs queued — check `/admin/jobs` or `GET /admin/pipeline/jobs?status=pending`
-- [ ] Let worker run (APScheduler fires every 30s) — monitor progress in admin dashboard
-- [ ] Pipeline chain completes: SCRAPE_SHOP → ENRICH_SHOP → EMBED_SHOP → PUBLISH_SHOP
-- [ ] Verify: `SELECT COUNT(*) FROM shops WHERE processing_status = 'live'` ≥ 200
-- [ ] Verify: dead-letter queue empty or investigated (`GET /admin/pipeline/dead-letter`)
-- [ ] Spot-check search quality: run 5 queries from `scripts/prebuild/data-pipeline/pass5-search-test.ts` against the live API
-
-**Phase 1 is done when:** 200+ shops are live in the database with taxonomy tags and embeddings. Auth works end-to-end including PDPA consent and account deletion. Admin can add and edit shop data. `git clone` → running app in under 15 minutes.
+**Phase 1 is done when:** Auth works end-to-end including PDPA consent and account deletion. Admin can add and edit shop data. `git clone` → running app in under 15 minutes. (200+ shop data gate moved to Phase 2B.)
 
 ---
 
@@ -549,12 +516,6 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 **Chunk 4 — Shop Detail Integration (Wave 3):**
 
 - [x] CheckInPhotoGrid component (auth-gated: photo grid vs. preview + login CTA)
-
-**Deferred:**
-
-- [ ] Menu photo enrichment worker (job queueing already works via DB trigger)
-- [ ] `checkin_completed` PostHog event: shop_id, is_first_checkin_at_shop, has_text_note, has_menu_photo
-- [ ] `profile_stamps_viewed` PostHog event: stamp_count
 
 ### Reviews
 
@@ -658,12 +619,92 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 
 ---
 
+## Quality Gate: Pre-Phase 2B
+
+> **Design Doc:** [docs/designs/2026-03-05-pre-phase2b-quality-gate-design.md](docs/designs/2026-03-05-pre-phase2b-quality-gate-design.md)
+> **Plan:** [docs/plans/2026-03-05-pre-phase2b-quality-gate-plan.md](docs/plans/2026-03-05-pre-phase2b-quality-gate-plan.md)
+> **Source:** Progress review findings (`docs/progress-reviews/pre-phase-2b-2026-03-05.md`)
+>
+> Address all gaps from the progress review that don't depend on Phase 2B data.
+
+### DB Migration — Missing Indexes
+
+- [x] DB migration: `idx_shop_reviews_shop ON shop_reviews(shop_id)` — prevents full-table scan on shop detail
+- [x] DB migration: `idx_shops_processing_status ON shops(processing_status)` — speeds pipeline state queries
+- [x] DB migration: `idx_profiles_deletion_requested ON profiles(deletion_requested_at) WHERE NOT NULL` — speeds hard-delete scheduler
+- [x] DB migration: `idx_shops_source ON shops(source)` — speeds analytics/admin filtering
+
+### Frontend Tests — Auth Pages
+
+- [x] Login page tests: email form submit, OAuth buttons (Google/LINE), error display, redirect
+- [x] Signup page tests: signup form, PDPA checkbox required, email confirmation, error display
+- [x] PDPA consent page tests: consent checkbox + submit, redirect to home, consent API call
+- [x] Account recovery page tests: cancel-deletion API call, success message, error state
+
+### Frontend Tests — SWR Hooks
+
+- [x] `useUserProfile` hook tests: fetch profile, null while loading, error state, mutate
+- [x] `useUserCheckins` hook tests: fetch check-ins, empty array while loading, error
+- [x] `useListSummaries` hook tests: fetch summaries, empty array while loading, error
+
+### Backend Test + Validation
+
+- [x] Dedicated test for `check_urls.py` handler: valid URL, dead URL, batch processing, status updates
+- [x] Validate `confirmed_tags` against taxonomy in CheckInService (reject unknown tag IDs with 400)
+
+### Verification
+
+- [x] All new test files pass (7 frontend + 1 backend)
+- [x] DB migration applies cleanly
+- [x] Full verification (pnpm test, pytest, pnpm build, ruff, mypy)
+
+**Quality gate is done when:** All 8 new test files pass, DB indexes applied, confirmed_tags validated at service level. No regressions.
+
+---
+
 ## Phase 2B: Discovery & Search Flows — Requires 200+ Live Shops
 
-> Blocked on Phase 1 data gate: `SELECT COUNT(*) FROM shops WHERE processing_status = 'live'` ≥ 200.
+> Blocked on pipeline data gate: `SELECT COUNT(*) FROM shops WHERE processing_status = 'live'` ≥ 200.
 > Can be designed and partially scaffolded in parallel, but cannot be fully built or tested without real data.
 
 > **UX reference:** Same as Phase 2A above.
+
+### Pipeline: Data Seeding & Enrichment
+
+This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and published before discovery flows can be built.
+
+**Chunk 1 — Local environment:**
+
+- [ ] Run `supabase start` and confirm Studio accessible at http://localhost:54323
+- [ ] Run `supabase db push` and confirm all migrations applied (check for errors in output)
+- [ ] Confirm `supabase/migrations/20260302000003_tagged_shop_count_rpc.sql` is the latest — `supabase db diff` should show no pending changes
+- [ ] Set required env vars in `backend/.env`: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `APIFY_API_TOKEN`
+
+**Chunk 2 — Full pipeline: import via Google Takeout + reach 200+ shops:**
+
+> Requires a Google Takeout export of your saved places. The importer reads the GeoJSON, inserts shops as `pending`, and queues SCRAPE_SHOP jobs. The worker chain then handles SCRAPE → ENRICH → EMBED → PUBLISH automatically.
+
+- [ ] Export Google Maps saved places: Google Account → Data & Privacy → Download your data → select "Saved" → export as JSON → unzip and locate `Takeout/Maps/Saved Places.json`
+- [ ] Write `backend/scripts/run_takeout_import.py`:
+  - Accept GeoJSON file path as CLI arg (`sys.argv[1]`)
+  - Load and parse the file
+  - Call `import_takeout_to_queue(geojson, db, queue)` from `importers/google_takeout.py`
+  - Print count of shops queued
+- [ ] Start backend: `cd backend && uvicorn main:app --reload --port 8000`
+- [ ] Run import: `cd backend && uv run python scripts/run_takeout_import.py /path/to/Saved\ Places.json`
+- [ ] Confirm SCRAPE_SHOP jobs queued — check `/admin/jobs` or `GET /admin/pipeline/jobs?status=pending`
+- [ ] Let worker run (APScheduler fires every 30s) — monitor progress in admin dashboard
+- [ ] Pipeline chain completes: SCRAPE_SHOP → ENRICH_SHOP → EMBED_SHOP → PUBLISH_SHOP
+- [ ] Verify: `SELECT COUNT(*) FROM shops WHERE processing_status = 'live'` ≥ 200
+- [ ] Verify: dead-letter queue empty or investigated (`GET /admin/pipeline/dead-letter`)
+- [ ] Spot-check search quality: run 5 queries from `scripts/prebuild/data-pipeline/pass5-search-test.ts` against the live API
+
+**Chunk 3 — Enrichment validation:**
+
+- [ ] Spot-check enrichment quality: taxonomy tags, descriptions, mode inference on 10 random shops
+- [ ] Menu photo enrichment worker: validate with real check-in data (handler exists at `backend/workers/handlers/enrich_menu_photo.py`)
+- [ ] Incremental tag classification: re-classify only delta tags when taxonomy grows
+- [ ] Embedding regeneration trigger: re-embed only when enrichment actually changes
 
 ### Shop Discovery & Directory
 

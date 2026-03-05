@@ -14,6 +14,10 @@ export default defineConfig({
     ],
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['json', 'text'],
+    },
   },
   resolve: {
     alias: {

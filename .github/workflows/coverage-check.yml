@@ -72,16 +72,37 @@ jobs:
           commit: ${{ github.event.workflow_run.head_sha }}
         continue-on-error: true
 
-      - name: Check if artifact is available
+      - name: Download backend coverage artifact
+        id: backend-artifact
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: backend-ci.yml
+          name: coverage-backend
+          path: ./coverage-reports/backend/
+          commit: ${{ github.event.workflow_run.head_sha }}
+        continue-on-error: true
+
+      - name: Check if artifacts are available
         id: artifacts-check
         run: |
+          FRONTEND=false
+          BACKEND=false
           if [ -f ./coverage-reports/coverage-final.json ]; then
+            FRONTEND=true
+            echo "Frontend coverage artifact found"
+          fi
+          if [ -f ./coverage-reports/backend/coverage.xml ]; then
+            BACKEND=true
+            echo "Backend coverage artifact found"
+          fi
+          if [ "$FRONTEND" = true ] || [ "$BACKEND" = true ]; then
             echo "available=true" >> $GITHUB_OUTPUT
-            echo "Coverage artifact found"
           else
             echo "available=false" >> $GITHUB_OUTPUT
-            echo "Coverage artifact NOT found"
+            echo "No coverage artifacts found"
           fi
+          echo "frontend=$FRONTEND" >> $GITHUB_OUTPUT
+          echo "backend=$BACKEND" >> $GITHUB_OUTPUT
 
       - name: Setup Python
         if: steps.artifacts-check.outputs.available == 'true'
@@ -97,10 +118,14 @@ jobs:
         id: coverage
         if: steps.artifacts-check.outputs.available == 'true'
         run: |
-          python scripts/ci/coverage-check.py \
-            --frontend ./coverage-reports/coverage-final.json \
-            --rules ./scripts/ci/coverage-rules.json \
-            --output ./coverage-summary.md
+          ARGS="--rules ./scripts/ci/coverage-rules.json --output ./coverage-summary.md"
+          if [ "${{ steps.artifacts-check.outputs.frontend }}" = "true" ]; then
+            ARGS="$ARGS --frontend ./coverage-reports/coverage-final.json"
+          fi
+          if [ "${{ steps.artifacts-check.outputs.backend }}" = "true" ]; then
+            ARGS="$ARGS --backend ./coverage-reports/backend/coverage.xml"
+          fi
+          python scripts/ci/coverage-check.py $ARGS
         continue-on-error: true
 
       - name: Read coverage summary
