@@ -59,7 +59,7 @@ class CheckInService:
         count_resp = await asyncio.to_thread(
             lambda: (
                 self._db.table("check_ins")
-                .select("id", count="exact")
+                .select("", count="exact")
                 .eq("user_id", user_id)
                 .eq("shop_id", shop_id)
                 .execute()

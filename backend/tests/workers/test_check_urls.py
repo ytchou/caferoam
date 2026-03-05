@@ -1,5 +1,6 @@
 """Tests for the check_urls background URL validation handler."""
 
+import httpx
 import pytest
 from unittest.mock import MagicMock, AsyncMock, patch
 
@@ -99,8 +100,6 @@ class TestCheckUrlsForRegion:
         update_chain = MagicMock()
         update_chain.in_.return_value.execute.return_value = MagicMock()
         mock_db.table.return_value.update.return_value = update_chain
-
-        import httpx
 
         with patch("workers.handlers.check_urls.httpx.AsyncClient") as MockClient:
             client_instance = AsyncMock()

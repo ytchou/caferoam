@@ -103,6 +103,7 @@ If the answer to any of these is "no", the test is a candidate for rewrite.
 Mutation testing measures test **quality**, not quantity. Tools inject small bugs into your source code (flip `>` to `>=`, delete a return value) and check if any test catches them. If 40% of mutations survive, 40% of real bugs would slip through your tests undetected — even with high coverage.
 
 **Tools:**
+
 - Frontend: [Stryker](https://stryker-mutator.io/) with `@stryker-mutator/vitest-runner`
 - Backend: [mutmut](https://github.com/boxed/mutmut)
 
@@ -111,6 +112,7 @@ Mutation testing measures test **quality**, not quantity. Tools inject small bug
 **Threshold:** 60% mutation score minimum. Below this, the quality gate workflow fails.
 
 **Commands:**
+
 ```bash
 pnpm mutation:frontend   # Stryker — reports in reports/mutation/
 pnpm mutation:backend    # mutmut — results in .mutmut-cache/
@@ -126,7 +128,7 @@ Once per milestone, spend 30 minutes sampling 10-15 tests from recently added fi
 2. Check mutation score for the same files — low score = weak assertions
 3. Look for systemic patterns ("all hook tests only assert mock calls")
 
-This is a manual process. The mutation score tells you *where* to look; the checklist tells you *what's wrong*.
+This is a manual process. The mutation score tells you _where_ to look; the checklist tells you _what's wrong_.
 
 ## References
 
