@@ -15,7 +15,6 @@
 **Tech Stack:** Supabase migrations (SQL), Vitest + Testing Library (frontend tests), pytest (backend test), Python (validation fix)
 
 **Acceptance Criteria:**
-
 - [ ] All 4 auth-related pages (login, signup, consent, recovery) have regression tests covering success and error paths
 - [ ] All 3 profile SWR hooks have tests covering fetch, loading, and error states
 - [ ] check_urls handler has a dedicated test covering valid URLs, dead URLs, and batch processing
@@ -27,7 +26,6 @@
 ### Task 1: DB Migration — Missing Indexes
 
 **Files:**
-
 - Create: `supabase/migrations/20260305000002_add_missing_indexes.sql`
 
 No test needed — additive indexes, no app code changes.
@@ -71,7 +69,6 @@ git commit -m "perf: add missing DB indexes for shop_reviews, shops, profiles"
 ### Task 2: Login Page Tests
 
 **Files:**
-
 - Create: `app/(auth)/login/page.test.tsx`
 - Reference: `app/(auth)/login/page.tsx` (the page under test)
 - Reference: `lib/test-utils/mocks.ts` (createMockSupabaseAuth, createMockRouter)
@@ -202,7 +199,6 @@ git commit -m "test: add login page tests — email/password, OAuth buttons, err
 ### Task 3: Signup Page Tests
 
 **Files:**
-
 - Create: `app/(auth)/signup/page.test.tsx`
 - Reference: `app/(auth)/signup/page.tsx`
 - Reference: `lib/test-utils/mocks.ts`
@@ -213,7 +209,9 @@ git commit -m "test: add login page tests — email/password, OAuth buttons, err
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createMockSupabaseAuth } from '@/lib/test-utils/mocks';
+import {
+  createMockSupabaseAuth,
+} from '@/lib/test-utils/mocks';
 
 const mockAuth = createMockSupabaseAuth();
 vi.mock('@/lib/supabase/client', () => ({
@@ -240,7 +238,9 @@ describe('/signup page', () => {
 
   it('submit button is disabled until PDPA checkbox is checked', () => {
     render(<SignupPage />);
-    expect(screen.getByRole('button', { name: /sign up/i })).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: /sign up/i })
+    ).toBeDisabled();
   });
 
   it('user can sign up after checking PDPA consent and sees email confirmation', async () => {
@@ -308,7 +308,6 @@ git commit -m "test: add signup page tests — PDPA checkbox, form submit, error
 ### Task 4: PDPA Consent Page Tests
 
 **Files:**
-
 - Create: `app/onboarding/consent/page.test.tsx`
 - Reference: `app/onboarding/consent/page.tsx`
 - Reference: `lib/test-utils/mocks.ts`
@@ -348,10 +347,7 @@ describe('/onboarding/consent page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockAuth.getSession.mockResolvedValue({ data: { session: testSession } });
-    mockAuth.refreshSession.mockResolvedValue({
-      data: { session: {} },
-      error: null,
-    });
+    mockAuth.refreshSession.mockResolvedValue({ data: { session: {} }, error: null });
   });
 
   it('renders PDPA disclosure with data collection, purpose, and rights sections', () => {
@@ -440,7 +436,6 @@ git commit -m "test: add PDPA consent page tests — disclosure, checkbox, API c
 ### Task 5: Account Recovery Page Tests
 
 **Files:**
-
 - Create: `app/account/recover/page.test.tsx`
 - Reference: `app/account/recover/page.tsx`
 - Reference: `lib/test-utils/mocks.ts`
@@ -479,10 +474,7 @@ describe('/account/recover page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockAuth.getSession.mockResolvedValue({ data: { session: testSession } });
-    mockAuth.refreshSession.mockResolvedValue({
-      data: { session: {} },
-      error: null,
-    });
+    mockAuth.refreshSession.mockResolvedValue({ data: { session: {} }, error: null });
   });
 
   it('renders account recovery info and cancel deletion button', () => {
@@ -499,7 +491,9 @@ describe('/account/recover page', () => {
     const user = userEvent.setup();
     render(<RecoverPage />);
 
-    await user.click(screen.getByRole('button', { name: /cancel deletion/i }));
+    await user.click(
+      screen.getByRole('button', { name: /cancel deletion/i })
+    );
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
@@ -524,7 +518,9 @@ describe('/account/recover page', () => {
     const user = userEvent.setup();
     render(<RecoverPage />);
 
-    await user.click(screen.getByRole('button', { name: /cancel deletion/i }));
+    await user.click(
+      screen.getByRole('button', { name: /cancel deletion/i })
+    );
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent(
@@ -539,7 +535,9 @@ describe('/account/recover page', () => {
     const user = userEvent.setup();
     render(<RecoverPage />);
 
-    await user.click(screen.getByRole('button', { name: /cancel deletion/i }));
+    await user.click(
+      screen.getByRole('button', { name: /cancel deletion/i })
+    );
 
     await waitFor(() => {
       expect(mockRouter.push).toHaveBeenCalledWith('/login');
@@ -565,7 +563,6 @@ git commit -m "test: add account recovery page tests — cancel deletion, error,
 ### Task 6: useUserProfile Hook Test
 
 **Files:**
-
 - Create: `lib/hooks/use-user-profile.test.ts`
 - Reference: `lib/hooks/use-user-profile.ts`
 - Reference: `lib/hooks/use-user-stamps.test.ts` (pattern to follow)
@@ -661,7 +658,6 @@ git commit -m "test: add useUserProfile hook tests — fetch, loading, error"
 ### Task 7: useUserCheckins Hook Test
 
 **Files:**
-
 - Create: `lib/hooks/use-user-checkins.test.ts`
 - Reference: `lib/hooks/use-user-checkins.ts`
 
@@ -756,7 +752,6 @@ git commit -m "test: add useUserCheckins hook tests — fetch, loading, empty st
 ### Task 8: useListSummaries Hook Test
 
 **Files:**
-
 - Create: `lib/hooks/use-list-summaries.test.ts`
 - Reference: `lib/hooks/use-list-summaries.ts`
 
@@ -853,7 +848,6 @@ git commit -m "test: add useListSummaries hook tests — fetch, loading, empty s
 ### Task 9: check_urls Handler Test
 
 **Files:**
-
 - Create: `backend/tests/workers/test_check_urls.py`
 - Reference: `backend/workers/handlers/check_urls.py`
 - Reference: `backend/tests/workers/test_handlers.py` (pattern)
@@ -1030,7 +1024,6 @@ git commit -m "test: add check_urls handler tests — valid, dead, timeout, batc
 ### Task 10: Validate confirmed_tags Against Taxonomy
 
 **Files:**
-
 - Modify: `backend/services/checkin_service.py` (add validation method + call it)
 - Modify: `backend/tests/services/test_checkin_service.py` (add test cases)
 
@@ -1286,7 +1279,6 @@ graph TD
 ```
 
 **Wave 1** (all parallel — no file dependencies between any tasks):
-
 - Task 1: DB Migration
 - Task 2: Login page tests
 - Task 3: Signup page tests
@@ -1299,7 +1291,6 @@ graph TD
 - Task 10: confirmed_tags validation (touches `checkin_service.py` + its test)
 
 **Wave 2** (depends on all Wave 1 tasks):
-
 - Task 11: Full verification
 
 ---

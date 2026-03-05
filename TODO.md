@@ -643,10 +643,9 @@ Discovered gaps moved to → Quality Gate: Pre-Phase 2B section below.
 ---
 
 ## Quality Gate: Pre-Phase 2B
-> **Design Doc:** [docs/designs/2026-03-05-pre-phase2b-quality-gate-design.md](docs/designs/2026-03-05-pre-phase2b-q
-uality-gate-design.md)
-> **Plan:**
-[docs/plans/2026-03-05-pre-phase2b-quality-gate-plan.md](docs/plans/2026-03-05-pre-phase2b-quality-gate-plan.md)
+
+> **Design Doc:** [docs/designs/2026-03-05-pre-phase2b-quality-gate-design.md](docs/designs/2026-03-05-pre-phase2b-quality-gate-design.md)
+> **Plan:** [docs/plans/2026-03-05-pre-phase2b-quality-gate-plan.md](docs/plans/2026-03-05-pre-phase2b-quality-gate-plan.md)
 > **Source:** Progress review findings (`docs/progress-reviews/pre-phase-2b-2026-03-05.md`)
 >
 > Address all gaps from the progress review that don't depend on Phase 2B data.
