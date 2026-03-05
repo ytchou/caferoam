@@ -8,6 +8,7 @@ export default {
     '!**/test-utils/**',
   ],
   testRunner: 'vitest',
+  plugins: ['@stryker-mutator/vitest-runner'],
   reporters: ['html', 'json', 'clear-text'],
   htmlReporter: { fileName: 'reports/mutation/index.html' },
   jsonReporter: { fileName: 'reports/mutation/report.json' },

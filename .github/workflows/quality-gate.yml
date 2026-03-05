@@ -61,7 +61,7 @@ jobs:
         run: cd backend && uv sync --all-extras
 
       - name: Run mutmut mutation testing
-        run: cd backend && uv run mutmut run --paths-to-mutate api/,services/,providers/
+        run: cd backend && uv run mutmut run
 
       - name: Show mutmut results
         if: always()
