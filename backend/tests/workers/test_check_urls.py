@@ -24,7 +24,7 @@ class TestCheckUrlsForRegion:
 
         result = await check_urls_for_region(mock_db)
 
-        assert result == {"checked": 0, "passed": 0, "failed": 0}
+        assert result == {"checked": 0, "passed": 0, "failed": 0, "errored": 0}
 
     @pytest.mark.asyncio
     async def test_marks_valid_urls_as_pending_review(self, mock_db):
@@ -147,4 +147,4 @@ class TestCheckUrlsForRegion:
 
             result = await check_urls_for_region(mock_db)
 
-        assert result == {"checked": 2, "passed": 1, "failed": 1}
+        assert result == {"checked": 2, "passed": 1, "failed": 1, "errored": 0}

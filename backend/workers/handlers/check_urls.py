@@ -57,7 +57,7 @@ async def check_urls_for_region(
 
     if not shops:
         logger.info("url_check: no pending shops")
-        return {"checked": 0, "passed": 0, "failed": 0}
+        return {"checked": 0, "passed": 0, "failed": 0, "errored": 0}
 
     total = len(shops)
     logger.info("url_check: starting", total=total, batch_size=_BATCH_SIZE)
