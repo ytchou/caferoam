@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useUserStamps } from '@/lib/hooks/use-user-stamps';
 import { useUserProfile } from '@/lib/hooks/use-user-profile';
 import { useUserCheckins } from '@/lib/hooks/use-user-checkins';
 import { useListSummaries } from '@/lib/hooks/use-list-summaries';
+import { useAnalytics } from '@/lib/posthog/use-analytics';
 import { StampPassport } from '@/components/stamps/stamp-passport';
 import { StampDetailSheet } from '@/components/stamps/stamp-detail-sheet';
 import { ProfileHeader } from '@/components/profile/profile-header';
@@ -19,6 +20,15 @@ export default function ProfilePage() {
   const { checkins, isLoading: checkinsLoading } = useUserCheckins();
   const { lists, isLoading: listsLoading } = useListSummaries();
   const [selectedStamp, setSelectedStamp] = useState<StampData | null>(null);
+  const { capture } = useAnalytics();
+  const hasFiredRef = useRef(false);
+
+  useEffect(() => {
+    if (!stampsLoading && !hasFiredRef.current) {
+      hasFiredRef.current = true;
+      capture('profile_stamps_viewed', { stamp_count: stamps.length });
+    }
+  }, [stampsLoading, stamps.length, capture]);
 
   return (
     <main className="mx-auto max-w-lg px-4 py-6">

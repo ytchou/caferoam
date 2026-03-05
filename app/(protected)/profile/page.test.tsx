@@ -15,6 +15,11 @@ vi.mock('@/lib/supabase/client', () => ({
   }),
 }));
 
+const mockCapture = vi.fn();
+vi.mock('@/lib/posthog/use-analytics', () => ({
+  useAnalytics: () => ({ capture: mockCapture }),
+}));
+
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
@@ -31,6 +36,7 @@ function wrapper({ children }: { children: React.ReactNode }) {
 describe('ProfilePage', () => {
   beforeEach(() => {
     mockFetch.mockReset();
+    mockCapture.mockReset();
   });
 
   function mockAllEndpoints(
@@ -151,6 +157,51 @@ describe('ProfilePage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Favourites')).toBeInTheDocument();
+    });
+  });
+
+  it('fires profile_stamps_viewed event with stamp count when stamps load', async () => {
+    mockAllEndpoints({
+      stamps: [
+        { ...makeStamp({ id: 'stamp-1' }), shop_name: '山小孩咖啡' },
+        { ...makeStamp({ id: 'stamp-2' }), shop_name: 'Fika Coffee' },
+      ],
+    });
+    render(<ProfilePage />, { wrapper });
+
+    await waitFor(() => {
+      expect(mockCapture).toHaveBeenCalledWith('profile_stamps_viewed', {
+        stamp_count: 2,
+      });
+    });
+  });
+
+  it('shows empty passport state when user has no stamps', async () => {
+    mockAllEndpoints({ stamps: [] });
+    render(<ProfilePage />, { wrapper });
+
+    await waitFor(() => {
+      expect(mockCapture).toHaveBeenCalledWith('profile_stamps_viewed', {
+        stamp_count: 0,
+      });
+    });
+    expect(screen.getByText(/my passport/i)).toBeInTheDocument();
+  });
+
+  it('opens stamp detail sheet when user taps a stamp', async () => {
+    mockAllEndpoints({
+      stamps: [{ ...makeStamp({ id: 'stamp-1' }), shop_name: '山小孩咖啡' }],
+    });
+    const user = userEvent.setup();
+    render(<ProfilePage />, { wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('stamp-slot-filled')).toBeInTheDocument();
+    });
+    await user.click(screen.getByTestId('stamp-slot-filled'));
+
+    await waitFor(() => {
+      expect(screen.getByText('山小孩咖啡')).toBeInTheDocument();
     });
   });
 });

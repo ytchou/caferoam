@@ -642,13 +642,13 @@ This is the final gate for Phase 1. Two paths: fast path seeds 29 pre-built shop
 **Chunk 3 — Frontend Analytics Events (Wave 3):**
 
 - [x] `checkin_completed` PostHog event: shop_id, is_first_checkin_at_shop, has_text_note, has_menu_photo
-- [ ] `profile_stamps_viewed` PostHog event: stamp_count
+- [x] `profile_stamps_viewed` PostHog event: stamp_count
 - [x] SessionTracker component + `session_start` event: days_since_first_session, previous_sessions
 
 **Chunk 4 — User Journey Tests (Wave 1, 3):**
 
 - [x] Lists page tests (create, cap enforcement, delete)
-- [ ] Profile page tests (stamp detail, empty states, check-in history)
+- [x] Profile page tests (stamp detail, empty states, check-in history)
 
 **Chunk 5 — Verification:**
 
