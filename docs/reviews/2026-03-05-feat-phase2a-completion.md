@@ -48,9 +48,26 @@
 - `pytest` — PASS (332 passed)
 - `pnpm test` — PASS (431 passed, 65 files)
 
+## Fix Pass 2 — User-requested: all non-false-positive skipped items
+
+**Pre-fix SHA:** 32f1d386d8339b45104dc001f5d4a2ae38c8389d (same branch)
+**Issues fixed:**
+- [Minor] `backend/services/profile_service.py` — Fixed `previous_sessions` semantics: now returns count BEFORE increment (was returning AFTER, making first session show previous=1 instead of 0)
+- [Minor] `backend/tests/test_profile_service.py` — Updated assertions to match corrected semantics
+- [Debatable] `session-tracker.test.tsx` + `checkin/page.test.tsx` + `profile/page.test.tsx` — Replaced `vi.mock('@/lib/posthog/use-analytics')` with `vi.mock('posthog-js')` (external boundary). Used `vi.hoisted()` to avoid TDZ errors. Added `vi.stubEnv('NEXT_PUBLIC_POSTHOG_KEY', 'phc_test')` in beforeEach.
+- [Minor] `backend/tests/services/test_checkin_service.py` — Fixed mock setup: used `side_effect` to return separate mocks for count query vs insert; added `is_first_checkin_at_shop` assertion
+- [Minor] `app/(protected)/lists/page.test.tsx` — Renamed misleading test ("at the 3-list cap" → "backend rejects list creation") to reflect actual behavior (UI hides input at cap; test covers backend error path with 2 lists showing)
+
+**Skipped (false positive):**
+- `(user_id, shop_id)` composite index on `check_ins` — premature optimization; users have at most dozens of check-ins
+
+**Batch Test Run:**
+- `pytest` — PASS (332 passed)
+- `pnpm test` — PASS (431 passed, 65 files)
+
 ## Final State
 
-**Iterations completed:** 1
+**Iterations completed:** 2
 **All Critical/Important resolved:** Yes
 **Remaining issues:** None
 
