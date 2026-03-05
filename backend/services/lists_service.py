@@ -44,8 +44,8 @@ class ListsService:
         return summaries
 
     async def get_by_user(self, user_id: str) -> list[ListWithItems]:
-        response = (
-            self._db.table("lists")
+        response = await asyncio.to_thread(
+            lambda: self._db.table("lists")
             .select("*, list_items(shop_id, added_at)")
             .eq("user_id", user_id)
             .order("created_at", desc=True)

@@ -49,7 +49,9 @@ class CheckInService:
             checkin_data["confirmed_tags"] = confirmed_tags
             checkin_data["reviewed_at"] = datetime.now(timezone.utc).isoformat()  # noqa: UP017
 
-        response = self._db.table("check_ins").insert(checkin_data).execute()
+        response = await asyncio.to_thread(
+            lambda: self._db.table("check_ins").insert(checkin_data).execute()
+        )
         rows = cast("list[dict[str, Any]]", response.data)
         return CheckIn(**first(rows, "create check-in"))
 
@@ -70,8 +72,8 @@ class CheckInService:
             "confirmed_tags": confirmed_tags,
             "reviewed_at": datetime.now(timezone.utc).isoformat(),  # noqa: UP017
         }
-        response = (
-            self._db.table("check_ins")
+        response = await asyncio.to_thread(
+            lambda: self._db.table("check_ins")
             .update(update_data)
             .eq("id", checkin_id)
             .eq("user_id", user_id)
@@ -100,8 +102,8 @@ class CheckInService:
         return results
 
     async def get_by_shop(self, shop_id: str) -> list[CheckIn]:
-        response = (
-            self._db.table("check_ins")
+        response = await asyncio.to_thread(
+            lambda: self._db.table("check_ins")
             .select("*")
             .eq("shop_id", shop_id)
             .order("created_at", desc=True)
