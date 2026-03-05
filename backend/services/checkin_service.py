@@ -5,6 +5,7 @@ from typing import Any, cast
 from supabase import Client
 
 from core.db import first
+from core.exceptions import NotFoundError
 from models.types import CheckIn, CheckInWithShop, CreateCheckInResponse
 
 
@@ -42,7 +43,7 @@ class CheckInService:
         confirmed_tags: list[str] | None = None,
     ) -> CreateCheckInResponse:
         """Create a check-in. DB trigger handles stamp creation and job queueing."""
-        if len(photo_urls) < 1:
+        if not photo_urls:
             raise ValueError("At least one photo is required for check-in")
         if review_text is not None and stars is None:
             raise ValueError("review_text requires a star rating")
@@ -118,7 +119,7 @@ class CheckInService:
         )
         rows = cast("list[dict[str, Any]]", response.data)
         if not rows:
-            raise ValueError("Check-in not found")
+            raise NotFoundError("Check-in not found")
         return CheckIn(**rows[0])
 
     async def get_by_user(self, user_id: str) -> list[CheckInWithShop]:

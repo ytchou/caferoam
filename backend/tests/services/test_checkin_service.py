@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from core.exceptions import NotFoundError
 from services.checkin_service import CheckInService
 
 
@@ -278,7 +279,7 @@ class TestCheckInService:
             data=[]
         )
 
-        with pytest.raises(ValueError, match="Check-in not found"):
+        with pytest.raises(NotFoundError, match="Check-in not found"):
             await checkin_service.update_review(
                 checkin_id="ci-nonexistent",
                 user_id="user-42",

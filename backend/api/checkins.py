@@ -5,6 +5,7 @@ from pydantic import BaseModel, field_validator
 from supabase import Client
 
 from api.deps import get_current_user, get_user_db
+from core.exceptions import NotFoundError
 from services.checkin_service import CheckInService
 
 router = APIRouter(prefix="/checkins", tags=["checkins"])
@@ -82,11 +83,10 @@ async def update_review(
             confirmed_tags=body.confirmed_tags,
         )
         return result.model_dump()
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from None
     except ValueError as e:
-        msg = str(e)
-        if msg == "Check-in not found":
-            raise HTTPException(status_code=403, detail=msg) from None
-        raise HTTPException(status_code=400, detail=msg) from None
+        raise HTTPException(status_code=400, detail=str(e)) from None
 
 
 @router.get("/")

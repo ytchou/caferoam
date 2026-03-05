@@ -180,8 +180,8 @@ class TestCheckinsAPI:
         assert response.status_code == 400
         assert "Unknown tag IDs" in response.json()["detail"]
 
-    def test_update_review_not_found_returns_403(self):
-        """When a user tries to update a review on a check-in they don't own, they get 403."""
+    def test_update_review_not_found_returns_404(self):
+        """When a user tries to update a non-existent check-in, they get 404."""
         mock_db = MagicMock()
         app.dependency_overrides[get_current_user] = lambda: {"id": "user-abc123"}
         app.dependency_overrides[get_user_db] = lambda: mock_db
@@ -192,10 +192,10 @@ class TestCheckinsAPI:
             "/checkins/ci-not-mine/review",
             json={"stars": 3},
         )
-        assert response.status_code == 403
+        assert response.status_code == 404
 
-    def test_update_review_on_another_users_checkin_returns_403(self):
-        """When user A tries to update a review on user B's check-in, they get 403."""
+    def test_update_review_on_another_users_checkin_returns_404(self):
+        """When user A tries to update user B's check-in, they get 404 (not leaked as 403)."""
         mock_db = MagicMock()
         app.dependency_overrides[get_current_user] = lambda: {"id": "user-mei-lin"}
         app.dependency_overrides[get_user_db] = lambda: mock_db
@@ -207,7 +207,7 @@ class TestCheckinsAPI:
             "/checkins/ci-owned-by-chen-wei/review",
             json={"stars": 2},
         )
-        assert response.status_code == 403
+        assert response.status_code == 404
 
 
 class TestGetMyCheckins:
