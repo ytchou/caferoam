@@ -1,12 +1,14 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createSWRWrapper } from '@/lib/test-utils/wrappers';
+import { makeSession } from '@/lib/test-utils/factories';
 
+const testSession = makeSession();
 vi.mock('@/lib/supabase/client', () => ({
   createClient: () => ({
     auth: {
       getSession: vi.fn().mockResolvedValue({
-        data: { session: { access_token: 'test-token' } },
+        data: { session: testSession },
       }),
     },
   }),

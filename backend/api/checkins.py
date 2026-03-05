@@ -83,7 +83,10 @@ async def update_review(
         )
         return result.model_dump()
     except ValueError as e:
-        raise HTTPException(status_code=403, detail=str(e)) from None
+        msg = str(e)
+        if msg == "Check-in not found":
+            raise HTTPException(status_code=403, detail=msg) from None
+        raise HTTPException(status_code=400, detail=msg) from None
 
 
 @router.get("/")

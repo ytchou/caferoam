@@ -654,9 +654,9 @@ Discovered gaps moved to → Quality Gate: Pre-Phase 2B section below.
 
 ### Verification
 
-- [ ] All new test files pass (7 frontend + 1 backend)
-- [ ] DB migration applies cleanly
-- [ ] Full verification (pnpm test, pytest, pnpm build, ruff, mypy)
+- [x] All new test files pass (7 frontend + 1 backend)
+- [x] DB migration applies cleanly
+- [x] Full verification (pnpm test, pytest, pnpm build, ruff, mypy)
 
 **Quality gate is done when:** All 8 new test files pass, DB indexes applied, confirmed_tags validated at service level. No regressions.
 

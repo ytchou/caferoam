@@ -2,68 +2,37 @@
 
 **Date:** 2026-03-05
 **Branch:** feat/pre-phase2b-quality-gate
-**Mode:** Pre-PR
+**Mode:** Post-PR (#23)
+**HEAD SHA:** 66403e61bea74b168ab775431c2e401c0619fe2a
 
-## Pass 1 — Full Discovery
+## Pass 1 (Pre-PR) — Prior Session
 
-_Agents: Bug Hunter (Opus), Standards (Sonnet), Architecture (Opus), Plan Alignment (Sonnet), Test Philosophy (Sonnet)_
+*See git history for details. Fixed: confirmed_tags data loss, errored counter, TODO.md checkboxes, hook test names, error-path coverage, design doc route path.*
+
+## Pass 2 (Post-PR) — Full Discovery
+
+*Agents: Bug Hunter (Opus), Standards (Sonnet), Architecture (Opus), Plan Alignment (Sonnet), Test Philosophy (Sonnet)*
 
 ### Issues Found (11 total)
 
-| Severity  | File:Line                                 | Description                                                               | Flagged By                          |
-| --------- | ----------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------- |
-| Important | checkin_service.py:56,80-84               | Silent data loss: confirmed_tags validated but dropped when stars is None | Bug Hunter, Architecture, Standards |
-| Important | check_urls.py:84-101                      | Misleading stats when DB batch write fails (passed+failed < checked)      | Bug Hunter, Architecture            |
-| Important | test_checkins.py                          | API tests mock deep Supabase chain instead of service boundary            | Standards                           |
-| Important | TODO.md:630-661                           | All checkboxes still unchecked despite work being complete                | Plan Alignment                      |
-| Minor     | test_checkins.py:44-80                    | API test doesn't mock count query — is_first_checkin_at_shop untested     | Bug Hunter                          |
-| Minor     | test_checkin_service.py:10-28             | \_make_table_router order-coupled to implementation                       | Bug Hunter                          |
-| Minor     | hook test files                           | global.fetch mock not restored after tests                                | Bug Hunter                          |
-| Minor     | test_checkin_service.py, test_checkins.py | Inconsistent test data realism                                            | Standards, Test Philosophy          |
-| Minor     | use-list-summaries, use-user-checkins     | Two SWR hook tests lack error-path coverage                               | Architecture                        |
-| Minor     | 3 hook test files                         | Test names describe endpoints, not user outcomes                          | Test Philosophy                     |
-| Minor     | design doc                                | Uses wrong route group path (public vs auth)                              | Plan Alignment                      |
+| # | Severity | File:Line | Description | Flagged By |
+|---|----------|-----------|-------------|------------|
+| 1 | Important | `backend/api/checkins.py:85-86` | `update_review` maps ALL ValueError to 403 — validation errors (unknown tags) should be 400, only ownership errors should be 403 | Bug Hunter |
+| 2 | Important | `backend/workers/handlers/check_urls.py:119-126` | `errored` counter not included in final completion log — operators see discrepancy | Bug Hunter, Architecture |
+| 3 | Important | `backend/tests/services/test_checkin_service.py:87-88` | Tests assert which internal DB tables are called (implementation coupling) | Standards |
+| 4 | Important | `backend/tests/services/test_checkin_service.py:218,260` | Patching datetime module is mocking an internal, not a boundary | Standards |
+| 5 | Important | `backend/tests/api/test_checkins.py:41-74` | Test bypasses is_first_checkin via MagicMock auto-vivification | Architecture |
+| 6 | Important | `TODO.md:657-659` | Verification items unchecked | Plan Alignment |
+| 7 | Minor | `backend/tests/services/test_checkin_service.py:53,90` | Test names describe functions not user actions | Standards |
+| 8 | Minor | `backend/tests/services/test_checkin_service.py:10-28` | `_make_table_router` uses call-order routing | Bug Hunter |
+| 9 | Minor | `backend/workers/handlers/check_urls.py:75,84` | Shops without URL silently filtered as dead | Bug Hunter |
+| 10 | Minor | Hook test files (3) | Placeholder 'test-token' instead of makeSession() factory | Test Philosophy |
+| 11 | Minor | Hook test files (3) | describe blocks named after function, not user scenario | Test Philosophy |
 
 ### Validation Results
 
-- Skipped (false positive): `test_checkins.py` mocking depth — Supabase client IS the database boundary per testing philosophy. Current approach is correct.
-- Skipped (debatable, low value): `_make_table_router` order coupling — inherent to DB client mocking, documented in helper docstring.
-- Skipped (minor, low risk): `global.fetch` mock restoration — Vitest isolates module scope between test files.
-- Skipped (minor, pre-existing): Inconsistent test data realism in `test_checkins.py` — these tests predate this branch.
-- Skipped (minor, pre-existing): `is_first_checkin_at_shop` API-level test coverage gap — predates this branch.
-- Proceeding to fix: 6 issues (2 Important + 4 Minor)
-
-## Fix Pass 1
-
-**Pre-fix SHA:** f814b4f1806e1c4110d131f7820bc5d04d1ce262
-
-**Issues fixed:**
-
-- [Important] checkin_service.py:52-53 — Added `confirmed_tags requires a star rating` validation guard
-- [Important] check_urls.py:66,95,101,123 — Added `errored` counter for DB batch write failures
-- [Important] TODO.md:630-661 — Checked off all 16 completed items
-- [Minor] 3 hook test files — Renamed test descriptions from endpoint-focused to user-journey framing
-- [Minor] use-list-summaries, use-user-checkins — Added error-path test coverage (matching use-user-profile)
-- [Minor] design doc — Fixed route group path `(public)` → `(auth)`
-- [Minor] test_checkin_service.py — Added test for confirmed_tags-without-stars validation
-
-**Issues skipped (false positives / low value):**
-
-- test_checkins.py deep mocking — Supabase IS the boundary
-- \_make_table_router coupling — inherent to mock pattern, documented
-- global.fetch restoration — Vitest worker isolation makes this safe
-- Inconsistent test data — pre-existing, not introduced by this branch
-- is_first_checkin_at_shop gap — pre-existing
-
-**Batch Test Run:**
-
-- `pnpm test` — 461 passed
-- `pytest` — 341 passed (1 failure from errored counter addition → fixed in bc1109a)
-
-## Final State
-
-**Iterations completed:** 1
-**All Critical/Important resolved:** Yes
-**Remaining issues:** None blocking. 3 minor pre-existing issues noted but not in scope.
-
-**Review log:** docs/reviews/2026-03-05-feat-pre-phase2b-quality-gate.md
+- Skipped (incorrect): #3 — Tests intentionally verify trigger migration completeness; table-call assertion IS the subject under test
+- Skipped (incorrect): #4 — Time IS a system boundary (external state that changes between runs); CLAUDE.md "mock at system edges" includes time
+- Skipped (incorrect): #5 — Test doesn't claim to test is_first_checkin; MagicMock auto-vivification is standard for unrelated paths
+- Skipped (minor): #7, #8, #9, #11 — Low impact, would require invasive refactoring for cosmetic improvement
+- Proceeding to fix: 4 issues (#1, #2, #6, #10)
