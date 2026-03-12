@@ -628,17 +628,17 @@ Discovered gaps moved to → Quality Gate: Pre-Phase 2B section below.
 
 **Chunk 1 — Script + Makefile:**
 
-- [x] Create `scripts/doctor.sh` (12 diagnostic checks)
-- [x] Add `make doctor` Makefile target
+- [ ] Create `scripts/doctor.sh` (12 diagnostic checks)
+- [ ] Add `make doctor` Makefile target
 
 **Chunk 2 — Documentation:**
 
-- [x] Update CLAUDE.md with preflight rules
-- [x] Update ERROR-PREVENTION.md with debugging loops entry
+- [ ] Update CLAUDE.md with preflight rules
+- [ ] Update ERROR-PREVENTION.md with debugging loops entry
 
 **Chunk 3 — Verification:**
 
-- [x] Manual acceptance criteria verification (all 4 scenarios)
+- [ ] Manual acceptance criteria verification (all 4 scenarios)
 
 ---
 
@@ -843,6 +843,21 @@ Explicitly cut from V1. Revisit after Phase 3 validation data is in hand.
 - [ ] Recommendation engine trained on real usage data
 - [ ] Coverage expansion beyond Taipei
 - [ ] Native iOS/Android app (after Threads distribution is proven)
+
+### Incorrect-First-Attempts Prevention (Tooling)
+
+> **Design:** [docs/designs/2026-03-12-incorrect-first-attempts-prevention-design.md](docs/designs/2026-03-12-incorrect-first-attempts-prevention-design.md)
+> **Plan:** [docs/plans/2026-03-12-incorrect-first-attempts-prevention-plan.md](docs/plans/2026-03-12-incorrect-first-attempts-prevention-plan.md)
+
+- [x] Global CLAUDE.md — pre-flight checks + file ownership (done in brainstorming session)
+- [x] Feedback memories — branch discipline + supabase patterns (done in brainstorming session)
+- [x] Pre-commit hook — branch guard + `.data[0]` + proxy layer checks (Task 1)
+- [x] `docs/patterns/supabase-py.md` — correct API usage reference (Task 2)
+- [x] Project CLAUDE.md — pre-flight + file ownership table (Task 3)
+- [x] `/scope` SKILL.md — scaffold pre-commit + `docs/patterns/` for new projects (Task 4)
+- [x] `/scope` templates — pre-flight + ownership sections (Task 5)
+
+---
 
 ### LINE Integration (V2)
 
