@@ -847,7 +847,7 @@ Explicitly cut from V1. Revisit after Phase 3 validation data is in hand.
 
 - [x] Global CLAUDE.md — pre-flight checks + file ownership (done in brainstorming session)
 - [x] Feedback memories — branch discipline + supabase patterns (done in brainstorming session)
-- [ ] Pre-commit hook — branch guard + `.data[0]` + proxy layer checks (Task 1)
+- [x] Pre-commit hook — branch guard + `.data[0]` + proxy layer checks (Task 1)
 - [ ] `docs/patterns/supabase-py.md` — correct API usage reference (Task 2)
 - [ ] Project CLAUDE.md — pre-flight + file ownership table (Task 3)
 - [ ] `/scope` SKILL.md — scaffold pre-commit + `docs/patterns/` for new projects (Task 4)

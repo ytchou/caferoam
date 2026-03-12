@@ -1,0 +1,54 @@
+#!/bin/sh
+set -e
+
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+
+# ── Guard 1: Block commits directly to main ──────────────────────────────────
+branch=$(git branch --show-current)
+if [ "$branch" = "main" ] || [ "$branch" = "master" ]; then
+  echo ""
+  echo "ERROR: Direct commits to main are not allowed."
+  echo ""
+  echo "Create a worktree:"
+  echo "  git worktree add .worktrees/<branch-name> -b <branch-name>"
+  echo "  ln -s \$(pwd)/.env.local .worktrees/<branch-name>/.env.local"
+  echo "  ln -s \$(pwd)/backend/.env .worktrees/<branch-name>/backend/.env"
+  echo ""
+  exit 1
+fi
+
+# ── Guard 2: Block unsafe .data[0] access ─────────────────────────────────────
+if git diff --cached | grep -E '^\+.*\.data\[0\]' > /dev/null 2>&1; then
+  echo ""
+  echo "ERROR: Unsafe .data[0] access detected in staged changes."
+  echo ""
+  echo "Use the first() helper instead:"
+  echo "  from core.db import first"
+  echo "  result = first(response.data, \"<context>\")"
+  echo ""
+  echo "See: CLAUDE.md → Code Quality"
+  echo ""
+  exit 1
+fi
+
+# ── Guard 3: Block business logic in HTTP proxy layer ─────────────────────────
+proxy_files=$(git diff --cached --name-only | grep '^app/api/' || true)
+if [ -n "$proxy_files" ]; then
+  if git diff --cached -- 'app/api/' | grep -E '^\+.*(\.from\(|supabase\.|createClient|SELECT|INSERT|UPDATE|DELETE)' > /dev/null 2>&1; then
+    echo ""
+    echo "ERROR: Possible business logic detected in API proxy layer."
+    echo ""
+    echo "Files changed: $proxy_files"
+    echo ""
+    echo "app/api/ routes are thin HTTP proxies only."
+    echo "Move DB queries and business logic to backend/services/."
+    echo ""
+    echo "See: CLAUDE.md → File Ownership"
+    echo ""
+    exit 1
+  fi
+fi
+
+# ── Run lint-staged ───────────────────────────────────────────────────────────
+pnpm exec lint-staged
