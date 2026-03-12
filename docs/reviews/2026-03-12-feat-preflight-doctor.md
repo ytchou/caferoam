@@ -6,16 +6,16 @@
 
 ## Pass 1 — Full Discovery
 
-*Agents: Bug Hunter (Opus), Architecture (Sonnet), Plan Alignment (Haiku)*
+_Agents: Bug Hunter (Opus), Architecture (Sonnet), Plan Alignment (Haiku)_
 
 ### Issues Found (4 total)
 
-| Severity | File:Line | Description | Flagged By |
-|----------|-----------|-------------|------------|
-| Critical | scripts/doctor.sh:58 | `grep -F` with `^` anchor — `-F` treats `^` as literal, env var matching always fails | Bug Hunter |
-| Important | scripts/doctor.sh:79-81 | `apikey: placeholder` in Supabase REST health check | Bug Hunter |
-| Important | scripts/doctor.sh:40,92,118,130 | `bash -c` with unquoted `$PROJECT_ROOT` — breaks on paths with spaces | Bug Hunter |
-| Important | scripts/doctor.sh:129-131 | `supabase db diff` empty-output check fragile if CLI emits headers | Architecture |
+| Severity  | File:Line                       | Description                                                                           | Flagged By   |
+| --------- | ------------------------------- | ------------------------------------------------------------------------------------- | ------------ |
+| Critical  | scripts/doctor.sh:58            | `grep -F` with `^` anchor — `-F` treats `^` as literal, env var matching always fails | Bug Hunter   |
+| Important | scripts/doctor.sh:79-81         | `apikey: placeholder` in Supabase REST health check                                   | Bug Hunter   |
+| Important | scripts/doctor.sh:40,92,118,130 | `bash -c` with unquoted `$PROJECT_ROOT` — breaks on paths with spaces                 | Bug Hunter   |
+| Important | scripts/doctor.sh:129-131       | `supabase db diff` empty-output check fragile if CLI emits headers                    | Architecture |
 
 ### Validation Results
 
@@ -27,14 +27,17 @@
 
 **Pre-fix SHA:** eef29d9c
 **Issues fixed:**
+
 - [Critical] scripts/doctor.sh:58 — Removed `-F` flag from grep so `^` works as regex anchor
 - [Important] scripts/doctor.sh:92,99,118,122,130 — Quoted `$PROJECT_ROOT` in all `bash -c` command strings
 
 **Issues skipped (false positives):**
+
 - scripts/doctor.sh:79-81 — Local Supabase accepts any apikey value (verified: returns 200)
 - scripts/doctor.sh:129-131 — `supabase db diff` returns empty on clean state (verified locally)
 
 **Batch Test Run:**
+
 - No test suites apply (Bash script, no vitest/pytest coverage)
 - Manual verification: `make doctor` — all 12 checks pass
 

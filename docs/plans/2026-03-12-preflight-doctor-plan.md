@@ -15,6 +15,7 @@
 **Tech Stack:** Bash, curl, grep, Make
 
 **Acceptance Criteria:**
+
 - [ ] Running `make doctor` on a healthy environment shows all 12 checks passing with exit code 0
 - [ ] Running `make doctor` with Supabase stopped shows a clear failure with the exact fix command
 - [ ] Running `make doctor` with `.env.local` pointing to a remote URL shows a clear "points to remote" warning
@@ -25,6 +26,7 @@
 ### Task 1: Create `scripts/doctor.sh` — Infrastructure Checks
 
 **Files:**
+
 - Create: `scripts/doctor.sh`
 
 **No test needed** — this is a shell diagnostic script, not application code. Verified manually via acceptance criteria.
@@ -206,6 +208,7 @@ git commit -m "feat: add scripts/doctor.sh — local environment preflight check
 ### Task 2: Add `doctor` Target to Makefile
 
 **Files:**
+
 - Modify: `Makefile:1-2` (add to .PHONY list and add target)
 
 **No test needed** — Makefile target, verified by running it.
@@ -213,16 +216,19 @@ git commit -m "feat: add scripts/doctor.sh — local environment preflight check
 **Step 1: Add `doctor` to .PHONY and add the target**
 
 Add `doctor` to the `.PHONY` line:
+
 ```makefile
 .PHONY: help setup dev migrate seed reset-db workers-enrich workers-embed test lint doctor
 ```
 
 Add `doctor` to the `help` output:
+
 ```
 @echo "  make doctor         Run environment preflight check (run before starting work)"
 ```
 
 Add the target after the `help` target:
+
 ```makefile
 doctor:
 	@bash scripts/doctor.sh
@@ -245,6 +251,7 @@ git commit -m "feat: add make doctor target for environment preflight check"
 ### Task 3: Update CLAUDE.md with Preflight Rules
 
 **Files:**
+
 - Modify: `CLAUDE.md` (add new section after "Commands" section, before "Critical Business Logic")
 
 **No test needed** — documentation change.
@@ -273,6 +280,7 @@ git commit -m "docs: add environment preflight rules to CLAUDE.md"
 ### Task 4: Update ERROR-PREVENTION.md
 
 **Files:**
+
 - Modify: `ERROR-PREVENTION.md` (add new entry before the closing line)
 
 **No test needed** — documentation change.
@@ -281,7 +289,7 @@ git commit -m "docs: add environment preflight rules to CLAUDE.md"
 
 Insert before the `_Add entries here as you discover them._` line at the bottom:
 
-```markdown
+````markdown
 ## Environment Debugging Loops
 
 **Symptom:** Repeated trial-and-error debugging of env vars, Supabase connectivity, migration state, or service availability. Multiple fix-retry cycles before landing on the right configuration.
@@ -293,18 +301,20 @@ Insert before the `_Add entries here as you discover them._` line at the bottom:
 ```bash
 make doctor    # Run preflight check — shows exactly what's wrong and how to fix it
 ```
+````
 
 **Prevention:** Run `make doctor` at the start of every session before doing any environment-dependent work. The script checks Docker, Supabase, env files, dependencies, and migration state in ~5 seconds.
 
 ---
-```
+
+````
 
 **Step 2: Commit**
 
 ```bash
 git add ERROR-PREVENTION.md
 git commit -m "docs: add environment debugging loops entry to ERROR-PREVENTION.md"
-```
+````
 
 ---
 
@@ -365,12 +375,15 @@ graph TD
 ```
 
 **Wave 1** (parallel — no dependencies):
+
 - Task 1: Create `scripts/doctor.sh`
 - Task 3: Update CLAUDE.md
 - Task 4: Update ERROR-PREVENTION.md
 
 **Wave 2** (depends on Task 1):
+
 - Task 2: Add Makefile `doctor` target ← Task 1
 
 **Wave 3** (depends on all):
+
 - Task 5: Manual verification ← Task 2, Task 3, Task 4

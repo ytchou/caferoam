@@ -6,7 +6,7 @@ Date: 2026-03-12
 
 Claude spends disproportionate time debugging local dev environment issues — wrong Supabase keys, .env vs .env.local confusion, migrations out of sync, services not running. Each issue triggers multiple fix-retry cycles before landing on the right solution.
 
-Root cause: no way to verify environment health before starting work. Setup docs tell you *how* to set up, but not *whether* setup is correct right now.
+Root cause: no way to verify environment health before starting work. Setup docs tell you _how_ to set up, but not _whether_ setup is correct right now.
 
 ## Solution
 
@@ -16,20 +16,20 @@ A Bash diagnostic script (`scripts/doctor.sh`) that validates the full local dev
 
 12 checks in 4 groups:
 
-| Group | Check | Pass condition | Fix hint |
-|-------|-------|---------------|----------|
-| **Infrastructure** | Docker daemon | `docker info` succeeds | Start Docker Desktop |
-| | Supabase DB | `curl 127.0.0.1:54321` returns 200 | Run `supabase start` |
-| | Supabase Auth | `curl 127.0.0.1:54321/auth/v1/health` returns 200 | Run `supabase stop && supabase start` |
-| **Env Files** | `.env.local` exists | File exists | Copy from .env.example |
-| | `.env.local` points to localhost | `NEXT_PUBLIC_SUPABASE_URL` contains `127.0.0.1` or `localhost` | Update URL to `http://127.0.0.1:54321` |
-| | `backend/.env` exists | File exists | Create from backend/.env or copy |
-| | `backend/.env` points to localhost | `SUPABASE_URL` contains `127.0.0.1` or `localhost` | Update URL to `http://127.0.0.1:54321` |
-| **Dependencies** | Python 3.12+ | `python3 --version` >= 3.12 | Install via pyenv or brew |
-| | uv installed | `uv --version` succeeds | Install: `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
-| | Backend deps synced | `cd backend && uv sync --frozen` exits 0 | Run `cd backend && uv sync` |
-| | pnpm deps installed | `pnpm ls` succeeds | Run `pnpm install` |
-| **Data** | Migrations in sync | `supabase db diff` returns no output | Run `supabase db push` |
+| Group              | Check                              | Pass condition                                                 | Fix hint                                                    |
+| ------------------ | ---------------------------------- | -------------------------------------------------------------- | ----------------------------------------------------------- |
+| **Infrastructure** | Docker daemon                      | `docker info` succeeds                                         | Start Docker Desktop                                        |
+|                    | Supabase DB                        | `curl 127.0.0.1:54321` returns 200                             | Run `supabase start`                                        |
+|                    | Supabase Auth                      | `curl 127.0.0.1:54321/auth/v1/health` returns 200              | Run `supabase stop && supabase start`                       |
+| **Env Files**      | `.env.local` exists                | File exists                                                    | Copy from .env.example                                      |
+|                    | `.env.local` points to localhost   | `NEXT_PUBLIC_SUPABASE_URL` contains `127.0.0.1` or `localhost` | Update URL to `http://127.0.0.1:54321`                      |
+|                    | `backend/.env` exists              | File exists                                                    | Create from backend/.env or copy                            |
+|                    | `backend/.env` points to localhost | `SUPABASE_URL` contains `127.0.0.1` or `localhost`             | Update URL to `http://127.0.0.1:54321`                      |
+| **Dependencies**   | Python 3.12+                       | `python3 --version` >= 3.12                                    | Install via pyenv or brew                                   |
+|                    | uv installed                       | `uv --version` succeeds                                        | Install: `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+|                    | Backend deps synced                | `cd backend && uv sync --frozen` exits 0                       | Run `cd backend && uv sync`                                 |
+|                    | pnpm deps installed                | `pnpm ls` succeeds                                             | Run `pnpm install`                                          |
+| **Data**           | Migrations in sync                 | `supabase db diff` returns no output                           | Run `supabase db push`                                      |
 
 ## Output Format
 
@@ -53,12 +53,12 @@ Exit code: 0 if all pass, 1 if any fail.
 
 ## Files Changed
 
-| File | Change |
-|------|--------|
-| `scripts/doctor.sh` | New — the diagnostic script (~100 lines) |
-| `Makefile` | Add `doctor` target |
-| `CLAUDE.md` | Add preflight rule + extensibility rule |
-| `ERROR-PREVENTION.md` | Add "Environment Debugging Loops" entry |
+| File                  | Change                                   |
+| --------------------- | ---------------------------------------- |
+| `scripts/doctor.sh`   | New — the diagnostic script (~100 lines) |
+| `Makefile`            | Add `doctor` target                      |
+| `CLAUDE.md`           | Add preflight rule + extensibility rule  |
+| `ERROR-PREVENTION.md` | Add "Environment Debugging Loops" entry  |
 
 ## CLAUDE.md Rules (new)
 
