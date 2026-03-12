@@ -850,7 +850,7 @@ Explicitly cut from V1. Revisit after Phase 3 validation data is in hand.
 - [x] Pre-commit hook — branch guard + `.data[0]` + proxy layer checks (Task 1)
 - [x] `docs/patterns/supabase-py.md` — correct API usage reference (Task 2)
 - [x] Project CLAUDE.md — pre-flight + file ownership table (Task 3)
-- [ ] `/scope` SKILL.md — scaffold pre-commit + `docs/patterns/` for new projects (Task 4)
+- [x] `/scope` SKILL.md — scaffold pre-commit + `docs/patterns/` for new projects (Task 4)
 - [x] `/scope` templates — pre-flight + ownership sections (Task 5)
 
 ---
