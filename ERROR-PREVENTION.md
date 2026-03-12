@@ -230,4 +230,20 @@ mock_db.table.side_effect = lambda name: table_map[name]
 
 ---
 
+## Environment Debugging Loops
+
+**Symptom:** Repeated trial-and-error debugging of env vars, Supabase connectivity, migration state, or service availability. Multiple fix-retry cycles before landing on the right configuration.
+
+**Root cause:** Starting environment-dependent work without verifying environment health first. Common triggers: Supabase not running, `.env.local` pointing to remote instance instead of `127.0.0.1:54321`, `.env` vs `.env.local` confusion, migrations out of sync.
+
+**Fix:**
+
+```bash
+make doctor    # Run preflight check — shows exactly what's wrong and how to fix it
+```
+
+**Prevention:** Run `make doctor` at the start of every session before doing any environment-dependent work. The script checks Docker, Supabase, env files, dependencies, and migration state in ~5 seconds.
+
+---
+
 _Add entries here as you discover them._
