@@ -55,7 +55,7 @@ check_env_var_localhost() {
   fi
 
   local value
-  value=$(grep -F "^${var_name}=" "$file" 2>/dev/null | head -1 | cut -d'=' -f2- || true)
+  value=$(grep "^${var_name}=" "$file" 2>/dev/null | head -1 | cut -d'=' -f2- || true)
 
   if echo "$value" | grep -qE '(127\.0\.0\.1|localhost)'; then
     _pass "$description"
@@ -89,14 +89,14 @@ printf "\n"
 # ─── Env Files ────────────────────────────────────────────────────────────────
 printf "${BOLD}Env Files${NC}\n"
 check ".env.local exists" \
-  "test -f ${PROJECT_ROOT}/.env.local" \
+  "test -f '${PROJECT_ROOT}/.env.local'" \
   "Copy from .env.example: cp .env.example .env.local"
 
 check_env_var_localhost "${PROJECT_ROOT}/.env.local" "NEXT_PUBLIC_SUPABASE_URL" \
   ".env.local SUPABASE_URL points to localhost"
 
 check "backend/.env exists" \
-  "test -f ${PROJECT_ROOT}/backend/.env" \
+  "test -f '${PROJECT_ROOT}/backend/.env'" \
   "Create backend/.env with SUPABASE_URL=http://127.0.0.1:54321"
 
 check_env_var_localhost "${PROJECT_ROOT}/backend/.env" "SUPABASE_URL" \
@@ -115,11 +115,11 @@ check "uv installed" \
   "Install uv: curl -LsSf https://astral.sh/uv/install.sh | sh"
 
 check "Backend deps synced" \
-  "uv sync --frozen --check --directory ${PROJECT_ROOT}/backend" \
+  "uv sync --frozen --check --directory '${PROJECT_ROOT}/backend'" \
   "Run: cd backend && uv sync"
 
 check "pnpm deps installed" \
-  "test -f ${PROJECT_ROOT}/node_modules/.modules.yaml" \
+  "test -f '${PROJECT_ROOT}/node_modules/.modules.yaml'" \
   "Run: pnpm install"
 
 printf "\n"
@@ -127,7 +127,7 @@ printf "\n"
 # ─── Data ─────────────────────────────────────────────────────────────────────
 printf "${BOLD}Data${NC}\n"
 check "Migrations in sync" \
-  "cd ${PROJECT_ROOT} && test -z \"\$(supabase db diff 2>/dev/null)\"" \
+  "cd '${PROJECT_ROOT}' && test -z \"\$(supabase db diff 2>/dev/null)\"" \
   "Run: supabase db push"
 
 # ─── Summary ──────────────────────────────────────────────────────────────────
