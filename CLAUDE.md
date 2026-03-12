@@ -67,6 +67,14 @@ supabase db reset              # Reset local DB + reseed
 
 ---
 
+## Environment Preflight
+
+- **Before any environment-dependent work** (DB queries, migrations, running dev servers), run `make doctor` and fix all failures before proceeding.
+- Never assume Supabase is running or `.env.local` is correct — verify with `make doctor`.
+- **When adding a new service, external dependency, or env var**, update `scripts/doctor.sh` with a corresponding health check. The doctor script must grow with the project.
+
+---
+
 ## Critical Business Logic
 
 > **For complete specifications:** [SPEC.md](SPEC.md)
