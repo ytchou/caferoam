@@ -1,9 +1,11 @@
 "use client";
+import { useEffect } from "react";
 import { ShopHero } from "@/components/shops/shop-hero";
 import { ShopIdentity } from "@/components/shops/shop-identity";
 import { AttributeChips } from "@/components/shops/attribute-chips";
 import { ShareButton } from "@/components/shops/share-button";
 import { StickyCheckinBar } from "@/components/shops/sticky-checkin-bar";
+import { useAnalytics } from "@/lib/posthog/use-analytics";
 
 interface ShopData {
   id: string;
@@ -24,8 +26,14 @@ interface ShopDetailPageProps {
 }
 
 export default function ShopDetailPage({ shop }: ShopDetailPageProps) {
+  const { capture } = useAnalytics();
   const photos = shop.photo_urls ?? shop.photoUrls ?? [];
   const tags = shop.taxonomy_tags ?? shop.tags ?? [];
+
+  useEffect(() => {
+    capture("shop_detail_viewed", { shop_id: shop.id });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shop.id]);
   const shareUrl = typeof window !== "undefined"
     ? `${window.location.origin}/shops/${shop.id}/${shop.slug ?? shop.id}`
     : `/shops/${shop.id}/${shop.slug ?? shop.id}`;

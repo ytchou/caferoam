@@ -41,7 +41,7 @@ export default function SearchPage() {
         {!isLoading && results.length > 0 && (
           <div className="space-y-4">
             {results.map((shop) => (
-              <ShopCard key={shop.id} shop={shop} />
+              <ShopCard key={shop.id} shop={shop as Parameters<typeof ShopCard>[0]["shop"]} />
             ))}
           </div>
         )}

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Drawer } from "vaul";
+import { useAnalytics } from "@/lib/posthog/use-analytics";
 
 const FILTER_DIMENSIONS = [
   {
@@ -37,6 +38,7 @@ interface FilterSheetProps {
 
 export function FilterSheet({ open, onClose, onApply, initialFilters }: FilterSheetProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set(initialFilters));
+  const { capture } = useAnalytics();
 
   const toggle = (id: string) => {
     setSelected((prev) => {
@@ -52,7 +54,9 @@ export function FilterSheet({ open, onClose, onApply, initialFilters }: FilterSh
 
   const handleClear = () => setSelected(new Set());
   const handleApply = () => {
-    onApply(Array.from(selected));
+    const selectedIds = Array.from(selected);
+    capture("filter_applied", { filter_type: "sheet", filter_values: selectedIds });
+    onApply(selectedIds);
     onClose();
   };
 

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useAnalytics } from "@/lib/posthog/use-analytics";
 
 interface SearchBarProps {
   onSubmit: (query: string) => void;
@@ -9,10 +10,12 @@ interface SearchBarProps {
 
 export function SearchBar({ onSubmit, defaultQuery = "", autoFocus }: SearchBarProps) {
   const [value, setValue] = useState(defaultQuery);
+  const { capture } = useAnalytics();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!value.trim()) return;
+    capture("search_submitted", { query_text: value.trim() });
     onSubmit(value.trim());
   };
 

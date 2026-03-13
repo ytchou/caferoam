@@ -1,6 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
+
+vi.mock("@/lib/posthog/use-analytics", () => ({
+  useAnalytics: () => ({ capture: vi.fn() }),
+}));
+
 import { FilterSheet } from "./filter-sheet";
 
 // Mock vaul Drawer since it requires a real DOM portal

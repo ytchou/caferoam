@@ -1,4 +1,5 @@
 "use client";
+import { useAnalytics } from "@/lib/posthog/use-analytics";
 
 const QUICK_FILTERS = [
   { key: "distance", label: "距離" },
@@ -14,6 +15,8 @@ interface FilterPillsProps {
 }
 
 export function FilterPills({ activeFilters, onToggle, onOpenSheet }: FilterPillsProps) {
+  const { capture } = useAnalytics();
+
   return (
     <div className="flex gap-2 overflow-x-auto scrollbar-hide py-1">
       {QUICK_FILTERS.map(({ key, label }) => {
@@ -23,7 +26,10 @@ export function FilterPills({ activeFilters, onToggle, onOpenSheet }: FilterPill
             key={key}
             type="button"
             aria-pressed={isActive}
-            onClick={() => onToggle(key)}
+            onClick={() => {
+              capture("filter_applied", { filter_type: "quick", filter_value: key });
+              onToggle(key);
+            }}
             className={`whitespace-nowrap px-3 py-1.5 rounded-full text-sm border transition-colors flex-shrink-0 ${
               isActive
                 ? "bg-[#E06B3F] text-white border-[#E06B3F]"
