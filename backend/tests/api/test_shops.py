@@ -9,7 +9,7 @@ client = TestClient(app)
 SHOP_ROW = {
     "id": "shop-001",
     "name": "山小孩咖啡",
-    "slug": None,
+    "slug": "shan-xiao-hai-ka-fei",
     "address": "台北市大安區仁愛路四段122號",
     "latitude": 25.033,
     "longitude": 121.543,
@@ -40,6 +40,7 @@ def _simple_select_chain(data) -> MagicMock:
     chain.select.return_value = chain
     chain.eq.return_value = chain
     chain.single.return_value = chain
+    chain.maybe_single.return_value = chain
     chain.order.return_value = chain
     chain.limit.return_value = chain
     chain.not_.return_value = chain
@@ -94,20 +95,19 @@ class TestShopsAPI:
             assert response.status_code == 200
 
     def test_get_shop_detail_includes_photo_urls(self):
-        """GET /shops/{id} response includes photo_urls from shop_photos table."""
-        shop_chain = _simple_select_chain(SHOP_ROW)
-        photo_rows = [
-            {"photo_url": "https://example.com/p1.jpg"},
-            {"photo_url": "https://example.com/p2.jpg"},
-        ]
-        photos_chain = _simple_select_chain(photo_rows)
-        tags_chain = _simple_select_chain([])
+        """GET /shops/{id} response includes photo_urls extracted from nested shop_photos JOIN data."""
+        shop_with_photos = {
+            **SHOP_ROW,
+            "shop_photos": [
+                {"photo_url": "https://example.com/p1.jpg"},
+                {"photo_url": "https://example.com/p2.jpg"},
+            ],
+            "shop_tags": [],
+        }
+        shop_chain = _simple_select_chain(shop_with_photos)
 
-        mock_client = _make_table_mock(
-            {"shops": shop_chain, "shop_photos": photos_chain, "shop_tags": tags_chain}
-        )
-
-        with patch("api.shops.get_anon_client", return_value=mock_client):
+        with patch("api.shops.get_anon_client") as mock_sb:
+            mock_sb.return_value = MagicMock(table=MagicMock(return_value=shop_chain))
             response = client.get("/shops/shop-001")
 
         assert response.status_code == 200
@@ -117,17 +117,12 @@ class TestShopsAPI:
             "https://example.com/p2.jpg",
         ]
 
-    def test_get_shop_detail_includes_slug_generated_from_name(self):
-        """GET /shops/{id} generates a URL slug from the shop name when slug is null."""
-        shop_chain = _simple_select_chain(SHOP_ROW)
-        photos_chain = _simple_select_chain([])
-        tags_chain = _simple_select_chain([])
+    def test_get_shop_detail_returns_slug_from_db(self):
+        """GET /shops/{id} returns the slug stored in the DB (set by backfill script)."""
+        shop_chain = _simple_select_chain({**SHOP_ROW, "shop_photos": [], "shop_tags": []})
 
-        mock_client = _make_table_mock(
-            {"shops": shop_chain, "shop_photos": photos_chain, "shop_tags": tags_chain}
-        )
-
-        with patch("api.shops.get_anon_client", return_value=mock_client):
+        with patch("api.shops.get_anon_client") as mock_sb:
+            mock_sb.return_value = MagicMock(table=MagicMock(return_value=shop_chain))
             response = client.get("/shops/shop-001")
 
         assert response.status_code == 200
@@ -136,15 +131,10 @@ class TestShopsAPI:
 
     def test_get_shop_detail_includes_mode_scores(self):
         """GET /shops/{id} returns mode_scores dict built from mode_work/rest/social columns."""
-        shop_chain = _simple_select_chain(SHOP_ROW)
-        photos_chain = _simple_select_chain([])
-        tags_chain = _simple_select_chain([])
+        shop_chain = _simple_select_chain({**SHOP_ROW, "shop_photos": [], "shop_tags": []})
 
-        mock_client = _make_table_mock(
-            {"shops": shop_chain, "shop_photos": photos_chain, "shop_tags": tags_chain}
-        )
-
-        with patch("api.shops.get_anon_client", return_value=mock_client):
+        with patch("api.shops.get_anon_client") as mock_sb:
+            mock_sb.return_value = MagicMock(table=MagicMock(return_value=shop_chain))
             response = client.get("/shops/shop-001")
 
         assert response.status_code == 200
