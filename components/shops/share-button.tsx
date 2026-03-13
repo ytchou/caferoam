@@ -25,8 +25,12 @@ export function ShareButton({ shopId, shopName, shareUrl }: ShareButtonProps) {
     }
 
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      await navigator.clipboard.writeText(shareUrl);
-      capture('shop_url_copied', { shop_id: shopId, copy_method: 'clipboard' });
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        capture('shop_url_copied', { shop_id: shopId, copy_method: 'clipboard' });
+      } catch {
+        // Clipboard unavailable (permission denied or non-secure context)
+      }
     }
   };
 
