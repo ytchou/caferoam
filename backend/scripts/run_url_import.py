@@ -15,6 +15,7 @@ then transitions them to pending_review for admin approval.
 import re
 import sys
 import urllib.parse
+from typing import Any, cast
 
 import structlog
 
@@ -115,10 +116,13 @@ def main() -> None:
     existing_response = (
         db.table("shops").select("google_maps_url").in_("google_maps_url", candidate_urls).execute()
     )
-    existing_urls = {row["google_maps_url"] for row in (existing_response.data or [])}
+    existing_urls = {
+        row["google_maps_url"]
+        for row in cast("list[dict[str, Any]]", existing_response.data or [])
+    }
 
     # Insert new shops
-    rows_to_insert = []
+    rows_to_insert: list[dict[str, Any]] = []
     for url, name in candidates:
         if url in existing_urls:
             print(f"  Skip (already exists): {name}")

@@ -6,22 +6,22 @@
 
 ## Pass 1 — Full Discovery
 
-*Agents: Bug Hunter (Opus), Standards (Sonnet), Architecture (Opus), Plan Alignment (Sonnet)*
+_Agents: Bug Hunter (Opus), Standards (Sonnet), Architecture (Opus), Plan Alignment (Sonnet)_
 
 ### Issues Found (10 total after dedup + false positive removal)
 
-| Severity | File:Line | Description | Flagged By |
-|----------|-----------|-------------|------------|
-| Critical | scheduler.py:168 | `create_task` without reference storage — tasks can be GC'd by CPython | Architecture |
-| Important | scheduler.py:49-66 | Provider abstraction violation: anthropic/openai SDK types imported directly in scheduler | Standards |
-| Important | scheduler.py:129-146 | `CancelledError` not caught — cancelled tasks leave jobs permanently in `claimed` state | Bug Hunter |
-| Important | config.py:59-70 | `Settings.get_worker_concurrency()` imports domain `JobType` — config layer couples to domain | Architecture |
-| Important | run_url_import.py:83-133 | N+1 pattern: per-URL SELECT+INSERT in loop violates CLAUDE.md performance standards | Architecture |
-| Important | config.py:61 | `ENRICH_MENU_PHOTO` grouped with `ENRICH_SHOP` at concurrency=5; plan specifies default=1 | Plan Alignment |
-| Important | test_queue.py | No test for `claim_batch()` — new central concurrency mechanism has zero test coverage | Plan Alignment |
-| Minor | run_url_import.py:48 | `re.match(r"^ChIJ", name)` — uncompiled regex in call path; CLAUDE.md requires module-level compile | Standards |
-| Minor | scheduler.py:130-131 | `get_service_role_client()` and `JobQueue()` execute before `try` block — counter leaks if they throw | Standards/Architecture |
-| Minor | apify_adapter.py | Dict comprehension silently drops duplicate URLs (last-write-wins); no log warning | Standards |
+| Severity  | File:Line                | Description                                                                                           | Flagged By             |
+| --------- | ------------------------ | ----------------------------------------------------------------------------------------------------- | ---------------------- |
+| Critical  | scheduler.py:168         | `create_task` without reference storage — tasks can be GC'd by CPython                                | Architecture           |
+| Important | scheduler.py:49-66       | Provider abstraction violation: anthropic/openai SDK types imported directly in scheduler             | Standards              |
+| Important | scheduler.py:129-146     | `CancelledError` not caught — cancelled tasks leave jobs permanently in `claimed` state               | Bug Hunter             |
+| Important | config.py:59-70          | `Settings.get_worker_concurrency()` imports domain `JobType` — config layer couples to domain         | Architecture           |
+| Important | run_url_import.py:83-133 | N+1 pattern: per-URL SELECT+INSERT in loop violates CLAUDE.md performance standards                   | Architecture           |
+| Important | config.py:61             | `ENRICH_MENU_PHOTO` grouped with `ENRICH_SHOP` at concurrency=5; plan specifies default=1             | Plan Alignment         |
+| Important | test_queue.py            | No test for `claim_batch()` — new central concurrency mechanism has zero test coverage                | Plan Alignment         |
+| Minor     | run_url_import.py:48     | `re.match(r"^ChIJ", name)` — uncompiled regex in call path; CLAUDE.md requires module-level compile   | Standards              |
+| Minor     | scheduler.py:130-131     | `get_service_role_client()` and `JobQueue()` execute before `try` block — counter leaks if they throw | Standards/Architecture |
+| Minor     | apify_adapter.py         | Dict comprehension silently drops duplicate URLs (last-write-wins); no log warning                    | Standards              |
 
 ### False Positives Skipped
 
@@ -44,6 +44,7 @@ All 10 issues verified as valid or debatable. Proceeding to fix all.
 **Pre-fix SHA:** 16dbe1803e275bbfadb13040bab673992b8b8ada
 
 **Issues fixed:**
+
 - [Critical] `scheduler.py:168` — Added `_tasks` set; `create_task` now stores reference + `add_done_callback(_tasks.discard)`
 - [Important] `scheduler.py:49-66` — Removed anthropic/openai SDK imports; replaced with `type(e).__name__` + `type(e).__module__` inspection
 - [Important] `scheduler.py:129-146` — Added `asyncio.CancelledError` handler; calls `queue.fail()` then re-raises
@@ -56,6 +57,7 @@ All 10 issues verified as valid or debatable. Proceeding to fix all.
 - [Minor] `apify_adapter.py` — Added `logger.warning()` on duplicate URL with kept/dropped shop IDs
 
 **Batch Test Run:**
+
 - `pytest` — PASS (345 tests)
 
 **Post-fix SHA:** c139d36
@@ -64,7 +66,7 @@ All 10 issues verified as valid or debatable. Proceeding to fix all.
 
 ## Pass 2 — Re-Verify
 
-*Agents re-run (smart routing): Bug Hunter, Architecture, Standards, Plan Alignment*
+_Agents re-run (smart routing): Bug Hunter, Architecture, Standards, Plan Alignment_
 
 ### Previously Flagged Issues — Resolution Status
 
@@ -84,6 +86,7 @@ All 9 fixable issues: resolved.
 **Iterations completed:** 1
 **All Critical/Important resolved:** Yes
 **Remaining issues:**
+
 - None blocking
 
 **Scope decision for user:** `run_takeout_import.py` — TODO.md planned a GeoJSON Takeout importer; branch ships CSV+URL importers instead. Confirm whether this is an intentional pivot or a gap to fill.
