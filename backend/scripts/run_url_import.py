@@ -142,7 +142,8 @@ def main() -> None:
                 print(f"  Queued: {row['name']}")
             queued += len(rows_to_insert)
         except Exception as e:
-            print(f"  Error inserting shops: {e}")
+            names = ", ".join(row["name"] for row in rows_to_insert)
+            print(f"  Error inserting ({names}): {e}")
             skipped += len(rows_to_insert)
 
     print(f"\nDone: {queued} queued, {skipped} skipped.")
