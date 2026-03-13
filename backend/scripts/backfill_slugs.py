@@ -1,27 +1,32 @@
 """One-time script: generate slugs for all shops missing them."""
 
-from core.config import settings
 from core.slugify import generate_slug
-from supabase import create_client
+from db.supabase_client import get_service_role_client
 
 
 def main() -> None:
-    db = create_client(settings.supabase_url, settings.supabase_service_role_key)
-    result = db.table("shops").select("id, name").is_("slug", "null").execute()
+    db = get_service_role_client()
+    result = db.table("shops").select("id, name, slug").execute()
     shops = result.data or []
-    print(f"Found {len(shops)} shops without slugs")
 
-    seen_slugs: set[str] = set()
-    for shop in shops:
+    existing_slugs: set[str] = {s["slug"] for s in shops if s.get("slug")}
+    shops_without_slugs = [s for s in shops if not s.get("slug")]
+    print(f"Found {len(shops_without_slugs)} shops without slugs")
+
+    updates: list[dict] = []
+    for shop in shops_without_slugs:
         slug = generate_slug(shop["name"])
-        if slug in seen_slugs:
+        if slug in existing_slugs:
             slug = f"{slug}-{shop['id'][:8]}"
-        seen_slugs.add(slug)
-
-        db.table("shops").update({"slug": slug}).eq("id", shop["id"]).execute()
+        existing_slugs.add(slug)
+        updates.append({"id": shop["id"], "slug": slug})
         print(f"  {shop['name']} → {slug}")
 
-    print(f"Updated {len(shops)} slugs")
+    if updates:
+        db.table("shops").upsert(updates).execute()
+        print(f"Updated {len(updates)} slugs")
+    else:
+        print("No updates needed")
 
 
 if __name__ == "__main__":
