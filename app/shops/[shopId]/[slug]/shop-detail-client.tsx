@@ -1,5 +1,6 @@
 'use client';
 import { useEffect } from 'react';
+import type { TaxonomyTag } from '@/lib/types';
 import { ShopHero } from '@/components/shops/shop-hero';
 import { ShopIdentity } from '@/components/shops/shop-identity';
 import { AttributeChips } from '@/components/shops/attribute-chips';
@@ -69,7 +70,7 @@ export function ShopDetailClient({ shop }: ShopDetailClientProps) {
         reviewCount={shop.reviewCount}
         mrt={shop.mrt}
       />
-      {tags.length > 0 && <AttributeChips tags={tags} />}
+      {tags.length > 0 && <AttributeChips tags={tags as TaxonomyTag[]} />}
       {shop.description && <ShopDescription text={shop.description} />}
       {shop.menuHighlights && <MenuHighlights items={shop.menuHighlights} />}
       {shop.latitude != null && shop.longitude != null && (

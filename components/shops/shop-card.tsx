@@ -5,7 +5,7 @@ import type { Shop } from '@/lib/types';
 
 type ShopCardData = Pick<Shop, 'id' | 'name' | 'rating'> & {
   slug?: string;
-  mrt?: string;
+  mrt?: string | null;
   photoUrls?: string[];
   photo_urls?: string[];
 };

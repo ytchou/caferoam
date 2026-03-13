@@ -6,7 +6,13 @@ from pydantic.alias_generators import to_camel
 from api.deps import get_admin_db, get_current_user, get_optional_user
 from core.db import first
 from db.supabase_client import get_anon_client
-from models.types import ShopCheckInPreview, ShopCheckInSummary, ShopReview, ShopReviewsResponse, TaxonomyTag
+from models.types import (
+    ShopCheckInPreview,
+    ShopCheckInSummary,
+    ShopReview,
+    ShopReviewsResponse,
+    TaxonomyTag,
+)
 
 router = APIRouter(prefix="/shops", tags=["shops"])
 
@@ -40,7 +46,8 @@ async def list_shops(
         query = query.eq("processing_status", "live")
     query = query.limit(limit)
     response = query.execute()
-    return [{to_camel(k): v for k, v in row.items()} for row in response.data]
+    rows = cast(list[dict[str, Any]], response.data or [])
+    return [{to_camel(k): v for k, v in row.items()} for row in rows]
 
 
 @router.get("/{shop_id}")
@@ -49,7 +56,10 @@ async def get_shop(shop_id: str) -> Any:
     db = get_anon_client()
     response = (
         db.table("shops")
-        .select(f"{_SHOP_COLUMNS}, shop_photos(photo_url), shop_tags(tag_id, tag_name, taxonomy_tags(id, dimension, label, label_zh))")
+        .select(
+            f"{_SHOP_COLUMNS}, shop_photos(photo_url), "
+            "shop_tags(tag_id, tag_name, taxonomy_tags(id, dimension, label, label_zh))"
+        )
         .eq("id", shop_id)
         .maybe_single()
         .execute()

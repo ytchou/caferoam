@@ -5,7 +5,7 @@ interface Shop {
   id: string;
   name: string;
   slug?: string;
-  rating?: number;
+  rating?: number | null;
 }
 
 interface MapMiniCardProps {

@@ -1,4 +1,4 @@
-from models.types import TaxonomyTag, ShopModeScores
+from models.types import ShopModeScores, TaxonomyTag
 
 
 class TestCamelCaseSerialization:

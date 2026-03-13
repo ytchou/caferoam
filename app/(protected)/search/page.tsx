@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import { useSearch } from '@/lib/hooks/use-search';
 import { useSearchState } from '@/lib/hooks/use-search-state';
 import { ShopCard } from '@/components/shops/shop-card';
@@ -7,7 +7,7 @@ import { SuggestionChips } from '@/components/discovery/suggestion-chips';
 import { SearchBar } from '@/components/discovery/search-bar';
 import { useAnalytics } from '@/lib/posthog/use-analytics';
 
-export default function SearchPage() {
+function SearchPageContent() {
   const { query, mode, setQuery } = useSearchState();
   const { results, isLoading, error } = useSearch(query || null, mode);
   const { capture } = useAnalytics();
@@ -57,5 +57,13 @@ export default function SearchPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="py-12 text-center text-gray-400">搜尋中…</div>}>
+      <SearchPageContent />
+    </Suspense>
   );
 }
