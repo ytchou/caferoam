@@ -231,8 +231,8 @@ class TestAdminSubmissions:
             mock_db = MagicMock()
             select_rv = mock_db.table.return_value.select.return_value
             # When status filter is applied, eq() is called after limit()
-            select_rv.order.return_value.limit.return_value.eq.return_value.execute.return_value = MagicMock(
-                data=[{"id": "sub-1", "status": "pending", "shop_id": "shop-1"}]
+            select_rv.order.return_value.limit.return_value.eq.return_value.execute.return_value = (
+                MagicMock(data=[{"id": "sub-1", "status": "pending", "shop_id": "shop-1"}])
             )
             with (
                 patch("api.admin.get_service_role_client", return_value=mock_db),
