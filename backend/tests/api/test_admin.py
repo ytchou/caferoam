@@ -198,6 +198,145 @@ class TestAdminJobsList:
             app.dependency_overrides.clear()
 
 
+class TestAdminSubmissions:
+    def test_admin_can_list_all_submissions(self):
+        """Admin can list all shop submissions."""
+        app.dependency_overrides[get_current_user] = _admin_user
+        try:
+            mock_db = MagicMock()
+            select_rv = mock_db.table.return_value.select.return_value
+            select_rv.order.return_value.limit.return_value.execute.return_value = MagicMock(
+                data=[
+                    {"id": "sub-1", "status": "pending", "shop_id": "shop-1"},
+                    {"id": "sub-2", "status": "processing", "shop_id": "shop-2"},
+                ]
+            )
+            with (
+                patch("api.admin.get_service_role_client", return_value=mock_db),
+                patch("api.deps.settings") as mock_settings,
+            ):
+                mock_settings.admin_user_ids = [_ADMIN_ID]
+                response = client.get("/admin/pipeline/submissions")
+            assert response.status_code == 200
+            data = response.json()
+            assert isinstance(data, list)
+            assert len(data) == 2
+        finally:
+            app.dependency_overrides.clear()
+
+    def test_admin_can_filter_submissions_by_status(self):
+        """Admin can filter submissions by status."""
+        app.dependency_overrides[get_current_user] = _admin_user
+        try:
+            mock_db = MagicMock()
+            select_rv = mock_db.table.return_value.select.return_value
+            # When status filter is applied, eq() is called after limit()
+            select_rv.order.return_value.limit.return_value.eq.return_value.execute.return_value = MagicMock(
+                data=[{"id": "sub-1", "status": "pending", "shop_id": "shop-1"}]
+            )
+            with (
+                patch("api.admin.get_service_role_client", return_value=mock_db),
+                patch("api.deps.settings") as mock_settings,
+            ):
+                mock_settings.admin_user_ids = [_ADMIN_ID]
+                response = client.get("/admin/pipeline/submissions?status=pending")
+            assert response.status_code == 200
+            data = response.json()
+            assert isinstance(data, list)
+        finally:
+            app.dependency_overrides.clear()
+
+
+class TestAdminDeadLetter:
+    def test_admin_sees_failed_jobs_in_dead_letter_queue(self):
+        """Admin can view failed and dead_letter jobs for investigation."""
+        app.dependency_overrides[get_current_user] = _admin_user
+        try:
+            mock_db = MagicMock()
+            select_rv = mock_db.table.return_value.select.return_value
+            select_rv.in_.return_value.order.return_value.limit.return_value.execute.return_value = MagicMock(
+                data=[
+                    {"id": "job-10", "status": "failed", "job_type": "enrich_shop"},
+                    {"id": "job-11", "status": "dead_letter", "job_type": "scrape_shop"},
+                ]
+            )
+            with (
+                patch("api.admin.get_service_role_client", return_value=mock_db),
+                patch("api.deps.settings") as mock_settings,
+            ):
+                mock_settings.admin_user_ids = [_ADMIN_ID]
+                response = client.get("/admin/pipeline/dead-letter")
+            assert response.status_code == 200
+            data = response.json()
+            assert isinstance(data, list)
+            assert len(data) == 2
+        finally:
+            app.dependency_overrides.clear()
+
+
+class TestAdminApproveSubmission:
+    def test_admin_can_approve_a_pending_submission(self):
+        """Admin approving a pending submission marks it live."""
+        app.dependency_overrides[get_current_user] = _admin_user
+        try:
+            mock_db = MagicMock()
+            # First call: select to fetch submission status
+            mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = (
+                MagicMock(data=[{"id": "sub-1", "status": "pending"}])
+            )
+            # Second call: conditional update
+            mock_db.table.return_value.update.return_value.eq.return_value.in_.return_value.execute.return_value = MagicMock(
+                data=[{"id": "sub-1", "status": "live"}]
+            )
+            with (
+                patch("api.admin.get_service_role_client", return_value=mock_db),
+                patch("middleware.admin_audit.get_service_role_client", return_value=mock_db),
+                patch("api.deps.settings") as mock_settings,
+            ):
+                mock_settings.admin_user_ids = [_ADMIN_ID]
+                response = client.post("/admin/pipeline/approve/sub-1")
+            assert response.status_code == 200
+            assert "approved" in response.json()["message"]
+        finally:
+            app.dependency_overrides.clear()
+
+    def test_approving_nonexistent_submission_returns_404(self):
+        """Approving a submission that does not exist returns 404."""
+        app.dependency_overrides[get_current_user] = _admin_user
+        try:
+            mock_db = MagicMock()
+            mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = (
+                MagicMock(data=[])
+            )
+            with (
+                patch("api.admin.get_service_role_client", return_value=mock_db),
+                patch("api.deps.settings") as mock_settings,
+            ):
+                mock_settings.admin_user_ids = [_ADMIN_ID]
+                response = client.post("/admin/pipeline/approve/missing-sub")
+            assert response.status_code == 404
+        finally:
+            app.dependency_overrides.clear()
+
+    def test_approving_already_live_submission_returns_409(self):
+        """Approving a submission that is already live returns 409."""
+        app.dependency_overrides[get_current_user] = _admin_user
+        try:
+            mock_db = MagicMock()
+            mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = (
+                MagicMock(data=[{"id": "sub-2", "status": "live"}])
+            )
+            with (
+                patch("api.admin.get_service_role_client", return_value=mock_db),
+                patch("api.deps.settings") as mock_settings,
+            ):
+                mock_settings.admin_user_ids = [_ADMIN_ID]
+                response = client.post("/admin/pipeline/approve/sub-2")
+            assert response.status_code == 409
+        finally:
+            app.dependency_overrides.clear()
+
+
 class TestAdminJobCancel:
     def test_admin_can_cancel_a_pending_job(self):
         """Admin can cancel a pending job."""
