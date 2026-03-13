@@ -6,6 +6,47 @@ from main import app
 
 client = TestClient(app)
 
+SHOP_ROW = {
+    "id": "shop-001",
+    "name": "山小孩咖啡",
+    "slug": None,
+    "address": "台北市大安區仁愛路四段122號",
+    "latitude": 25.033,
+    "longitude": 121.543,
+    "rating": 4.6,
+    "review_count": 100,
+    "mode_work": 0.8,
+    "mode_rest": 0.5,
+    "mode_social": 0.3,
+    "processing_status": "live",
+}
+
+
+def _make_table_mock(table_responses: dict) -> MagicMock:
+    """Build a mock Supabase client where table(name) returns a per-table mock chain."""
+
+    def _table_side_effect(name: str) -> MagicMock:
+        return table_responses.get(name, MagicMock())
+
+    mock_client = MagicMock()
+    mock_client.table.side_effect = _table_side_effect
+    return mock_client
+
+
+def _simple_select_chain(data) -> MagicMock:
+    """Return a chainable mock that ends with .execute() -> data."""
+    execute_mock = MagicMock(return_value=MagicMock(data=data))
+    chain = MagicMock()
+    chain.select.return_value = chain
+    chain.eq.return_value = chain
+    chain.single.return_value = chain
+    chain.order.return_value = chain
+    chain.limit.return_value = chain
+    chain.not_.return_value = chain
+    chain.offset.return_value = chain
+    chain.execute = execute_mock
+    return chain
+
 
 class TestShopsAPI:
     def test_list_shops_is_public(self):
@@ -51,3 +92,81 @@ class TestShopsAPI:
             mock_sb.return_value = mock_client
             response = client.get("/shops/shop-1")
             assert response.status_code == 200
+
+    def test_get_shop_detail_includes_photo_urls(self):
+        """GET /shops/{id} response includes photo_urls from shop_photos table."""
+        shop_chain = _simple_select_chain(SHOP_ROW)
+        photo_rows = [
+            {"photo_url": "https://example.com/p1.jpg"},
+            {"photo_url": "https://example.com/p2.jpg"},
+        ]
+        photos_chain = _simple_select_chain(photo_rows)
+        tags_chain = _simple_select_chain([])
+
+        mock_client = _make_table_mock(
+            {"shops": shop_chain, "shop_photos": photos_chain, "shop_tags": tags_chain}
+        )
+
+        with patch("api.shops.get_anon_client", return_value=mock_client):
+            response = client.get("/shops/shop-001")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["photo_urls"] == [
+            "https://example.com/p1.jpg",
+            "https://example.com/p2.jpg",
+        ]
+
+    def test_get_shop_detail_includes_slug_generated_from_name(self):
+        """GET /shops/{id} generates a URL slug from the shop name when slug is null."""
+        shop_chain = _simple_select_chain(SHOP_ROW)
+        photos_chain = _simple_select_chain([])
+        tags_chain = _simple_select_chain([])
+
+        mock_client = _make_table_mock(
+            {"shops": shop_chain, "shop_photos": photos_chain, "shop_tags": tags_chain}
+        )
+
+        with patch("api.shops.get_anon_client", return_value=mock_client):
+            response = client.get("/shops/shop-001")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["slug"] == "shan-xiao-hai-ka-fei"
+
+    def test_get_shop_detail_includes_mode_scores(self):
+        """GET /shops/{id} returns mode_scores dict built from mode_work/rest/social columns."""
+        shop_chain = _simple_select_chain(SHOP_ROW)
+        photos_chain = _simple_select_chain([])
+        tags_chain = _simple_select_chain([])
+
+        mock_client = _make_table_mock(
+            {"shops": shop_chain, "shop_photos": photos_chain, "shop_tags": tags_chain}
+        )
+
+        with patch("api.shops.get_anon_client", return_value=mock_client):
+            response = client.get("/shops/shop-001")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["mode_scores"] == {"work": 0.8, "rest": 0.5, "social": 0.3}
+
+    def test_list_shops_featured_returns_live_shops_only(self):
+        """GET /shops?featured=true filters to processing_status=live shops."""
+        live_shops = [
+            {**SHOP_ROW, "id": "shop-001"},
+            {**SHOP_ROW, "id": "shop-002"},
+        ]
+
+        chain = _simple_select_chain(live_shops)
+
+        with patch("api.shops.get_anon_client") as mock_sb:
+            mock_sb.return_value = MagicMock(table=MagicMock(return_value=chain))
+            response = client.get("/shops?featured=true&limit=10")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 2
+        # The chain must have had .eq("processing_status", "live") applied
+        chain.eq.assert_any_call("processing_status", "live")
+        chain.limit.assert_called()

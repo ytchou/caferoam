@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Query
 
 from api.deps import get_admin_db, get_current_user, get_optional_user
 from core.db import first
+from core.slugify import generate_slug
 from db.supabase_client import get_anon_client
 from models.types import ShopCheckInPreview, ShopCheckInSummary, ShopReview, ShopReviewsResponse
 
@@ -11,12 +12,19 @@ router = APIRouter(prefix="/shops", tags=["shops"])
 
 
 @router.get("/")
-async def list_shops(city: str | None = None) -> list[Any]:
+async def list_shops(
+    city: str | None = None,
+    featured: bool = False,
+    limit: int = Query(default=50, ge=1, le=200),
+) -> list[Any]:
     """List shops. Public — no auth required."""
     db = get_anon_client()
     query = db.table("shops").select("*")
     if city:
         query = query.eq("city", city)
+    if featured:
+        query = query.eq("processing_status", "live")
+    query = query.limit(limit)
     response = query.execute()
     return response.data
 
@@ -25,8 +33,29 @@ async def list_shops(city: str | None = None) -> list[Any]:
 async def get_shop(shop_id: str) -> Any:
     """Get a single shop by ID. Public — no auth required."""
     db = get_anon_client()
-    response = db.table("shops").select("*").eq("id", shop_id).single().execute()
-    return response.data
+    shop = db.table("shops").select("*").eq("id", shop_id).single().execute().data
+
+    photo_rows = db.table("shop_photos").select("photo_url").eq("shop_id", shop_id).execute().data
+    photo_urls = [row["photo_url"] for row in (photo_rows or [])]
+
+    tag_rows = db.table("shop_tags").select("tag_name").eq("shop_id", shop_id).execute().data
+    tags = [row["tag_name"] for row in (tag_rows or [])]
+
+    slug = shop.get("slug") or generate_slug(shop["name"])
+
+    mode_scores = {
+        "work": shop.get("mode_work"),
+        "rest": shop.get("mode_rest"),
+        "social": shop.get("mode_social"),
+    }
+
+    return {
+        **shop,
+        "slug": slug,
+        "photo_urls": photo_urls,
+        "tags": tags,
+        "mode_scores": mode_scores,
+    }
 
 
 @router.get("/{shop_id}/checkins")
