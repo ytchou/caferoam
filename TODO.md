@@ -820,8 +820,8 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 
 **Chunk 7 — Test quality (Wave 7):**
 
-- [ ] Rewrite page tests to mock at HTTP boundary
-- [ ] Rewrite test names to describe user outcomes
+- [x] Rewrite page tests to mock at HTTP boundary
+- [x] Rewrite test names to describe user outcomes
 
 **Chunk 8 — Verification (Wave 8):**
 

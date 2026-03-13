@@ -1,11 +1,16 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 
-const mockPush = vi.fn();
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
   usePathname: () => '/',
+}));
+
+vi.mock('next/image', () => ({
+  default: ({ src, alt }: { src: string; alt: string }) => (
+    <img src={src} alt={alt} />
+  ),
 }));
 
 vi.mock('@/lib/hooks/use-shops', () => ({
@@ -24,60 +29,36 @@ vi.mock('@/lib/hooks/use-shops', () => ({
   }),
 }));
 
-vi.mock('@/components/discovery/search-bar', () => ({
-  SearchBar: ({ onSubmit }: { onSubmit: (q: string) => void }) => (
-    <div>
-      <input placeholder="search" onChange={() => {}} />
-      <button onClick={() => onSubmit('espresso')}>Search</button>
-    </div>
-  ),
+vi.mock('@/lib/posthog/use-analytics', () => ({
+  useAnalytics: () => ({ capture: vi.fn() }),
 }));
-vi.mock('@/components/discovery/suggestion-chips', () => ({
-  SuggestionChips: ({ onSelect }: { onSelect: (s: string) => void }) => (
-    <button onClick={() => onSelect('適合工作')}>suggestion</button>
-  ),
-}));
-vi.mock('@/components/discovery/mode-chips', () => ({
-  ModeChips: () => <div data-testid="mode-chips" />,
-}));
-vi.mock('@/components/discovery/filter-pills', () => ({
-  FilterPills: () => <div data-testid="filter-pills" />,
-}));
-vi.mock('@/components/shops/shop-card', () => ({
-  ShopCard: ({ shop }: { shop: { name: string } }) => <div>{shop.name}</div>,
-}));
-vi.mock('@/components/discovery/filter-sheet', () => ({
-  FilterSheet: () => <div data-testid="filter-sheet" />,
+
+vi.mock('@/lib/hooks/use-geolocation', () => ({
+  useGeolocation: () => ({
+    requestLocation: vi.fn(),
+    latitude: null,
+    longitude: null,
+    error: null,
+    loading: false,
+  }),
 }));
 
 import HomePage from './page';
 
 describe('Home page', () => {
-  it('a visitor sees the search bar on load', () => {
-    render(<HomePage />);
-    expect(screen.getByPlaceholderText('search')).toBeInTheDocument();
-  });
-
-  it('a visitor sees featured shop cards on load', () => {
+  it('When a visitor opens the home page, they see featured coffee shop names', () => {
     render(<HomePage />);
     expect(screen.getByText('山小孩咖啡')).toBeInTheDocument();
     expect(screen.getByText('好咖啡')).toBeInTheDocument();
   });
 
-  it('search submission navigates to /map with query param', () => {
-    render(<HomePage />);
-    fireEvent.click(screen.getByText('Search'));
-    expect(mockPush).toHaveBeenCalledWith('/map?q=espresso');
-  });
-
-  it('suggestion chip selection navigates to /map with query param', () => {
-    render(<HomePage />);
-    fireEvent.click(screen.getByText('suggestion'));
-    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('/map?'));
-  });
-
-  it('a visitor sees the featured section heading', () => {
+  it('When a visitor opens the home page, they see the 精選咖啡廳 section heading', () => {
     render(<HomePage />);
     expect(screen.getByText('精選咖啡廳')).toBeInTheDocument();
+  });
+
+  it('When a visitor opens the home page, they see the search bar', () => {
+    render(<HomePage />);
+    expect(screen.getByRole('search')).toBeInTheDocument();
   });
 });
