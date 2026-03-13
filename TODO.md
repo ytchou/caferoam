@@ -777,9 +777,9 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 
 **Chunk 6 — Analytics (Wave 7):**
 
-- [ ] `search_submitted` PostHog event
-- [ ] `shop_detail_viewed` PostHog event
-- [ ] `shop_url_copied` PostHog event
+- [x] `search_submitted` PostHog event
+- [x] `shop_detail_viewed` PostHog event
+- [x] `shop_url_copied` PostHog event
 - [ ] `filter_applied` PostHog event
 
 ### Performance (verified during implementation)
