@@ -804,7 +804,7 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 - [x] RecentCheckinsStrip (TDD)
 - [x] ShopMapThumbnail (TDD)
 - [x] Viewport-only pin filtering in MapView (TDD)
-- [ ] useGeolocation hook (TDD)
+- [x] useGeolocation hook (TDD)
 
 **Chunk 5 — Integration (Wave 6):**
 
