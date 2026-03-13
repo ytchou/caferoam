@@ -800,7 +800,7 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 
 - [x] MapDesktopCard (TDD)
 - [x] ShopDescription (TDD)
-- [ ] MenuHighlights (TDD)
+- [x] MenuHighlights (TDD)
 - [ ] RecentCheckinsStrip (TDD)
 - [ ] ShopMapThumbnail (TDD)
 - [ ] Viewport-only pin filtering in MapView (TDD)
