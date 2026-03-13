@@ -26,7 +26,8 @@
     "backend:test": "cd backend && uv run python -m pytest -v",
     "backend:test:coverage": "cd backend && uv run pytest --cov --cov-report=xml:coverage.xml --cov-branch -v",
     "mutation:frontend": "npx stryker run",
-    "mutation:backend": "cd backend && uv run mutmut run"
+    "mutation:backend": "cd backend && uv run mutmut run",
+    "prepare": "git config core.hooksPath scripts/hooks"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

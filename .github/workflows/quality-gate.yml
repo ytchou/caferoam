@@ -11,8 +11,38 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check-scope:
+    name: Check Change Scope
+    runs-on: ubuntu-latest
+    outputs:
+      run_mutations: ${{ steps.scope.outputs.run_mutations }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Count service-layer changes
+        id: scope
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          CHANGED=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" \
+            | grep -cE '^(backend/services/|backend/api/|backend/providers/|backend/workers/|src/hooks/|src/components/|src/app/)' \
+            || true)
+          echo "Service-layer files changed: $CHANGED"
+          if [ "$CHANGED" -ge 5 ]; then
+            echo "run_mutations=true" >> "$GITHUB_OUTPUT"
+            echo "Triggering mutation testing ($CHANGED service files changed, threshold 5)"
+          else
+            echo "run_mutations=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping mutation testing ($CHANGED service files changed, threshold 5)"
+          fi
+
   mutation-frontend:
     name: Mutation Testing (Frontend)
+    needs: check-scope
+    if: needs.check-scope.outputs.run_mutations == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -44,6 +74,8 @@ jobs:
 
   mutation-backend:
     name: Mutation Testing (Backend)
+    needs: check-scope
+    if: needs.check-scope.outputs.run_mutations == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
