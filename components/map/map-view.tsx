@@ -22,6 +22,7 @@ export function MapView({
 }: MapViewProps) {
   return (
     <Map
+      mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
       initialViewState={{ longitude: 121.5654, latitude: 25.033, zoom: 13 }}
       style={{ width: "100%", height: "100%" }}
       mapStyle={mapStyle}
