@@ -1,5 +1,11 @@
 import { createClient } from '@/lib/supabase/client';
 
+export async function fetchPublic<T = unknown>(url: string): Promise<T> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json() as Promise<T>;
+}
+
 export async function fetchWithAuth(url: string, init?: RequestInit) {
   const supabase = createClient();
   const { data } = await supabase.auth.getSession();

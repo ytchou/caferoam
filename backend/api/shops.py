@@ -1,6 +1,6 @@
 from typing import Any, cast
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.deps import get_admin_db, get_current_user, get_optional_user
 from core.db import first
@@ -10,13 +10,34 @@ from models.types import ShopCheckInPreview, ShopCheckInSummary, ShopReview, Sho
 router = APIRouter(prefix="/shops", tags=["shops"])
 
 
+def _extract_display_name(row: dict[str, Any]) -> str | None:
+    profiles = row.get("profiles")
+    if not profiles:
+        return None
+    return cast("str | None", profiles.get("display_name"))
+
+
+_SHOP_COLUMNS = (
+    "id, name, slug, address, city, mrt, latitude, longitude, "
+    "rating, review_count, description, processing_status, "
+    "mode_work, mode_rest, mode_social, created_at"
+)
+
+
 @router.get("/")
-async def list_shops(city: str | None = None) -> list[Any]:
+async def list_shops(
+    city: str | None = None,
+    featured: bool = False,
+    limit: int = Query(default=50, ge=1, le=200),
+) -> list[Any]:
     """List shops. Public — no auth required."""
     db = get_anon_client()
-    query = db.table("shops").select("*")
+    query = db.table("shops").select(_SHOP_COLUMNS)
     if city:
         query = query.eq("city", city)
+    if featured:
+        query = query.eq("processing_status", "live")
+    query = query.limit(limit)
     response = query.execute()
     return response.data
 
@@ -25,8 +46,33 @@ async def list_shops(city: str | None = None) -> list[Any]:
 async def get_shop(shop_id: str) -> Any:
     """Get a single shop by ID. Public — no auth required."""
     db = get_anon_client()
-    response = db.table("shops").select("*").eq("id", shop_id).single().execute()
-    return response.data
+    response = (
+        db.table("shops")
+        .select(f"{_SHOP_COLUMNS}, shop_photos(photo_url), shop_tags(tag_name)")
+        .eq("id", shop_id)
+        .maybe_single()
+        .execute()
+    )
+
+    if response is None or not response.data:
+        raise HTTPException(status_code=404, detail="Shop not found")
+    shop: dict[str, Any] = cast("dict[str, Any]", response.data)
+
+    photo_urls = [row["photo_url"] for row in (shop.pop("shop_photos", None) or [])]
+    tags = [row["tag_name"] for row in (shop.pop("shop_tags", None) or [])]
+
+    mode_scores = {
+        "work": shop.get("mode_work"),
+        "rest": shop.get("mode_rest"),
+        "social": shop.get("mode_social"),
+    }
+
+    return {
+        **shop,
+        "photo_urls": photo_urls,
+        "tags": tags,
+        "mode_scores": mode_scores,
+    }
 
 
 @router.get("/{shop_id}/checkins")
@@ -59,9 +105,7 @@ async def get_shop_checkins(
             ShopCheckInSummary(
                 id=row["id"],
                 user_id=row["user_id"],
-                display_name=(
-                    row.get("profiles", {}).get("display_name") if row.get("profiles") else None
-                ),
+                display_name=_extract_display_name(row),
                 photo_url=str(row["photo_urls"][0]) if row.get("photo_urls") else "",
                 note=row.get("note"),
                 created_at=row["created_at"],
@@ -123,9 +167,7 @@ async def get_shop_reviews(
         ShopReview(
             id=row["id"],
             user_id=row["user_id"],
-            display_name=(
-                row.get("profiles", {}).get("display_name") if row.get("profiles") else None
-            ),
+            display_name=_extract_display_name(row),
             stars=row["stars"],
             review_text=row.get("review_text"),
             confirmed_tags=row.get("confirmed_tags"),
@@ -136,7 +178,6 @@ async def get_shop_reviews(
 
     total_count = response.count or 0
 
-    # Compute average via DB function — avoids fetching all rows to Python
     avg_response = db.rpc("shop_avg_rating", {"p_shop_id": shop_id}).execute()
     average_rating = float(avg_response.data) if avg_response.data else 0.0
 

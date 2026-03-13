@@ -19,6 +19,15 @@ export interface Shop {
   googlePlaceId: string | null;
   createdAt: string;
   updatedAt: string;
+  slug?: string;
+}
+
+export interface ShopDetail extends Shop {
+  modeScores?: {
+    work: number;
+    rest: number;
+    social: number;
+  };
 }
 
 export interface TaxonomyTag {

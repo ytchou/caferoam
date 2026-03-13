@@ -729,42 +729,79 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 - [ ] Incremental tag classification: re-classify only delta tags when taxonomy grows
 - [ ] Embedding regeneration trigger: re-embed only when enrichment actually changes
 
-### Shop Discovery & Directory
+### Discovery UI Scaffolding
 
-- [ ] Mobile Home screen: terracotta search-hero, AI search bar with sparkle icon, suggestion chips (巴斯克蛋糕/適合工作/安靜一點/我附近), mode chips (工作/放鬆/社交/精品), filter pills row (`search-v3-approved.png`)
-- [ ] Desktop Home screen: search-first landing, centered hero search bar, suggestion chips, 3-column editorial cards grid, "View on map →" link — ≥1024px only (`home-desktop-v2-approved.png`)
-- [ ] Mobile Map screen: full-bleed Mapbox, glassmorphism search + filter overlay, terracotta pins, bottom mini card on pin select (`map-v1-approved.png`)
-- [ ] Desktop Map screen: full-viewport map, floating glassmorphism nav, filter pills, bottom-left floating shop card, "List View" toggle (`map-desktop-v1-approved.png`)
-- [ ] Shop Detail (mobile): single-column scroll — hero photo, shop identity, attribute chips, curated description, menu highlights, Recent Check-ins photo strip (auth-gated), reviews (auth-gated), map thumbnail, sticky "Check In →" bar (`shop-detail-v3-approved.png`)
-- [ ] Shop Detail (desktop): 2-column — left scrollable content, right sticky column (photo carousel + map + CTA) (`shop-detail-desktop-v2-approved.png`)
-- [ ] Geolocation: "nearby me" — requests location permission, filters shops by proximity
-- [ ] Multi-dimension filters: functionality, time, ambience, mode (all powered by taxonomy); opens bottom-sheet on mobile
+> **Design Doc:** [docs/designs/2026-03-13-phase2b-discovery-search-ui-design.md](docs/designs/2026-03-13-phase2b-discovery-search-ui-design.md)
+> **Plan:** [docs/plans/2026-03-13-phase2b-discovery-search-ui-plan.md](docs/plans/2026-03-13-phase2b-discovery-search-ui-plan.md)
 
-### Semantic Search
+**Chunk 1 — Backend Foundation (Wave 1-2):**
 
-- [ ] AI search bar: natural language queries, suggestion chips pre-fill search, mode chips apply semantic filter
-- [ ] pgvector + taxonomy boost search results, ranked list
-- [ ] Auth gate on semantic search: prompt login when unauthenticated user submits query
-- [ ] `search_submitted` PostHog event: query_text, query_type (server-side classified), mode_chip_active, result_count
-- [ ] Server-side `query_type` classification (item_specific / specialty_coffee / general) — never exposed client-side
+- [x] DB migration: add `slug` column to shops table
+- [x] Backend slugify utility with pinyin support (TDD)
+- [x] Enhance GET /shops/{id} with photos, tags, slug, mode_scores (TDD)
+- [x] Add `featured` query param to GET /shops (TDD)
+- [x] Slug backfill script
 
-### Discovery Analytics Instrumentation
+**Chunk 2 — Frontend Infrastructure (Wave 1-3):**
 
-- [ ] `shop_detail_viewed` event: shop_id, referrer (search/map_pin/direct), session_search_query
-- [ ] `shop_url_copied` event: shop_id, copy_method (native_share/clipboard)
-- [ ] `filter_applied` event: filter_type, filter_value
+- [x] useMediaQuery / useIsDesktop hook (TDD)
+- [x] useSearchState hook — URL param driven (TDD)
+- [x] useShopDetail hook (TDD)
+- [x] useShops hook (TDD)
+- [x] useSearch hook — auth-gated semantic search (TDD)
+- [x] Frontend types: ShopDetail, slug field
 
-### Performance
+**Chunk 3 — Shared Components (Wave 2-3):**
+
+- [x] SearchBar — AI search input with sparkle icon (TDD)
+- [x] SuggestionChips — pre-fill chips (TDD)
+- [x] ModeChips — semantic mode toggles (TDD)
+- [x] FilterPills — quick filter row (TDD)
+- [x] FilterSheet — vaul Drawer filter panel (TDD)
+- [x] ShopCard — photo + name + rating card (TDD)
+- [x] ShareButton — Web Share API + clipboard (TDD)
+
+**Chunk 4 — Navigation (Wave 2-5):**
+
+- [x] BottomNav — mobile tab bar (TDD)
+- [x] HeaderNav — desktop top nav (TDD)
+- [x] AppShell layout integration
+- [x] Add /map to middleware public routes
+
+**Chunk 5 — Pages (Wave 6):**
+
+- [x] Home page — SSR featured shops + client search (TDD)
+- [x] Shop Detail page — SSR with og:\* meta tags (TDD)
+- [x] Map page — lazy-loaded Mapbox + pins (TDD)
+- [x] Search results page — auth-gated ranked results (TDD)
+
+**Chunk 6 — Analytics (Wave 7):**
+
+- [x] `search_submitted` PostHog event
+- [x] `shop_detail_viewed` PostHog event
+- [x] `shop_url_copied` PostHog event
+- [ ] `filter_applied` PostHog event
+
+**Chunk 7 — Deferred from Code Review (post-merge):**
+
+- [ ] `MapDesktopCard` component — desktop map sidebar card (flagged as missing in review)
+- [ ] Shop Detail sub-components: `ShopDescription`, `MenuHighlights`, `RecentCheckinsStrip`, `ShopMapThumbnail`
+- [ ] `taxonomy_tags` JOIN in `GET /shops/{id}` — return structured `{id, dimension, label, label_zh}` instead of flat strings
+- [ ] Viewport-only pin filtering in `MapView` — only render pins within the current map bounds
+- [ ] "我附近" suggestion chip — trigger geolocation on select instead of navigating with text query
+- [ ] Analytics: add `result_count` and `mode_chip_active` props to `search_submitted` event
+- [ ] Analytics: add `referrer` and `session_search_query` props to `shop_detail_viewed` event
+- [ ] Page-level tests: rewrite to mock at HTTP boundary, not internal components (`app/page.test.tsx`, `app/map/page.test.tsx`, `app/(protected)/search/page.test.tsx`)
+- [ ] Fix dual snake_case/camelCase `Shop` type — consolidate to one casing convention
+- [ ] Test naming: rewrite test names that describe rendering to describe user outcomes
+
+### Performance (verified during implementation)
 
 - [ ] Mobile-first UI: design and test at 390px width first
-- [ ] Desktop breakpoint: ≥1024px — two distinct layout systems, not just stretched mobile
-- [ ] Map performance: lazy-load Mapbox, viewport-only pins, static Mapbox image for Shop Detail map thumbnail
+- [ ] Desktop breakpoint: ≥1024px — two distinct layout systems
+- [ ] Map performance: lazy-load Mapbox, viewport-only pins, static Mapbox image for Shop Detail
 - [ ] Core Web Vitals: LCP < 2.5s, CLS < 0.1
 - [ ] `backdrop-filter: blur()` fallback for glassmorphism on Android
-
-### Unblock Phase 2B Test Coverage
-
-- [ ] Search page tests (blocked until semantic search UI + real search results)
 
 **Phase 2B is done when:** A non-team beta user can sign up, complete the PDPA consent flow, search semantically, find a coffee shop, check in with a photo, earn a stamp, leave a review, and view their profile — all without assistance. PostHog Live Events confirms all 7 instrumented events fire correctly.
 

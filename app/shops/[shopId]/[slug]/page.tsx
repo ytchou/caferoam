@@ -1,0 +1,53 @@
+import { notFound, redirect } from 'next/navigation';
+import type { Metadata } from 'next';
+import { ShopDetailClient } from './shop-detail-client';
+import { BACKEND_URL } from '@/lib/api/proxy';
+
+interface Params {
+  shopId: string;
+  slug: string;
+}
+
+async function fetchShop(shopId: string) {
+  const res = await fetch(`${BACKEND_URL}/shops/${shopId}`, {
+    next: { revalidate: 300 },
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Failed to fetch shop: ${res.status}`);
+  return res.json();
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Params;
+}): Promise<Metadata> {
+  const shop = await fetchShop(params.shopId);
+  if (!shop) return { title: 'Shop not found' };
+
+  const photo = shop.photo_urls?.[0];
+  return {
+    title: `${shop.name} — 啡遊`,
+    description: shop.description ?? `探索 ${shop.name}，台灣精品咖啡廳。`,
+    openGraph: {
+      title: shop.name,
+      description: shop.description ?? `探索 ${shop.name}，台灣精品咖啡廳。`,
+      ...(photo ? { images: [{ url: photo, width: 1200, height: 630 }] } : {}),
+    },
+  };
+}
+
+export default async function ShopDetailPage({ params }: { params: Params }) {
+  const shop = await fetchShop(params.shopId);
+
+  if (!shop) {
+    notFound();
+  }
+
+  // Canonical slug redirect — if URL slug doesn't match the stored slug, redirect
+  if (shop.slug && params.slug !== shop.slug) {
+    redirect(`/shops/${params.shopId}/${shop.slug}`);
+  }
+
+  return <ShopDetailClient shop={shop} />;
+}

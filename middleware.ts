@@ -2,7 +2,14 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { updateSession } from '@/lib/supabase/middleware';
 
 // Routes that don't require authentication
-const PUBLIC_ROUTES = ['/', '/login', '/signup', '/auth/callback', '/privacy'];
+const PUBLIC_ROUTES = [
+  '/',
+  '/login',
+  '/signup',
+  '/auth/callback',
+  '/privacy',
+  '/map',
+];
 // /api routes handle their own JWT auth via FastAPI — do not redirect them
 const PUBLIC_PREFIXES = ['/shops', '/api'];
 

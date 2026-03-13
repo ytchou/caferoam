@@ -20,6 +20,7 @@ dependencies = [
     "posthog>=3.0",
     "apify-client>=2.5.0",
     "python-multipart>=0.0.9",
+    "pypinyin>=0.55.0",
 ]
 
 [project.optional-dependencies]
@@ -107,6 +108,7 @@ ignore_errors = true
 [dependency-groups]
 dev = [
     "mypy>=1.19.1",
+    "pytest>=9.0.2",
 ]
 
 [tool.coverage.run]

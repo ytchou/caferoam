@@ -54,6 +54,7 @@ export function makeShop(overrides: Record<string, unknown> = {}) {
     rating: 4.6,
     review_count: 287,
     price_range: '$$',
+    slug: 'shan-xiao-hai-ka-fei',
     description: '安靜適合工作的獨立咖啡店',
     photo_urls: [
       'https://example.supabase.co/storage/v1/object/public/shop-photos/d4e5f6/exterior.jpg',
