@@ -738,14 +738,14 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 
 - [x] DB migration: add `slug` column to shops table
 - [x] Backend slugify utility with pinyin support (TDD)
-- [ ] Enhance GET /shops/{id} with photos, tags, slug, mode_scores (TDD)
-- [ ] Add `featured` query param to GET /shops (TDD)
-- [ ] Slug backfill script
+- [x] Enhance GET /shops/{id} with photos, tags, slug, mode_scores (TDD)
+- [x] Add `featured` query param to GET /shops (TDD)
+- [x] Slug backfill script
 
 **Chunk 2 — Frontend Infrastructure (Wave 1-3):**
 
 - [x] useMediaQuery / useIsDesktop hook (TDD)
-- [ ] useSearchState hook — URL param driven (TDD)
+- [x] useSearchState hook — URL param driven (TDD)
 - [ ] useShopDetail hook (TDD)
 - [ ] useShops hook (TDD)
 - [ ] useSearch hook — auth-gated semantic search (TDD)
@@ -753,17 +753,17 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 
 **Chunk 3 — Shared Components (Wave 2-3):**
 
-- [ ] SearchBar — AI search input with sparkle icon (TDD)
-- [ ] SuggestionChips — pre-fill chips (TDD)
-- [ ] ModeChips — semantic mode toggles (TDD)
-- [ ] FilterPills — quick filter row (TDD)
-- [ ] FilterSheet — vaul Drawer filter panel (TDD)
+- [x] SearchBar — AI search input with sparkle icon (TDD)
+- [x] SuggestionChips — pre-fill chips (TDD)
+- [x] ModeChips — semantic mode toggles (TDD)
+- [x] FilterPills — quick filter row (TDD)
+- [x] FilterSheet — vaul Drawer filter panel (TDD)
 - [ ] ShopCard — photo + name + rating card (TDD)
-- [ ] ShareButton — Web Share API + clipboard (TDD)
+- [x] ShareButton — Web Share API + clipboard (TDD)
 
 **Chunk 4 — Navigation (Wave 2-5):**
 
-- [ ] BottomNav — mobile tab bar (TDD)
+- [x] BottomNav — mobile tab bar (TDD)
 - [ ] HeaderNav — desktop top nav (TDD)
 - [ ] AppShell layout integration
 - [x] Add /map to middleware public routes
