@@ -765,7 +765,7 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 
 - [x] BottomNav — mobile tab bar (TDD)
 - [x] HeaderNav — desktop top nav (TDD)
-- [ ] AppShell layout integration
+- [x] AppShell layout integration
 - [x] Add /map to middleware public routes
 
 **Chunk 5 — Pages (Wave 6):**
