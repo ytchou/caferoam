@@ -736,15 +736,15 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 
 **Chunk 1 — Backend Foundation (Wave 1-2):**
 
-- [ ] DB migration: add `slug` column to shops table
-- [ ] Backend slugify utility with pinyin support (TDD)
+- [x] DB migration: add `slug` column to shops table
+- [x] Backend slugify utility with pinyin support (TDD)
 - [ ] Enhance GET /shops/{id} with photos, tags, slug, mode_scores (TDD)
 - [ ] Add `featured` query param to GET /shops (TDD)
 - [ ] Slug backfill script
 
 **Chunk 2 — Frontend Infrastructure (Wave 1-3):**
 
-- [ ] useMediaQuery / useIsDesktop hook (TDD)
+- [x] useMediaQuery / useIsDesktop hook (TDD)
 - [ ] useSearchState hook — URL param driven (TDD)
 - [ ] useShopDetail hook (TDD)
 - [ ] useShops hook (TDD)
@@ -766,7 +766,7 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 - [ ] BottomNav — mobile tab bar (TDD)
 - [ ] HeaderNav — desktop top nav (TDD)
 - [ ] AppShell layout integration
-- [ ] Add /map to middleware public routes
+- [x] Add /map to middleware public routes
 
 **Chunk 5 — Pages (Wave 6):**
 
