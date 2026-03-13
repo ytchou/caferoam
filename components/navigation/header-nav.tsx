@@ -1,37 +1,46 @@
-"use client";
-import Link from "next/link";
-import { SearchBar } from "@/components/discovery/search-bar";
+'use client';
+import Link from 'next/link';
+import { SearchBar } from '@/components/discovery/search-bar';
 
 interface HeaderNavProps {
   onSearch: (query: string) => void;
-  variant?: "solid" | "glass";
+  variant?: 'solid' | 'glass';
 }
 
-export function HeaderNav({ onSearch, variant = "solid" }: HeaderNavProps) {
+export function HeaderNav({ onSearch, variant = 'solid' }: HeaderNavProps) {
   const bgClass =
-    variant === "glass"
-      ? "bg-white/80 backdrop-blur-md supports-[not(backdrop-filter)]:bg-white/90"
-      : "bg-white border-b border-gray-100";
+    variant === 'glass'
+      ? 'bg-white/80 backdrop-blur-md supports-[not(backdrop-filter)]:bg-white/90'
+      : 'bg-white border-b border-gray-100';
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-40 ${bgClass}`}>
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center gap-4">
-        <Link href="/" className="text-xl font-bold text-[#E06B3F] flex-shrink-0">
+    <header className={`fixed top-0 right-0 left-0 z-40 ${bgClass}`}>
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
+        <Link
+          href="/"
+          className="flex-shrink-0 text-xl font-bold text-[#E06B3F]"
+        >
           啡遊
         </Link>
-        <div className="flex-1 max-w-xl">
+        <div className="max-w-xl flex-1">
           <SearchBar onSubmit={onSearch} />
         </div>
-        <nav className="flex items-center gap-4 flex-shrink-0">
-          <Link href="/map" className="text-sm text-gray-600 hover:text-[#E06B3F] transition-colors">
+        <nav className="flex flex-shrink-0 items-center gap-4">
+          <Link
+            href="/map"
+            className="text-sm text-gray-600 transition-colors hover:text-[#E06B3F]"
+          >
             地圖
           </Link>
-          <Link href="/lists" className="text-sm text-gray-600 hover:text-[#E06B3F] transition-colors">
+          <Link
+            href="/lists"
+            className="text-sm text-gray-600 transition-colors hover:text-[#E06B3F]"
+          >
             收藏
           </Link>
           <Link
             href="/login"
-            className="text-sm px-4 py-2 rounded-full bg-[#E06B3F] text-white hover:bg-[#d05a2e] transition-colors"
+            className="rounded-full bg-[#E06B3F] px-4 py-2 text-sm text-white transition-colors hover:bg-[#d05a2e]"
           >
             登入
           </Link>

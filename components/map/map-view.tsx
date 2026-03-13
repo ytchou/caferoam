@@ -1,6 +1,6 @@
-"use client";
-import Map, { Marker } from "react-map-gl/mapbox";
-import "mapbox-gl/dist/mapbox-gl.css";
+'use client';
+import Map, { Marker } from 'react-map-gl/mapbox';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 interface Shop {
   id: string;
@@ -18,13 +18,13 @@ interface MapViewProps {
 export function MapView({
   shops,
   onPinClick,
-  mapStyle = "mapbox://styles/mapbox/streets-v12",
+  mapStyle = 'mapbox://styles/mapbox/streets-v12',
 }: MapViewProps) {
   return (
     <Map
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
       initialViewState={{ longitude: 121.5654, latitude: 25.033, zoom: 13 }}
-      style={{ width: "100%", height: "100%" }}
+      style={{ width: '100%', height: '100%' }}
       mapStyle={mapStyle}
     >
       {shops.map((shop) => (
@@ -35,7 +35,7 @@ export function MapView({
           onClick={() => onPinClick(shop.id)}
         >
           <button
-            className="w-4 h-4 rounded-full bg-[#E06B3F] border-2 border-white shadow"
+            className="h-4 w-4 rounded-full border-2 border-white bg-[#E06B3F] shadow"
             aria-label={shop.name}
           />
         </Marker>

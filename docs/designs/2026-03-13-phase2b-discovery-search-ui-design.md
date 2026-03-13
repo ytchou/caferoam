@@ -11,6 +11,7 @@ Date: 2026-03-13
 Phase 2B builds the core discovery experience. Covers: Home (search hero + featured shops), Map (Mapbox with pins), Shop Detail (SSR for social sharing), and Semantic Search (auth-gated AI search).
 
 **Key architectural decisions:**
+
 - URL-driven search state shared across tabs (`?q=...&mode=...&filters=...`)
 - SSR for Shop Detail (SEO + social previews), CSR for interactive pages (Map, Search)
 - SEO-friendly shop URLs with slugs (`/shops/[shopId]/[slug]`)
@@ -21,12 +22,12 @@ Phase 2B builds the core discovery experience. Covers: Home (search hero + featu
 
 ## Route Structure
 
-| Route | Auth | Rendering | Purpose |
-|-------|------|-----------|---------|
-| `/` | No | SSR (static) | Home — search hero + featured shops |
-| `/map` | No | CSR | Map view — Mapbox + shop pins |
-| `/shops/[shopId]/[slug]` | No | SSR | Shop detail — SEO + og:image social preview |
-| `/search` | Yes | CSR | Search results (redirect target from Home/Map search) |
+| Route                    | Auth | Rendering    | Purpose                                               |
+| ------------------------ | ---- | ------------ | ----------------------------------------------------- |
+| `/`                      | No   | SSR (static) | Home — search hero + featured shops                   |
+| `/map`                   | No   | CSR          | Map view — Mapbox + shop pins                         |
+| `/shops/[shopId]/[slug]` | No   | SSR          | Shop detail — SEO + og:image social preview           |
+| `/search`                | Yes  | CSR          | Search results (redirect target from Home/Map search) |
 
 Shared search state lives in URL params and persists across tabs via a `useSearchState` hook.
 
@@ -97,22 +98,26 @@ Two distinct layout systems, not CSS media queries.
 ## Data Flow
 
 ### Home (SSR + CSR hybrid)
+
 1. Server component fetches featured shops (`GET /shops?featured=true&limit=12`)
 2. SearchBar/SuggestionChips/ModeChips are client components
 3. Search submission: authenticated → `/map?q=...&mode=...`; unauthenticated → `/login?returnTo=/map?q=...`
 
 ### Map (CSR)
+
 1. `useShops` SWR hook fetches shops by viewport bounds + active URL param filters
 2. Pin click → selected shop ID → MapMiniCard/MapDesktopCard
 3. Search/filter changes → URL param update → SWR refetch
 
 ### Shop Detail (SSR)
+
 1. Server fetch `GET /shops/{shopId}` at request time
 2. `<head>` meta: `og:title`, `og:image`, `og:description`
 3. Slug mismatch → 301 redirect to canonical
 4. Client islands: ReviewsSection, RecentCheckinsStrip (auth-gated), BookmarkButton, ShareButton
 
 ### Search (CSR, auth-gated)
+
 1. `useSearch` SWR hook → `POST /api/search` with `{ query, mode, filters, limit: 20 }`
 2. Results as list of ShopCards
 3. `query_type` classified server-side only
@@ -123,11 +128,11 @@ Two distinct layout systems, not CSS media queries.
 
 **Breakpoint:** 1024px — two distinct component trees, not CSS scaling.
 
-| Screen | Mobile | Desktop |
-|--------|--------|---------|
-| Home | Terracotta hero + search + chips + vertical card scroll | Centered search hero + 3-column grid |
-| Map | Full-bleed map + glassmorphism overlay + bottom mini card | Full-viewport map + floating glass header + bottom-left card |
-| Shop Detail | Single-column scroll + sticky bottom CTA | 2-column: left scrollable, right sticky (carousel + map + CTA) |
+| Screen      | Mobile                                                    | Desktop                                                        |
+| ----------- | --------------------------------------------------------- | -------------------------------------------------------------- |
+| Home        | Terracotta hero + search + chips + vertical card scroll   | Centered search hero + 3-column grid                           |
+| Map         | Full-bleed map + glassmorphism overlay + bottom mini card | Full-viewport map + floating glass header + bottom-left card   |
+| Shop Detail | Single-column scroll + sticky bottom CTA                  | 2-column: left scrollable, right sticky (carousel + map + CTA) |
 
 ---
 
@@ -155,12 +160,12 @@ Two distinct layout systems, not CSS media queries.
 
 ## Analytics
 
-| Event | Component | Properties |
-|-------|-----------|------------|
-| `search_submitted` | SearchBar | `query_text`, `query_type` (server), `mode_chip_active`, `result_count` |
-| `shop_detail_viewed` | ShopDetail page | `shop_id`, `referrer`, `session_search_query` |
-| `shop_url_copied` | ShareButton | `shop_id`, `copy_method` |
-| `filter_applied` | FilterPills/FilterSheet | `filter_type`, `filter_value` |
+| Event                | Component               | Properties                                                              |
+| -------------------- | ----------------------- | ----------------------------------------------------------------------- |
+| `search_submitted`   | SearchBar               | `query_text`, `query_type` (server), `mode_chip_active`, `result_count` |
+| `shop_detail_viewed` | ShopDetail page         | `shop_id`, `referrer`, `session_search_query`                           |
+| `shop_url_copied`    | ShareButton             | `shop_id`, `copy_method`                                                |
+| `filter_applied`     | FilterPills/FilterSheet | `filter_type`, `filter_value`                                           |
 
 `query_type` classified server-side — frontend never sees the classification.
 

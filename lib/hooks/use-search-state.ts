@@ -1,8 +1,8 @@
-"use client";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useCallback, useMemo } from "react";
+'use client';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useCallback, useMemo } from 'react';
 
-export type SearchMode = "work" | "rest" | "social" | "specialty" | null;
+export type SearchMode = 'work' | 'rest' | 'social' | 'specialty' | null;
 
 export interface SearchState {
   query: string;
@@ -19,11 +19,11 @@ export function useSearchState(): SearchState {
   const router = useRouter();
   const pathname = usePathname();
 
-  const query = searchParams.get("q") ?? "";
-  const mode = (searchParams.get("mode") as SearchMode) ?? null;
-  const filtersRaw = searchParams.get("filters");
+  const query = searchParams.get('q') ?? '';
+  const mode = (searchParams.get('mode') as SearchMode) ?? null;
+  const filtersRaw = searchParams.get('filters');
   const filters = useMemo(
-    () => (filtersRaw ? filtersRaw.split(",").filter(Boolean) : []),
+    () => (filtersRaw ? filtersRaw.split(',').filter(Boolean) : []),
     [filtersRaw]
   );
 
@@ -31,7 +31,7 @@ export function useSearchState(): SearchState {
     (updates: Record<string, string | null>) => {
       const params = new URLSearchParams(searchParams.toString());
       for (const [key, value] of Object.entries(updates)) {
-        if (value === null || value === "") {
+        if (value === null || value === '') {
           params.delete(key);
         } else {
           params.set(key, value);
@@ -62,7 +62,7 @@ export function useSearchState(): SearchState {
       const next = filters.includes(filter)
         ? filters.filter((f) => f !== filter)
         : [...filters, filter];
-      router.push(buildUrl({ filters: next.join(",") || null }));
+      router.push(buildUrl({ filters: next.join(',') || null }));
     },
     [router, buildUrl, filters]
   );

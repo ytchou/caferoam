@@ -1,26 +1,26 @@
-import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 
-vi.mock("next/navigation", () => ({
+vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
-  usePathname: () => "/map",
+  usePathname: () => '/map',
 }));
 
-vi.mock("next/dynamic", () => ({
+vi.mock('next/dynamic', () => ({
   default: () => {
     const Mock = () => <div data-testid="map-view" />;
-    Mock.displayName = "MockMapView";
+    Mock.displayName = 'MockMapView';
     return Mock;
   },
 }));
 
-vi.mock("@/components/discovery/search-bar", () => ({
+vi.mock('@/components/discovery/search-bar', () => ({
   SearchBar: ({ onSubmit }: { onSubmit: (q: string) => void }) => (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        onSubmit("espresso");
+        onSubmit('espresso');
       }}
     >
       <button type="submit">Search</button>
@@ -28,11 +28,11 @@ vi.mock("@/components/discovery/search-bar", () => ({
   ),
 }));
 
-vi.mock("@/components/discovery/filter-pills", () => ({
+vi.mock('@/components/discovery/filter-pills', () => ({
   FilterPills: () => <div data-testid="filter-pills" />,
 }));
 
-vi.mock("@/components/map/map-mini-card", () => ({
+vi.mock('@/components/map/map-mini-card', () => ({
   MapMiniCard: ({
     shop,
     onDismiss,
@@ -47,22 +47,22 @@ vi.mock("@/components/map/map-mini-card", () => ({
   ),
 }));
 
-import MapPage from "./page";
+import MapPage from './page';
 
-describe("Map page", () => {
-  it("renders map view and search overlay", () => {
+describe('Map page', () => {
+  it('renders map view and search overlay', () => {
     render(<MapPage />);
-    expect(screen.getByTestId("map-view")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Search" })).toBeInTheDocument();
+    expect(screen.getByTestId('map-view')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Search' })).toBeInTheDocument();
   });
 
-  it("renders filter pills in the search overlay", () => {
+  it('renders filter pills in the search overlay', () => {
     render(<MapPage />);
-    expect(screen.getByTestId("filter-pills")).toBeInTheDocument();
+    expect(screen.getByTestId('filter-pills')).toBeInTheDocument();
   });
 
-  it("does not show mini card when no shop pin is selected", () => {
+  it('does not show mini card when no shop pin is selected', () => {
     render(<MapPage />);
-    expect(screen.queryByTestId("mini-card")).not.toBeInTheDocument();
+    expect(screen.queryByTestId('mini-card')).not.toBeInTheDocument();
   });
 });

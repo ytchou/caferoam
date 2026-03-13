@@ -1,9 +1,9 @@
-"use client";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import type { Shop } from "@/lib/types";
+'use client';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import type { Shop } from '@/lib/types';
 
-type ShopCardData = Pick<Shop, "id" | "name" | "rating"> & {
+type ShopCardData = Pick<Shop, 'id' | 'name' | 'rating'> & {
   slug?: string;
   mrt?: string;
   photoUrls?: string[];
@@ -22,16 +22,16 @@ export function ShopCard({ shop }: ShopCardProps) {
     router.push(`/shops/${shop.id}/${slug}`);
   };
 
-  const locationLabel = shop.mrt ?? "";
+  const locationLabel = shop.mrt ?? '';
 
   const photoUrl =
-    (shop.photo_urls ?? shop.photoUrls)?.[0] ?? "/placeholder-cafe.jpg";
+    (shop.photo_urls ?? shop.photoUrls)?.[0] ?? '/placeholder-cafe.jpg';
 
   return (
     <article
       role="article"
       onClick={handleClick}
-      className="cursor-pointer rounded-xl overflow-hidden bg-white border border-gray-100 hover:shadow-md transition-shadow"
+      className="cursor-pointer overflow-hidden rounded-xl border border-gray-100 bg-white transition-shadow hover:shadow-md"
     >
       <div className="relative aspect-video">
         <Image
@@ -43,14 +43,20 @@ export function ShopCard({ shop }: ShopCardProps) {
         />
       </div>
       <div className="p-3">
-        <h3 className="font-semibold text-sm text-gray-900 truncate">{shop.name}</h3>
-        <div className="flex items-center gap-1 mt-1">
-          <span className="text-[#E06B3F] text-xs">★</span>
-          <span className="text-xs text-gray-600">{shop.rating?.toFixed(1)}</span>
+        <h3 className="truncate text-sm font-semibold text-gray-900">
+          {shop.name}
+        </h3>
+        <div className="mt-1 flex items-center gap-1">
+          <span className="text-xs text-[#E06B3F]">★</span>
+          <span className="text-xs text-gray-600">
+            {shop.rating?.toFixed(1)}
+          </span>
           {locationLabel && (
             <>
-              <span className="text-gray-300 text-xs">·</span>
-              <span className="text-xs text-gray-500 truncate">{locationLabel}</span>
+              <span className="text-xs text-gray-300">·</span>
+              <span className="truncate text-xs text-gray-500">
+                {locationLabel}
+              </span>
             </>
           )}
         </div>

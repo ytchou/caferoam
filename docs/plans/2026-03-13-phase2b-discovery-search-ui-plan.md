@@ -15,6 +15,7 @@
 **Tech Stack:** Next.js 16 App Router, react-map-gl, Mapbox GL JS, SWR, vaul Drawer, Tailwind CSS, shadcn/ui, PostHog
 
 **Acceptance Criteria:**
+
 - [ ] A user can visit the home page, see featured shops, and submit a search query
 - [ ] A user can view the map with shop pins and tap a pin to see shop details
 - [ ] A shared shop detail link on Threads shows a rich social preview (og:image, og:title)
@@ -26,6 +27,7 @@
 ## Task 1: DB Migration — Add slug column to shops
 
 **Files:**
+
 - Create: `supabase/migrations/20260313000001_add_shop_slug.sql`
 
 **No test needed** — DB migration.
@@ -52,6 +54,7 @@ git commit -m "feat: add slug column to shops table"
 ## Task 2: Backend — Slug generation utility
 
 **Files:**
+
 - Create: `backend/core/slugify.py`
 - Test: `backend/tests/core/test_slugify.py`
 - Modify: `backend/pyproject.toml` (add `pypinyin` dependency)
@@ -164,30 +167,32 @@ git commit -m "feat: add slug generation utility with pinyin support"
 ## Task 3: Backend — Enhance GET /shops/{id} with photos, tags, slug
 
 **Files:**
+
 - Modify: `backend/api/shops.py`
 - Test: `backend/tests/api/test_shops.py`
 
 Currently `GET /shops/{id}` returns raw DB row (no photos, no tags, no slug). Enhance to JOIN `shop_photos` and `shop_tags + taxonomy_tags`, and generate slug on-the-fly if missing.
 
 **API Contract:**
+
 ```yaml
 endpoint: GET /shops/{shop_id}
 response:
   id: string (UUID)
   name: string
-  slug: string  # NEW — generated from name if not stored
+  slug: string # NEW — generated from name if not stored
   address: string
   latitude: float
   longitude: float
   rating: float | null
   description: string | null
-  photo_urls: string[]  # NEW — from shop_photos table
-  taxonomy_tags:         # NEW — from shop_tags + taxonomy_tags
+  photo_urls: string[] # NEW — from shop_photos table
+  taxonomy_tags: # NEW — from shop_tags + taxonomy_tags
     - id: string
       dimension: string
       label: string
       label_zh: string
-  mode_scores:           # NEW — assembled from mode_work/rest/social columns
+  mode_scores: # NEW — assembled from mode_work/rest/social columns
     work: float
     rest: float
     social: float
@@ -195,6 +200,7 @@ response:
 ```
 
 Also add `featured` query param to `GET /shops`:
+
 ```yaml
 endpoint: GET /shops?featured=true&limit=12
 # Returns random selection of live shops when featured=true
@@ -219,6 +225,7 @@ cd backend && uv run pytest tests/api/test_shops.py -v -k "photo_urls or taxonom
 **Step 3: Implement**
 
 In `backend/api/shops.py`:
+
 1. In `get_shop(shop_id)`:
    - After fetching shop row, query `shop_photos` for `photo_urls`
    - Query `shop_tags` JOIN `taxonomy_tags` for tags
@@ -246,6 +253,7 @@ git commit -m "feat: enhance shops API with photos, tags, slug, and featured fil
 ## Task 4: Backend — Slug backfill script
 
 **Files:**
+
 - Create: `backend/scripts/backfill_slugs.py`
 
 **No test needed** — one-time admin script.
@@ -298,6 +306,7 @@ git commit -m "feat: add slug backfill script for existing shops"
 ## Task 5: Frontend Types — Add slug and ShopDetail
 
 **Files:**
+
 - Modify: `lib/types/index.ts`
 
 **No test needed** — type definitions only.
@@ -336,6 +345,7 @@ git commit -m "feat: add ShopDetail type and slug field"
 ## Task 6: Frontend — useMediaQuery hook
 
 **Files:**
+
 - Create: `lib/hooks/use-media-query.ts`
 - Test: `lib/hooks/use-media-query.test.ts`
 
@@ -356,7 +366,10 @@ describe('useMediaQuery', () => {
       value: vi.fn((query: string) => ({
         matches: false,
         media: query,
-        addEventListener: (_: string, cb: (e: { matches: boolean }) => void) => {
+        addEventListener: (
+          _: string,
+          cb: (e: { matches: boolean }) => void
+        ) => {
           listeners.push(cb);
         },
         removeEventListener: vi.fn(),
@@ -446,6 +459,7 @@ git commit -m "feat: add useMediaQuery and useIsDesktop hooks"
 ## Task 7: Frontend — useSearchState hook
 
 **Files:**
+
 - Create: `lib/hooks/use-search-state.ts`
 - Test: `lib/hooks/use-search-state.test.ts`
 
@@ -454,6 +468,7 @@ git commit -m "feat: add useMediaQuery and useIsDesktop hooks"
 Test that the hook reads `q`, `mode`, `filters` from URL search params and provides setters that update them. Mock `useSearchParams` and `useRouter` from `next/navigation`.
 
 Key tests:
+
 - `reads query from ?q= URL param`
 - `reads mode from ?mode= URL param`
 - `reads filters from ?filters= URL param as array`
@@ -477,6 +492,7 @@ Hook wraps `useSearchParams()` and `useRouter()`. Reads `q`, `mode`, `filters` (
 ## Task 8: Frontend — useShopDetail hook
 
 **Files:**
+
 - Create: `lib/hooks/use-shop-detail.ts`
 - Test: `lib/hooks/use-shop-detail.test.ts`
 
@@ -494,12 +510,15 @@ const SHOP_DETAIL = {
   rating: 4.6,
   review_count: 287,
   photo_urls: ['https://example.com/photo1.jpg'],
-  taxonomy_tags: [{ id: 'quiet', dimension: 'ambience', label: 'Quiet', label_zh: '安靜' }],
+  taxonomy_tags: [
+    { id: 'quiet', dimension: 'ambience', label: 'Quiet', label_zh: '安靜' },
+  ],
   mode_scores: { work: 0.8, rest: 0.6, social: 0.3 },
 };
 ```
 
 Key tests:
+
 - `fetches shop detail and returns data` — verify shop.name, photo_urls, taxonomy_tags available
 - `returns null while loading`
 - `handles fetch error gracefully`
@@ -513,12 +532,14 @@ Uses `createSWRWrapper()` and mocks `global.fetch`. Does NOT use `fetchWithAuth`
 ## Task 9: Frontend — useShops hook
 
 **Files:**
+
 - Create: `lib/hooks/use-shops.ts`
 - Test: `lib/hooks/use-shops.test.ts`
 
 Same pattern as Task 8 but fetches from `/api/shops?featured=true&limit=12`. Returns `{ shops: Shop[], isLoading, error }`. Public endpoint, no auth.
 
 Key tests:
+
 - `fetches featured shops`
 - `returns empty array while loading`
 - `handles error state`
@@ -528,12 +549,14 @@ Key tests:
 ## Task 10: Frontend — useSearch hook
 
 **Files:**
+
 - Create: `lib/hooks/use-search.ts`
 - Test: `lib/hooks/use-search.test.ts`
 
 Fetches from `/api/search?text=...&mode=...` using `fetchWithAuth` (auth required). Conditional SWR key — only fetches when query is non-null.
 
 Key tests:
+
 - `fetches search results when query provided`
 - `does not fetch when query is null`
 - `passes mode parameter when set`
@@ -544,6 +567,7 @@ Key tests:
 ## Task 11: Frontend — ShopCard component
 
 **Files:**
+
 - Create: `components/shops/shop-card.tsx`
 - Test: `components/shops/shop-card.test.tsx`
 
@@ -607,10 +631,12 @@ Card component with: `next/image` photo (16:9, 400x225), shop name (font-semibol
 ## Task 12: Frontend — SearchBar component
 
 **Files:**
+
 - Create: `components/discovery/search-bar.tsx`
 - Test: `components/discovery/search-bar.test.tsx`
 
 Key tests:
+
 - `renders input with sparkle icon and placeholder`
 - `submitting form fires onSubmit with query text`
 - `empty submission is prevented`
@@ -623,10 +649,12 @@ Implementation: `<form>` with `<input>` (>=48px height, placeholder "找間有�
 ## Task 13: Frontend — SuggestionChips component
 
 **Files:**
+
 - Create: `components/discovery/suggestion-chips.tsx`
 - Test: `components/discovery/suggestion-chips.test.tsx`
 
 Key tests:
+
 - `renders four suggestion chips` — 巴斯克蛋糕, 適合工作, 安靜一點, 我附近
 - `tapping a chip fires onSelect with the chip text`
 
@@ -637,10 +665,12 @@ Implementation: horizontal scroll container with 4 button chips. Each fires `onS
 ## Task 14: Frontend — ModeChips component
 
 **Files:**
+
 - Create: `components/discovery/mode-chips.tsx`
 - Test: `components/discovery/mode-chips.test.tsx`
 
 Key tests:
+
 - `renders four mode chips` — 工作, 放鬆, 社交, 精品
 - `tapping a chip selects it (fires onModeChange with mode key)`
 - `tapping the active chip deselects it (fires onModeChange with null)`
@@ -653,10 +683,12 @@ Implementation: 4 toggle buttons. Active chip gets filled terracotta style, inac
 ## Task 15: Frontend — FilterPills component
 
 **Files:**
+
 - Create: `components/discovery/filter-pills.tsx`
 - Test: `components/discovery/filter-pills.test.tsx`
 
 Key tests:
+
 - `renders filter pills including 篩選 button`
 - `tapping a pill fires onToggle with filter key`
 - `tapping 篩選 fires onOpenSheet`
@@ -669,10 +701,12 @@ Implementation: horizontal scroll of button pills. Quick filters: 距離/現正�
 ## Task 16: Frontend — FilterSheet component
 
 **Files:**
+
 - Create: `components/discovery/filter-sheet.tsx`
 - Test: `components/discovery/filter-sheet.test.tsx`
 
 Key tests:
+
 - `renders taxonomy dimension sections with checkboxes`
 - `checking a tag and clicking apply fires onApply with selected tag IDs`
 - `clicking clear resets all selections`
@@ -684,10 +718,12 @@ Implementation: vaul `<Drawer>` with sections per dimension (functionality/time/
 ## Task 17: Frontend — BottomNav component
 
 **Files:**
+
 - Create: `components/navigation/bottom-nav.tsx`
 - Test: `components/navigation/bottom-nav.test.tsx`
 
 Key tests:
+
 - `renders four navigation tabs`
 - `highlights the active tab based on current pathname`
 - `tab links navigate to correct routes`
@@ -699,10 +735,12 @@ Implementation: fixed bottom bar with 4 `<Link>` tabs (Home `/`, Map `/map`, Lis
 ## Task 18: Frontend — HeaderNav component
 
 **Files:**
+
 - Create: `components/navigation/header-nav.tsx`
 - Test: `components/navigation/header-nav.test.tsx`
 
 Key tests:
+
 - `renders logo and navigation links`
 - `renders search bar with onSearch callback`
 
@@ -713,10 +751,12 @@ Implementation: desktop header with logo (left), `<SearchBar>` (center), Map/Lis
 ## Task 19: Frontend — ShareButton component
 
 **Files:**
+
 - Create: `components/shops/share-button.tsx`
 - Test: `components/shops/share-button.test.tsx`
 
 Key tests:
+
 - `copies shop URL to clipboard when navigator.share is unavailable`
 - `fires shop_url_copied analytics event`
 
@@ -727,6 +767,7 @@ Implementation: button that tries `navigator.share({ url, title })` first, falls
 ## Task 20: Frontend — Navigation layout integration
 
 **Files:**
+
 - Modify: `app/layout.tsx`
 - Create: `components/navigation/app-shell.tsx`
 
@@ -769,12 +810,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 ## Task 21: Home page
 
 **Files:**
+
 - Modify: `app/page.tsx`
 - Test: `app/page.test.tsx`
 
 **Step 1: Write failing tests**
 
 Key tests:
+
 - `renders search bar and suggestion chips`
 - `renders featured shop cards` — mock fetch to return shop data
 - `search submission navigates to /map with query param`
@@ -782,6 +825,7 @@ Key tests:
 **Step 2: Implement**
 
 SSR server component fetches featured shops (`GET /api/shops?featured=true&limit=12`). Renders:
+
 - Mobile: terracotta hero section with SearchBar, SuggestionChips below, ModeChips, FilterPills, then FeaturedGrid (vertical ShopCards)
 - Desktop: centered hero with SearchBar, SuggestionChips, then 3-column grid of ShopCards
 
@@ -794,6 +838,7 @@ Client wrapper component handles search submission → `router.push('/map?q=...'
 ## Task 22: Shop Detail page
 
 **Files:**
+
 - Create: `app/shops/[shopId]/[slug]/page.tsx`
 - Create: `app/shops/[shopId]/[slug]/layout.tsx` (for metadata generation)
 - Create: `components/shops/shop-hero.tsx`
@@ -809,6 +854,7 @@ Client wrapper component handles search submission → `router.push('/map?q=...'
 **Step 1: Write failing tests**
 
 Key tests:
+
 - `renders shop name and rating for any visitor`
 - `renders attribute chips from taxonomy tags`
 - `renders description text`
@@ -819,6 +865,7 @@ Key tests:
 **Step 2: Implement**
 
 SSR server component:
+
 1. `generateMetadata()` fetches shop → returns `{ title, description, openGraph: { images } }`
 2. Page fetches shop detail from backend server-side
 3. Slug mismatch → `redirect()` to canonical URL
@@ -835,6 +882,7 @@ Sub-components are small, focused components. Each receives shop data as props.
 ## Task 23: Map page
 
 **Files:**
+
 - Create: `app/map/page.tsx`
 - Create: `components/map/map-view.tsx`
 - Create: `components/map/map-mini-card.tsx`
@@ -844,6 +892,7 @@ Sub-components are small, focused components. Each receives shop data as props.
 **Step 1: Write failing tests**
 
 Key tests:
+
 - `renders search overlay on the map page`
 - `shows shop mini card when a pin is selected` (mock MapView to expose onPinClick)
 
@@ -866,12 +915,14 @@ MapDesktopCard: bottom-left floating card (~340px) with photo, identity, "View D
 ## Task 24: Search results page
 
 **Files:**
+
 - Modify: `app/(protected)/search/page.tsx`
 - Test: `app/(protected)/search/page.test.tsx`
 
 **Step 1: Write failing tests**
 
 Key tests:
+
 - `renders search results as shop cards when query present`
 - `shows empty state with suggestions when no results`
 - `shows loading state while searching`
@@ -887,6 +938,7 @@ CSR page: reads query from `useSearchState()`. Uses `useSearch(query, mode)` to 
 ## Task 25: Analytics instrumentation
 
 **Files:**
+
 - Modify: `app/shops/[shopId]/[slug]/page.tsx` (or client wrapper)
 - Modify: `components/discovery/search-bar.tsx`
 - Modify: `components/discovery/filter-pills.tsx`
@@ -895,6 +947,7 @@ CSR page: reads query from `useSearchState()`. Uses `useSearch(query, mode)` to 
 **No separate test needed** — analytics calls tested within component tests.
 
 Add:
+
 - `shop_detail_viewed` — on ShopDetail page mount (client component wrapper)
 - `search_submitted` — in SearchBar onSubmit (after results return, include `result_count`)
 - `filter_applied` — in FilterPills/FilterSheet on toggle/apply
@@ -908,6 +961,7 @@ Uses existing `useAnalytics()` hook from `lib/posthog/use-analytics.ts`.
 ## Task 26: Add /map to middleware public routes
 
 **Files:**
+
 - Modify: `middleware.ts`
 
 **No test needed** — config change.
@@ -1005,12 +1059,14 @@ graph TD
 ```
 
 **Wave 1** (parallel — no dependencies):
+
 - Task 1: DB Migration (slug column)
 - Task 2: Backend slugify utility
 - Task 6: useMediaQuery hook
 - Task 26: Middleware update (/map public)
 
 **Wave 2** (parallel — depends on Wave 1):
+
 - Task 3: Backend shops API enhancement ← T1, T2
 - Task 4: Slug backfill script ← T2
 - Task 7: useSearchState hook
@@ -1023,23 +1079,28 @@ graph TD
 - Task 19: ShareButton component
 
 **Wave 3** (parallel — depends on Wave 2):
+
 - Task 5: Frontend types ← T3
 - Task 10: useSearch hook
 - Task 18: HeaderNav ← T12
 
 **Wave 4** (parallel — depends on Wave 3):
+
 - Task 8: useShopDetail hook ← T5
 - Task 9: useShops hook ← T5
 - Task 11: ShopCard ← T5
 
 **Wave 5** (depends on Waves 2-4):
+
 - Task 20: Layout integration ← T6, T17, T18
 
 **Wave 6** (parallel — depends on Waves 4-5):
+
 - Task 21: Home page ← T7, T9, T11, T12, T13, T14, T15, T16, T20
 - Task 22: Shop Detail page ← T8, T19, T20
 - Task 23: Map page ← T7, T11, T12, T15, T20, T26
 - Task 24: Search page ← T7, T10, T11
 
 **Wave 7** (depends on Wave 6):
+
 - Task 25: Analytics instrumentation ← T22, T24

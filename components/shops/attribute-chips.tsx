@@ -17,7 +17,10 @@ export function AttributeChips({ tags }: AttributeChipsProps) {
   return (
     <div className="flex flex-wrap gap-2 px-4 py-2">
       {tags.map((tag) => (
-        <span key={tag.id} className="px-3 py-1 rounded-full bg-gray-100 text-xs text-gray-700">
+        <span
+          key={tag.id}
+          className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700"
+        >
           {tagDisplayLabel(tag)}
         </span>
       ))}

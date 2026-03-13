@@ -1,8 +1,8 @@
-"use client";
-import { useRouter } from "next/navigation";
-import { useIsDesktop } from "@/lib/hooks/use-media-query";
-import { BottomNav } from "./bottom-nav";
-import { HeaderNav } from "./header-nav";
+'use client';
+import { useRouter } from 'next/navigation';
+import { useIsDesktop } from '@/lib/hooks/use-media-query';
+import { BottomNav } from './bottom-nav';
+import { HeaderNav } from './header-nav';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const isDesktop = useIsDesktop();
@@ -15,7 +15,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       {isDesktop && <HeaderNav onSearch={handleSearch} />}
-      <main className={isDesktop ? "pt-16" : "pb-16"}>{children}</main>
+      <main className={isDesktop ? 'pt-16' : 'pb-16'}>{children}</main>
       {!isDesktop && <BottomNav />}
     </>
   );

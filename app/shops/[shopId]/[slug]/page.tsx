@@ -1,7 +1,7 @@
-import { notFound, redirect } from "next/navigation";
-import type { Metadata } from "next";
-import { ShopDetailClient } from "./shop-detail-client";
-import { BACKEND_URL } from "@/lib/api/proxy";
+import { notFound, redirect } from 'next/navigation';
+import type { Metadata } from 'next';
+import { ShopDetailClient } from './shop-detail-client';
+import { BACKEND_URL } from '@/lib/api/proxy';
 
 interface Params {
   shopId: string;
@@ -23,7 +23,7 @@ export async function generateMetadata({
   params: Params;
 }): Promise<Metadata> {
   const shop = await fetchShop(params.shopId);
-  if (!shop) return { title: "Shop not found" };
+  if (!shop) return { title: 'Shop not found' };
 
   const photo = shop.photo_urls?.[0];
   return {

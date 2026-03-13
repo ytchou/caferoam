@@ -18,7 +18,10 @@ describe('ShareButton', () => {
 
   beforeEach(() => {
     mockCapture.mockClear();
-    Object.defineProperty(navigator, 'share', { writable: true, value: undefined });
+    Object.defineProperty(navigator, 'share', {
+      writable: true,
+      value: undefined,
+    });
     Object.defineProperty(navigator, 'clipboard', {
       writable: true,
       value: { writeText: vi.fn().mockResolvedValue(undefined) },

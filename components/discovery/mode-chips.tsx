@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-type Mode = "work" | "rest" | "social" | "specialty" | null;
+type Mode = 'work' | 'rest' | 'social' | 'specialty' | null;
 
 const MODES: { key: Exclude<Mode, null>; label: string }[] = [
-  { key: "work", label: "工作" },
-  { key: "rest", label: "放鬆" },
-  { key: "social", label: "社交" },
-  { key: "specialty", label: "精品" },
+  { key: 'work', label: '工作' },
+  { key: 'rest', label: '放鬆' },
+  { key: 'social', label: '社交' },
+  { key: 'specialty', label: '精品' },
 ];
 
 interface ModeChipsProps {
@@ -16,7 +16,7 @@ interface ModeChipsProps {
 
 export function ModeChips({ activeMode, onModeChange }: ModeChipsProps) {
   return (
-    <div className="flex gap-2 overflow-x-auto scrollbar-hide py-1">
+    <div className="scrollbar-hide flex gap-2 overflow-x-auto py-1">
       {MODES.map(({ key, label }) => {
         const isActive = activeMode === key;
         return (
@@ -25,10 +25,10 @@ export function ModeChips({ activeMode, onModeChange }: ModeChipsProps) {
             type="button"
             aria-pressed={isActive}
             onClick={() => onModeChange(isActive ? null : key)}
-            className={`whitespace-nowrap px-4 py-2 rounded-full text-sm transition-colors flex-shrink-0 ${
+            className={`flex-shrink-0 rounded-full px-4 py-2 text-sm whitespace-nowrap transition-colors ${
               isActive
-                ? "bg-[#E06B3F] text-white border border-[#E06B3F]"
-                : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
+                ? 'border border-[#E06B3F] bg-[#E06B3F] text-white'
+                : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
             {label}

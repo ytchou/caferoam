@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-const SUGGESTIONS = ["巴斯克蛋糕", "適合工作", "安靜一點", "我附近"] as const;
+const SUGGESTIONS = ['巴斯克蛋糕', '適合工作', '安靜一點', '我附近'] as const;
 
 interface SuggestionChipsProps {
   onSelect: (suggestion: string) => void;
@@ -8,13 +8,13 @@ interface SuggestionChipsProps {
 
 export function SuggestionChips({ onSelect }: SuggestionChipsProps) {
   return (
-    <div className="flex gap-2 overflow-x-auto scrollbar-hide py-1">
+    <div className="scrollbar-hide flex gap-2 overflow-x-auto py-1">
       {SUGGESTIONS.map((chip) => (
         <button
           key={chip}
           type="button"
           onClick={() => onSelect(chip)}
-          className="whitespace-nowrap px-4 py-2 rounded-full border border-gray-200 text-sm text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors flex-shrink-0"
+          className="flex-shrink-0 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm whitespace-nowrap text-gray-700 transition-colors hover:bg-gray-50 active:bg-gray-100"
         >
           {chip}
         </button>

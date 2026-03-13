@@ -1,5 +1,5 @@
-"use client";
-import Link from "next/link";
+'use client';
+import Link from 'next/link';
 
 interface StickyCheckinBarProps {
   shopId: string;
@@ -8,10 +8,10 @@ interface StickyCheckinBarProps {
 
 export function StickyCheckinBar({ shopId, returnTo }: StickyCheckinBarProps) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 pb-safe z-30">
+    <div className="pb-safe fixed right-0 bottom-0 left-0 z-30 border-t border-gray-100 bg-white p-4">
       <Link
         href={`/checkin/${shopId}?returnTo=${encodeURIComponent(returnTo)}`}
-        className="block w-full py-3 text-center bg-[#E06B3F] text-white font-medium rounded-full"
+        className="block w-full rounded-full bg-[#E06B3F] py-3 text-center font-medium text-white"
       >
         打卡記錄 Check In →
       </Link>

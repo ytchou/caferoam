@@ -17,7 +17,10 @@ export function ShareButton({ shopId, shopName, shareUrl }: ShareButtonProps) {
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share(shareData);
-        capture('shop_url_copied', { shop_id: shopId, copy_method: 'native_share' });
+        capture('shop_url_copied', {
+          shop_id: shopId,
+          copy_method: 'native_share',
+        });
         return;
       } catch {
         // Fall through to clipboard
@@ -27,7 +30,10 @@ export function ShareButton({ shopId, shopName, shareUrl }: ShareButtonProps) {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       try {
         await navigator.clipboard.writeText(shareUrl);
-        capture('shop_url_copied', { shop_id: shopId, copy_method: 'clipboard' });
+        capture('shop_url_copied', {
+          shop_id: shopId,
+          copy_method: 'clipboard',
+        });
       } catch {
         // Clipboard unavailable (permission denied or non-secure context)
       }
@@ -39,7 +45,7 @@ export function ShareButton({ shopId, shopName, shareUrl }: ShareButtonProps) {
       type="button"
       onClick={handleShare}
       aria-label="分享"
-      className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+      className="flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
     >
       <svg
         width="16"

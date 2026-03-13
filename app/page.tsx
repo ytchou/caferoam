@@ -1,14 +1,14 @@
-"use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { SearchBar } from "@/components/discovery/search-bar";
-import { SuggestionChips } from "@/components/discovery/suggestion-chips";
-import { ModeChips } from "@/components/discovery/mode-chips";
-import { FilterPills } from "@/components/discovery/filter-pills";
-import { FilterSheet } from "@/components/discovery/filter-sheet";
-import { ShopCard } from "@/components/shops/shop-card";
-import { useShops } from "@/lib/hooks/use-shops";
-import type { SearchMode } from "@/lib/hooks/use-search-state";
+'use client';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { SearchBar } from '@/components/discovery/search-bar';
+import { SuggestionChips } from '@/components/discovery/suggestion-chips';
+import { ModeChips } from '@/components/discovery/mode-chips';
+import { FilterPills } from '@/components/discovery/filter-pills';
+import { FilterSheet } from '@/components/discovery/filter-sheet';
+import { ShopCard } from '@/components/shops/shop-card';
+import { useShops } from '@/lib/hooks/use-shops';
+import type { SearchMode } from '@/lib/hooks/use-search-state';
 
 export default function HomePage() {
   const router = useRouter();
@@ -19,28 +19,30 @@ export default function HomePage() {
 
   const handleSearch = (query: string) => {
     const params = new URLSearchParams({ q: query });
-    if (mode) params.set("mode", mode);
-    if (activeFilters.length) params.set("filters", activeFilters.join(","));
+    if (mode) params.set('mode', mode);
+    if (activeFilters.length) params.set('filters', activeFilters.join(','));
     router.push(`/map?${params.toString()}`);
   };
 
   const handleToggleFilter = (filter: string) => {
     setActiveFilters((prev) =>
-      prev.includes(filter) ? prev.filter((x) => x !== filter) : [...prev, filter]
+      prev.includes(filter)
+        ? prev.filter((x) => x !== filter)
+        : [...prev, filter]
     );
   };
 
   return (
     <div className="min-h-screen bg-[#FAF7F4]">
-      <section className="px-4 pt-8 pb-4 bg-[#E06B3F]">
-        <h1 className="text-2xl font-bold text-white mb-4">啡遊</h1>
+      <section className="bg-[#E06B3F] px-4 pt-8 pb-4">
+        <h1 className="mb-4 text-2xl font-bold text-white">啡遊</h1>
         <SearchBar onSubmit={handleSearch} autoFocus={false} />
         <div className="mt-3">
           <SuggestionChips onSelect={handleSearch} />
         </div>
       </section>
 
-      <div className="px-4 py-3 bg-white border-b border-gray-100 sticky top-0 z-10">
+      <div className="sticky top-0 z-10 border-b border-gray-100 bg-white px-4 py-3">
         <ModeChips activeMode={mode} onModeChange={setMode} />
         <div className="mt-2">
           <FilterPills
@@ -52,7 +54,7 @@ export default function HomePage() {
       </div>
 
       <section className="px-4 py-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">精選咖啡廳</h2>
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">精選咖啡廳</h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           {shops.map((shop) => (
             <ShopCard key={shop.id} shop={shop} />
@@ -61,7 +63,7 @@ export default function HomePage() {
       </section>
 
       <FilterSheet
-        key={filterSheetOpen ? "open" : "closed"}
+        key={filterSheetOpen ? 'open' : 'closed'}
         open={filterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
         onApply={setActiveFilters}
