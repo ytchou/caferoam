@@ -799,7 +799,7 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 **Chunk 4 — New components (Wave 5):**
 
 - [x] MapDesktopCard (TDD)
-- [ ] ShopDescription (TDD)
+- [x] ShopDescription (TDD)
 - [ ] MenuHighlights (TDD)
 - [ ] RecentCheckinsStrip (TDD)
 - [ ] ShopMapThumbnail (TDD)
