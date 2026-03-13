@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { PostHogProvider } from '@/lib/posthog/provider';
 import { SessionTracker } from '@/components/session-tracker';
+import { AppShell } from '@/components/navigation/app-shell';
 import './globals.css';
 
 const geistSans = Geist({
@@ -32,7 +33,7 @@ export default function RootLayout({
       >
         <PostHogProvider>
           <SessionTracker />
-          {children}
+          <AppShell>{children}</AppShell>
         </PostHogProvider>
       </body>
     </html>

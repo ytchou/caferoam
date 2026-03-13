@@ -3,8 +3,10 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { Shop } from "@/lib/types";
 
-type ShopCardData = Shop & {
+type ShopCardData = Pick<Shop, "id" | "name" | "rating"> & {
   slug?: string;
+  mrt?: string;
+  photoUrls?: string[];
   photo_urls?: string[];
 };
 
