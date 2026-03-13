@@ -27,7 +27,7 @@ describe('AppShell', () => {
     render(
       <AppShell>
         <p>Page content</p>
-      </AppShell>,
+      </AppShell>
     );
 
     expect(screen.getByTestId('bottom-nav')).toBeInTheDocument();
@@ -40,7 +40,7 @@ describe('AppShell', () => {
     render(
       <AppShell>
         <p>Page content</p>
-      </AppShell>,
+      </AppShell>
     );
 
     expect(screen.getByTestId('header-nav')).toBeInTheDocument();

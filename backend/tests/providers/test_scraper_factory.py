@@ -2,8 +2,6 @@ from unittest.mock import patch
 
 import pytest
 
-from providers.scraper.interface import ScraperProvider
-
 
 class TestScraperFactory:
     """Verify scraper factory selects the correct adapter from settings."""
