@@ -802,7 +802,7 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 - [x] ShopDescription (TDD)
 - [x] MenuHighlights (TDD)
 - [x] RecentCheckinsStrip (TDD)
-- [ ] ShopMapThumbnail (TDD)
+- [x] ShopMapThumbnail (TDD)
 - [ ] Viewport-only pin filtering in MapView (TDD)
 - [ ] useGeolocation hook (TDD)
 
