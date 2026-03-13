@@ -47,6 +47,20 @@ vi.mock('@/components/map/map-mini-card', () => ({
   ),
 }));
 
+vi.mock('@/components/map/map-desktop-card', () => ({
+  MapDesktopCard: ({ shop }: { shop: { name: string } }) => (
+    <div data-testid="desktop-card">{shop.name}</div>
+  ),
+}));
+
+vi.mock('@/lib/hooks/use-media-query', () => ({
+  useIsDesktop: () => false,
+}));
+
+vi.mock('@/lib/hooks/use-shops', () => ({
+  useShops: () => ({ shops: [], isLoading: false, error: null }),
+}));
+
 import MapPage from './page';
 
 describe('Map page', () => {

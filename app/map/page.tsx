@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { SearchBar } from '@/components/discovery/search-bar';
 import { FilterPills } from '@/components/discovery/filter-pills';
 import { MapMiniCard } from '@/components/map/map-mini-card';
+import { MapDesktopCard } from '@/components/map/map-desktop-card';
+import { useIsDesktop } from '@/lib/hooks/use-media-query';
+import { useShops } from '@/lib/hooks/use-shops';
 
 const MapView = dynamic(
   () =>
@@ -12,23 +15,17 @@ const MapView = dynamic(
   { ssr: false }
 );
 
-const PLACEHOLDER_SHOPS: Array<{
-  id: string;
-  name: string;
-  slug: string;
-  latitude: number;
-  longitude: number;
-  rating: number;
-}> = [];
-
 export default function MapPage() {
   const router = useRouter();
   const [selectedShopId, setSelectedShopId] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
+  const { shops } = useShops({ featured: true, limit: 200 });
+  const isDesktop = useIsDesktop();
+
   const shopById = useMemo(
-    () => new Map(PLACEHOLDER_SHOPS.map((s) => [s.id, s])),
-    []
+    () => new Map(shops.map((s) => [s.id, s])),
+    [shops]
   );
   const selectedShop = selectedShopId
     ? (shopById.get(selectedShopId) ?? null)
@@ -48,7 +45,7 @@ export default function MapPage() {
             </div>
           }
         >
-          <MapView shops={PLACEHOLDER_SHOPS} onPinClick={setSelectedShopId} />
+          <MapView shops={shops} onPinClick={setSelectedShopId} />
         </Suspense>
       </div>
 
@@ -67,11 +64,11 @@ export default function MapPage() {
         </div>
       </div>
 
-      {selectedShop && (
-        <MapMiniCard
-          shop={selectedShop}
-          onDismiss={() => setSelectedShopId(null)}
-        />
+      {selectedShop && !isDesktop && (
+        <MapMiniCard shop={selectedShop} onDismiss={() => setSelectedShopId(null)} />
+      )}
+      {selectedShop && isDesktop && (
+        <MapDesktopCard shop={selectedShop} />
       )}
     </div>
   );
