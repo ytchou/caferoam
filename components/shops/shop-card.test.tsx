@@ -8,11 +8,10 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("next/image", () => ({
-  default: (props: React.ImgHTMLAttributes<HTMLImageElement> & { fill?: boolean; priority?: boolean }) => {
+  default: ({ src, alt }: { src: string; alt: string }) => (
     // eslint-disable-next-line @next/next/no-img-element
-    const { fill: _fill, priority: _priority, ...rest } = props;
-    return <img {...rest} />;
-  },
+    <img src={src} alt={alt} />
+  ),
 }));
 
 import { ShopCard } from "./shop-card";

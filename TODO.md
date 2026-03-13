@@ -746,8 +746,8 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 
 - [x] useMediaQuery / useIsDesktop hook (TDD)
 - [x] useSearchState hook — URL param driven (TDD)
-- [ ] useShopDetail hook (TDD)
-- [ ] useShops hook (TDD)
+- [x] useShopDetail hook (TDD)
+- [x] useShops hook (TDD)
 - [x] useSearch hook — auth-gated semantic search (TDD)
 - [x] Frontend types: ShopDetail, slug field
 
@@ -758,7 +758,7 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 - [x] ModeChips — semantic mode toggles (TDD)
 - [x] FilterPills — quick filter row (TDD)
 - [x] FilterSheet — vaul Drawer filter panel (TDD)
-- [ ] ShopCard — photo + name + rating card (TDD)
+- [x] ShopCard — photo + name + rating card (TDD)
 - [x] ShareButton — Web Share API + clipboard (TDD)
 
 **Chunk 4 — Navigation (Wave 2-5):**
