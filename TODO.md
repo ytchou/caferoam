@@ -659,29 +659,29 @@ Discovered gaps moved to → Quality Gate: Pre-Phase 2B section below.
 
 ### Frontend Tests — Auth Pages
 
-- [ ] Login page tests: email form submit, OAuth buttons (Google/LINE), error display, redirect
-- [ ] Signup page tests: signup form, PDPA checkbox required, email confirmation, error display
-- [ ] PDPA consent page tests: consent checkbox + submit, redirect to home, consent API call
-- [ ] Account recovery page tests: cancel-deletion API call, success message, error state
+- [x] Login page tests: email form submit, OAuth buttons (Google/LINE), error display, redirect
+- [x] Signup page tests: signup form, PDPA checkbox required, email confirmation, error display
+- [x] PDPA consent page tests: consent checkbox + submit, redirect to home, consent API call
+- [x] Account recovery page tests: cancel-deletion API call, success message, error state
 
 ### Frontend Tests — SWR Hooks
 
-- [ ] `useUserProfile` hook tests: fetch profile, null while loading, error state, mutate
-- [ ] `useUserCheckins` hook tests: fetch check-ins, empty array while loading, error
-- [ ] `useListSummaries` hook tests: fetch summaries, empty array while loading, error
+- [x] `useUserProfile` hook tests: fetch profile, null while loading, error state, mutate
+- [x] `useUserCheckins` hook tests: fetch check-ins, empty array while loading, error
+- [x] `useListSummaries` hook tests: fetch summaries, empty array while loading, error
 
 ### Backend Test + Validation
 
-- [ ] Dedicated test for `check_urls.py` handler: valid URL, dead URL, batch processing, status updates
-- [ ] Validate `confirmed_tags` against taxonomy in CheckInService (reject unknown tag IDs with 400)
+- [x] Dedicated test for `check_urls.py` handler: valid URL, dead URL, batch processing, status updates
+- [x] Validate `confirmed_tags` against taxonomy in CheckInService (reject unknown tag IDs with 400)
 
 ### Verification
 
-- [ ] All new test files pass (7 frontend + 1 backend)
-- [ ] DB migration applies cleanly
-- [ ] Full verification (pnpm test, pytest, pnpm build, ruff, mypy)
+- [x] All new test files pass (7 frontend + 1 backend)
+- [x] DB migration applies cleanly
+- [x] Full verification (pnpm test, pytest, pnpm build, ruff, mypy)
 
-**Quality gate is done when:** All 8 new test files pass, DB indexes applied, confirmed_tags validated at service level. No regressions.
+**Quality gate is done when:** All 8 new test files pass, DB indexes applied, confirmed_tags validated at service level. No regressions. ✅ **Complete — verified 2026-03-13.**
 
 ---
 
