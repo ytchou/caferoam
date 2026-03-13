@@ -8,7 +8,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("next/dynamic", () => ({
-  default: (_fn: () => unknown, _opts: unknown) => {
+  default: (..._args: unknown[]) => {
     const Mock = () => <div data-testid="map-view" />;
     Mock.displayName = "MockMapView";
     return Mock;

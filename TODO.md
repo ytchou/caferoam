@@ -770,10 +770,10 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 
 **Chunk 5 — Pages (Wave 6):**
 
-- [ ] Home page — SSR featured shops + client search (TDD)
-- [ ] Shop Detail page — SSR with og:* meta tags (TDD)
-- [ ] Map page — lazy-loaded Mapbox + pins (TDD)
-- [ ] Search results page — auth-gated ranked results (TDD)
+- [x] Home page — SSR featured shops + client search (TDD)
+- [x] Shop Detail page — SSR with og:* meta tags (TDD)
+- [x] Map page — lazy-loaded Mapbox + pins (TDD)
+- [x] Search results page — auth-gated ranked results (TDD)
 
 **Chunk 6 — Analytics (Wave 7):**
 
