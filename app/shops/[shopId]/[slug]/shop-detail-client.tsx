@@ -5,6 +5,10 @@ import { ShopIdentity } from '@/components/shops/shop-identity';
 import { AttributeChips } from '@/components/shops/attribute-chips';
 import { ShareButton } from '@/components/shops/share-button';
 import { StickyCheckinBar } from '@/components/shops/sticky-checkin-bar';
+import { ShopDescription } from '@/components/shops/shop-description';
+import { MenuHighlights } from '@/components/shops/menu-highlights';
+import { RecentCheckinsStrip } from '@/components/shops/recent-checkins-strip';
+import { ShopMapThumbnail } from '@/components/shops/shop-map-thumbnail';
 import { useAnalytics } from '@/lib/posthog/use-analytics';
 
 interface ShopData {
@@ -22,6 +26,11 @@ interface ShopData {
     labelZh: string;
   }>;
   mrt?: string;
+  menuHighlights?: Array<{ name: string; emoji: string; price: string }>;
+  latitude?: number;
+  longitude?: number;
+  checkinPreview?: { count: number; previewPhotoUrl: string | null };
+  recentCheckins?: Array<{ id: string; displayName: string | null; photoUrl: string; createdAt: string }>;
 }
 
 interface ShopDetailClientProps {
@@ -61,8 +70,16 @@ export function ShopDetailClient({ shop }: ShopDetailClientProps) {
         mrt={shop.mrt}
       />
       {tags.length > 0 && <AttributeChips tags={tags} />}
-      {shop.description && (
-        <p className="px-4 py-2 text-sm text-gray-600">{shop.description}</p>
+      {shop.description && <ShopDescription text={shop.description} />}
+      {shop.menuHighlights && <MenuHighlights items={shop.menuHighlights} />}
+      {shop.latitude != null && shop.longitude != null && (
+        <ShopMapThumbnail latitude={shop.latitude} longitude={shop.longitude} shopName={shop.name} />
+      )}
+      {shop.checkinPreview && (
+        <RecentCheckinsStrip
+          preview={shop.checkinPreview}
+          checkins={shop.recentCheckins ?? []}
+        />
       )}
       <div className="px-4 py-2">
         <ShareButton

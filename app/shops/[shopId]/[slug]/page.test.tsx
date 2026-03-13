@@ -26,6 +26,9 @@ vi.mock('next/link', () => ({
 vi.mock('@/components/shops/share-button', () => ({
   ShareButton: () => <button>Share</button>,
 }));
+vi.mock('@/components/shops/shop-map-thumbnail', () => ({
+  ShopMapThumbnail: () => <div data-testid="shop-map-thumbnail" />,
+}));
 
 import { ShopDetailClient } from './shop-detail-client';
 
