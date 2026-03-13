@@ -703,19 +703,15 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 - [ ] Confirm `supabase/migrations/20260302000003_tagged_shop_count_rpc.sql` is the latest — `supabase db diff` should show no pending changes
 - [ ] Set required env vars in `backend/.env`: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `APIFY_API_TOKEN`
 
-**Chunk 2 — Full pipeline: import via Google Takeout + reach 200+ shops:**
+**Chunk 2 — Full pipeline: import via CSV/URL scripts + reach 200+ shops:**
 
-> Requires a Google Takeout export of your saved places. The importer reads the GeoJSON, inserts shops as `pending`, and queues SCRAPE_SHOP jobs. The worker chain then handles SCRAPE → ENRICH → EMBED → PUBLISH automatically.
+> ~~Google Takeout GeoJSON importer~~ — pivoted to CSV + URL importers (see `scripts/run_csv_import.py` and `scripts/run_url_import.py`). The Google Takeout workflow is no longer planned.
 
-- [ ] Export Google Maps saved places: Google Account → Data & Privacy → Download your data → select "Saved" → export as JSON → unzip and locate `Takeout/Maps/Saved Places.json`
-- [ ] Write `backend/scripts/run_takeout_import.py`:
-  - Accept GeoJSON file path as CLI arg (`sys.argv[1]`)
-  - Load and parse the file
-  - Call `import_takeout_to_queue(geojson, db, queue)` from `importers/google_takeout.py`
-  - Print count of shops queued
+- [ ] Prepare shop CSV or collect Google Maps URLs
+- [ ] Run import: `cd backend && uv run python scripts/run_csv_import.py /path/to/shops.csv` or `uv run python scripts/run_url_import.py "URL1" "URL2"`
 - [ ] Start backend: `cd backend && uvicorn main:app --reload --port 8000`
-- [ ] Run import: `cd backend && uv run python scripts/run_takeout_import.py /path/to/Saved\ Places.json`
-- [ ] Confirm SCRAPE_SHOP jobs queued — check `/admin/jobs` or `GET /admin/pipeline/jobs?status=pending`
+- [ ] Confirm shops queued — check `GET /admin/pipeline/overview`
+- [ ] Confirm SCRAPE jobs queued — check `GET /admin/pipeline/jobs?status=pending`
 - [ ] Let worker run (APScheduler fires every 30s) — monitor progress in admin dashboard
 - [ ] Pipeline chain completes: SCRAPE_SHOP → ENRICH_SHOP → EMBED_SHOP → PUBLISH_SHOP
 - [ ] Verify: `SELECT COUNT(*) FROM shops WHERE processing_status = 'live'` ≥ 200
