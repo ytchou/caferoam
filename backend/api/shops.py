@@ -1,10 +1,9 @@
 from typing import Any, cast
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.deps import get_admin_db, get_current_user, get_optional_user
 from core.db import first
-from core.slugify import generate_slug
 from db.supabase_client import get_anon_client
 from models.types import ShopCheckInPreview, ShopCheckInSummary, ShopReview, ShopReviewsResponse
 
@@ -18,6 +17,13 @@ def _extract_display_name(row: dict[str, Any]) -> str | None:
     return profiles.get("display_name")
 
 
+_SHOP_COLUMNS = (
+    "id, name, slug, address, city, mrt, latitude, longitude, "
+    "rating, review_count, description, processing_status, "
+    "mode_work, mode_rest, mode_social, created_at"
+)
+
+
 @router.get("/")
 async def list_shops(
     city: str | None = None,
@@ -26,7 +32,7 @@ async def list_shops(
 ) -> list[Any]:
     """List shops. Public — no auth required."""
     db = get_anon_client()
-    query = db.table("shops").select("*")
+    query = db.table("shops").select(_SHOP_COLUMNS)
     if city:
         query = query.eq("city", city)
     if featured:
@@ -39,16 +45,24 @@ async def list_shops(
 @router.get("/{shop_id}")
 async def get_shop(shop_id: str) -> Any:
     """Get a single shop by ID. Public — no auth required."""
-    db = get_anon_client()
-    shop = db.table("shops").select("*").eq("id", shop_id).single().execute().data
+    db = get_admin_db()
+    try:
+        response = (
+            db.table("shops")
+            .select(f"{_SHOP_COLUMNS}, shop_photos(photo_url), shop_tags(tag_name)")
+            .eq("id", shop_id)
+            .single()
+            .execute()
+        )
+    except Exception:
+        raise HTTPException(status_code=404, detail="Shop not found")
 
-    photo_rows = db.table("shop_photos").select("photo_url").eq("shop_id", shop_id).execute().data
-    photo_urls = [row["photo_url"] for row in (photo_rows or [])]
+    shop = response.data
+    if not shop:
+        raise HTTPException(status_code=404, detail="Shop not found")
 
-    tag_rows = db.table("shop_tags").select("tag_name").eq("shop_id", shop_id).execute().data
-    tags = [row["tag_name"] for row in (tag_rows or [])]
-
-    slug = shop.get("slug") or generate_slug(shop["name"])
+    photo_urls = [row["photo_url"] for row in (shop.pop("shop_photos", None) or [])]
+    tags = [row["tag_name"] for row in (shop.pop("shop_tags", None) or [])]
 
     mode_scores = {
         "work": shop.get("mode_work"),
@@ -58,7 +72,6 @@ async def get_shop(shop_id: str) -> Any:
 
     return {
         **shop,
-        "slug": slug,
         "photo_urls": photo_urls,
         "tags": tags,
         "mode_scores": mode_scores,
