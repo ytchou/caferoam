@@ -748,8 +748,8 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 - [x] useSearchState hook — URL param driven (TDD)
 - [ ] useShopDetail hook (TDD)
 - [ ] useShops hook (TDD)
-- [ ] useSearch hook — auth-gated semantic search (TDD)
-- [ ] Frontend types: ShopDetail, slug field
+- [x] useSearch hook — auth-gated semantic search (TDD)
+- [x] Frontend types: ShopDetail, slug field
 
 **Chunk 3 — Shared Components (Wave 2-3):**
 
@@ -764,7 +764,7 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 **Chunk 4 — Navigation (Wave 2-5):**
 
 - [x] BottomNav — mobile tab bar (TDD)
-- [ ] HeaderNav — desktop top nav (TDD)
+- [x] HeaderNav — desktop top nav (TDD)
 - [ ] AppShell layout integration
 - [x] Add /map to middleware public routes
 
