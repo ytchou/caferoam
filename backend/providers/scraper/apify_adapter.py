@@ -1,6 +1,5 @@
 import asyncio
 from typing import Any
-from urllib.parse import parse_qs, urlparse
 
 import structlog
 from apify_client import ApifyClient
@@ -39,32 +38,17 @@ class ApifyScraperAdapter:
     async def scrape_batch(self, shops: list[BatchScrapeInput]) -> list[BatchScrapeResult]:
         """Scrape multiple shops in a single Apify actor run.
 
-        Matches results back to input shops by URL path (handles Google Maps redirects).
+        Matches results back to input shops via userData.shopId, which the
+        crawler-google-places actor merges into each output item verbatim.
+
+        URL/path matching is unreliable because Apify converts /maps/place/...
+        URLs to /maps/search/?api=1&query=... internally, so the output URL
+        never matches the input URL.
         """
         if not shops:
             return []
 
-        seen_urls: set[str] = set()
-        for s in shops:
-            if s.google_maps_url in seen_urls:
-                logger.warning(
-                    "Duplicate URL in batch — result matching ambiguous",
-                    url=s.google_maps_url,
-                )
-            seen_urls.add(s.google_maps_url)
-
         url_to_shop_id = {s.google_maps_url: s.shop_id for s in shops}
-        # Path-based fallback: handles https://maps.google.com → https://www.google.com/maps/...
-        path_to_shop_id = {
-            _url_path(s.google_maps_url): s.shop_id for s in shops if _url_path(s.google_maps_url)
-        }
-        # CID-based fallback: CID URLs (?cid=12345) have no path, but Apify may echo the CID
-        cid_to_shop_id = {cid: s.shop_id for s in shops if (cid := _url_cid(s.google_maps_url))}
-        if cid_to_shop_id:
-            logger.info(
-                "Batch contains CID-format URLs — using CID matching fallback",
-                cid_count=len(cid_to_shop_id),
-            )
         start_urls = [{"url": s.google_maps_url} for s in shops]
 
         results = await self._run_actor(
@@ -80,14 +64,15 @@ class ApifyScraperAdapter:
 
         matched: dict[str, ScrapedShopData] = {}
         for place in results:
-            scraped_url = place.get("url", "")
-            shop_id = (
-                url_to_shop_id.get(scraped_url)
-                or path_to_shop_id.get(_url_path(scraped_url))
-                or cid_to_shop_id.get(_url_cid(scraped_url) or "")
-            )
+            # inputStartUrl is the original URL we sent — exact match is reliable.
+            # (Apify converts place URLs to search URLs in its output `url` field,
+            # making that field useless for correlation.)
+            input_url = place.get("inputStartUrl", "")
+            shop_id = url_to_shop_id.get(input_url)
             if shop_id:
                 matched[shop_id] = self._parse_place(place)
+            else:
+                logger.warning("scrape_batch: no match for inputStartUrl", url=input_url[:80])
 
         return [BatchScrapeResult(shop_id=s.shop_id, data=matched.get(s.shop_id)) for s in shops]
 
@@ -164,21 +149,3 @@ class ApifyScraperAdapter:
 
     async def close(self) -> None:
         pass
-
-
-def _url_path(url: str) -> str:
-    """Extract normalised path from a URL for redirect fallback matching."""
-    try:
-        return urlparse(url).path.rstrip("/")
-    except Exception:
-        return ""
-
-
-def _url_cid(url: str) -> str | None:
-    """Extract Google Maps CID from a ?cid= URL, or None if not present."""
-    try:
-        qs = parse_qs(urlparse(url).query)
-        parts = qs.get("cid")
-        return parts[0] if parts else None
-    except Exception:
-        return None
