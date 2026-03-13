@@ -4,3 +4,6 @@ dist
 coverage
 pnpm-lock.yaml
 data/
+# claude-code-action validates these against main byte-for-byte — do not reformat
+.github/workflows/claude-code-review.yml
+.github/workflows/claude.yml
