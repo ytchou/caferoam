@@ -117,8 +117,7 @@ def main() -> None:
         db.table("shops").select("google_maps_url").in_("google_maps_url", candidate_urls).execute()
     )
     existing_urls = {
-        row["google_maps_url"]
-        for row in cast("list[dict[str, Any]]", existing_response.data or [])
+        row["google_maps_url"] for row in cast("list[dict[str, Any]]", existing_response.data or [])
     }
 
     # Insert new shops
