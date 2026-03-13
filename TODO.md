@@ -785,7 +785,7 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 
 **Chunk 1 — Backend camelCase (Wave 1-2):**
 
-- [ ] CamelModel base class with Pydantic alias_generator (TDD)
+- [x] CamelModel base class with Pydantic alias_generator (TDD)
 - [ ] All API endpoints serialize as camelCase (TDD)
 
 **Chunk 2 — Structured taxonomy_tags (Wave 3):**
