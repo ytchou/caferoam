@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
@@ -22,12 +21,11 @@ export function ProfileHeader({
     <div className="flex items-center gap-4 pb-6">
       <Avatar className="h-16 w-16">
         {avatarUrl ? (
-          <Image
+          // eslint-disable-next-line @next/next/no-img-element -- avatar URLs may come from OAuth providers (Google, GitHub) whose hostnames are not in next.config.ts remotePatterns
+          <img
             src={avatarUrl}
             alt={name}
-            fill
-            className="object-cover"
-            sizes="64px"
+            className="aspect-square size-full object-cover"
           />
         ) : (
           <AvatarFallback className="text-lg font-medium">
