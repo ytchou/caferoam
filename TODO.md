@@ -829,11 +829,32 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 
 ### Performance (verified during implementation)
 
-- [ ] Mobile-first UI: design and test at 390px width first
-- [ ] Desktop breakpoint: ≥1024px — two distinct layout systems
-- [ ] Map performance: lazy-load Mapbox, viewport-only pins, static Mapbox image for Shop Detail
+- [x] Mobile-first UI: design and test at 390px width first
+- [x] Desktop breakpoint: ≥1024px — two distinct layout systems
+- [x] Map performance: lazy-load Mapbox, viewport-only pins, static Mapbox image for Shop Detail
 - [ ] Core Web Vitals: LCP < 2.5s, CLS < 0.1
-- [ ] `backdrop-filter: blur()` fallback for glassmorphism on Android
+- [x] `backdrop-filter: blur()` fallback for glassmorphism on Android
+
+### Performance Audit & Fixes
+
+> **Design Doc:** [docs/designs/2026-03-14-phase2b-performance-design.md](docs/designs/2026-03-14-phase2b-performance-design.md)
+> **Plan:** [docs/plans/2026-03-14-phase2b-performance-plan.md](docs/plans/2026-03-14-phase2b-performance-plan.md)
+
+**Chunk 1 — Image + Font + CWV (Wave 1-2):**
+
+- [ ] Verify Sentry CWV already active (tracesSampleRate: 0.1)
+- [ ] Add `sizes` to ShopHero, CheckInPhotoGrid, StampPassport images
+- [ ] Convert ProfileHeader avatar to next/image with sizes
+- [ ] Add Noto Sans TC font via next/font/google
+
+**Chunk 2 — Map List-View Toggle (Wave 1-4):**
+
+- [ ] MapListView component with distance sorting (TDD)
+- [ ] Map page toggle button (TDD)
+
+**Chunk 3 — Verification (Wave 5):**
+
+- [ ] Full verification (vitest, type-check, lint, build)
 
 ### Performance Audit & Fixes
 

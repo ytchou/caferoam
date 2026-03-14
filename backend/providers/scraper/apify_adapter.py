@@ -114,7 +114,7 @@ class ApifyScraperAdapter:
 
     def _parse_place(self, place: dict[str, Any]) -> ScrapedShopData:
         """Parse a raw Apify place dict into ScrapedShopData."""
-        location = place.get("location", {})
+        location = place.get("location") or {}
         return ScrapedShopData(
             name=place.get("title", ""),
             address=place.get("address", ""),
@@ -132,6 +132,9 @@ class ApifyScraperAdapter:
             phone=place.get("phone"),
             website=place.get("website"),
             menu_url=place.get("menu"),
+            country_code=place.get("countryCode"),
+            price_range=place.get("price"),
+            permanently_closed=bool(place.get("permanentlyClosed", False)),
             categories=[place["categoryName"]] if place.get("categoryName") else [],
             reviews=[
                 {
