@@ -10,7 +10,6 @@ vi.mock('next/navigation', () => ({
   redirect: vi.fn(),
 }));
 vi.mock('next/image', () => ({
-  // eslint-disable-next-line @next/next/no-img-element
   default: ({ src, alt }: { src: string; alt: string }) => (
     <img src={src} alt={alt} />
   ),
@@ -27,6 +26,9 @@ vi.mock('next/link', () => ({
 vi.mock('@/components/shops/share-button', () => ({
   ShareButton: () => <button>Share</button>,
 }));
+vi.mock('@/components/shops/shop-map-thumbnail', () => ({
+  ShopMapThumbnail: () => <div data-testid="shop-map-thumbnail" />,
+}));
 
 import { ShopDetailClient } from './shop-detail-client';
 
@@ -38,13 +40,13 @@ const MOCK_SHOP = {
   latitude: 25.033,
   longitude: 121.543,
   rating: 4.6,
-  review_count: 287,
+  reviewCount: 287,
   description: 'A cozy coffee shop',
-  photo_urls: ['https://example.com/photo.jpg'],
   photoUrls: ['https://example.com/photo.jpg'],
-  taxonomy_tags: [{ id: 'quiet', label_zh: '安靜' }],
-  tags: [{ id: 'quiet', labelZh: '安靜' }],
-  mode_scores: { work: 0.8, rest: 0.6, social: 0.3 },
+  taxonomyTags: [
+    { id: 'quiet', dimension: 'ambience', label: 'Quiet', labelZh: '安靜' },
+  ],
+  modeScores: { work: 0.8, rest: 0.6, social: 0.3 },
 };
 
 describe('ShopDetailClient', () => {

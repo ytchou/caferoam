@@ -54,12 +54,12 @@ class TestShopReviewsAPI:
 
         assert response.status_code == 200
         data = response.json()
-        assert data["total_count"] == 2
-        assert data["average_rating"] == 4.5
+        assert data["totalCount"] == 2
+        assert data["averageRating"] == 4.5
         assert len(data["reviews"]) == 2
-        assert data["reviews"][0]["display_name"] == "Chen Wei"
+        assert data["reviews"][0]["displayName"] == "Chen Wei"
         assert data["reviews"][0]["stars"] == 4
-        assert data["reviews"][1]["display_name"] == "Mei Lin"
+        assert data["reviews"][1]["displayName"] == "Mei Lin"
 
     def test_shop_with_no_reviews_returns_empty_and_zero_average(self):
         """When a shop has no reviews, the response has an empty list and 0.0 average."""
@@ -77,6 +77,6 @@ class TestShopReviewsAPI:
 
         assert response.status_code == 200
         data = response.json()
-        assert data["total_count"] == 0
-        assert data["average_rating"] == 0.0
+        assert data["totalCount"] == 0
+        assert data["averageRating"] == 0.0
         assert data["reviews"] == []

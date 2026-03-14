@@ -1,13 +1,29 @@
 'use client';
+import { Suspense, useEffect, useRef } from 'react';
 import { useSearch } from '@/lib/hooks/use-search';
 import { useSearchState } from '@/lib/hooks/use-search-state';
 import { ShopCard } from '@/components/shops/shop-card';
 import { SuggestionChips } from '@/components/discovery/suggestion-chips';
 import { SearchBar } from '@/components/discovery/search-bar';
+import { useAnalytics } from '@/lib/posthog/use-analytics';
 
-export default function SearchPage() {
+function SearchPageContent() {
   const { query, mode, setQuery } = useSearchState();
   const { results, isLoading, error } = useSearch(query || null, mode);
+  const { capture } = useAnalytics();
+  const lastFiredQuery = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (query && !isLoading && query !== lastFiredQuery.current) {
+      capture('search_submitted', {
+        query_text: query,
+        result_count: results.length,
+        mode_chip_active: mode,
+      });
+      lastFiredQuery.current = query;
+      sessionStorage.setItem('last_search_query', query);
+    }
+  }, [query, isLoading, results.length, mode, capture]);
 
   return (
     <div className="min-h-screen bg-[#FAF7F4]">
@@ -18,6 +34,13 @@ export default function SearchPage() {
       <div className="px-4 py-4">
         {isLoading && (
           <div className="py-12 text-center text-gray-400">搜尋中…</div>
+        )}
+
+        {!isLoading && error && (
+          <div className="py-12 text-center">
+            <p className="mb-4 text-gray-500">搜尋失敗，請稍後再試</p>
+            <SuggestionChips onSelect={setQuery} />
+          </div>
         )}
 
         {!isLoading && !error && results.length === 0 && (
@@ -41,5 +64,15 @@ export default function SearchPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense
+      fallback={<div className="py-12 text-center text-gray-400">搜尋中…</div>}
+    >
+      <SearchPageContent />
+    </Suspense>
   );
 }

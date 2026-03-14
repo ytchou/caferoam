@@ -5,7 +5,7 @@ import type { Shop } from '@/lib/types';
 
 type ShopCardData = Pick<Shop, 'id' | 'name' | 'rating'> & {
   slug?: string;
-  mrt?: string;
+  mrt?: string | null;
   photoUrls?: string[];
   photo_urls?: string[];
 };
@@ -17,13 +17,11 @@ interface ShopCardProps {
 export function ShopCard({ shop }: ShopCardProps) {
   const router = useRouter();
 
-  const handleClick = () => {
-    const slug = shop.slug ?? shop.id;
-    router.push(`/shops/${shop.id}/${slug}`);
-  };
+  function handleClick() {
+    router.push(`/shops/${shop.id}/${shop.slug ?? shop.id}`);
+  }
 
   const locationLabel = shop.mrt ?? '';
-
   const photoUrl =
     (shop.photo_urls ?? shop.photoUrls)?.[0] ?? '/placeholder-cafe.jpg';
 

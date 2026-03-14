@@ -24,4 +24,4 @@ async def search(
     service = SearchService(db=db, embeddings=embeddings)
     query = SearchQuery(text=text, limit=limit)
     results = await service.search(query, mode=mode)
-    return [r.model_dump() for r in results]
+    return [r.model_dump(by_alias=True) for r in results]

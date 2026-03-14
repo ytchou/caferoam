@@ -2,25 +2,30 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any, Literal
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic.alias_generators import to_camel
 
 TaxonomyDimension = Literal["functionality", "time", "ambience", "mode", "coffee"]
 
 
-class ShopModeScores(BaseModel):
+class CamelModel(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+
+class ShopModeScores(CamelModel):
     work: float = 0.0
     rest: float = 0.0
     social: float = 0.0
 
 
-class TaxonomyTag(BaseModel):
+class TaxonomyTag(CamelModel):
     id: str
     dimension: TaxonomyDimension
     label: str
     label_zh: str
 
 
-class Shop(BaseModel):
+class Shop(CamelModel):
     id: str
     name: str
     address: str
@@ -44,7 +49,7 @@ class Shop(BaseModel):
     updated_at: datetime
 
 
-class User(BaseModel):
+class User(CamelModel):
     id: str
     email: str
     display_name: str | None = None
@@ -54,14 +59,14 @@ class User(BaseModel):
     created_at: datetime
 
 
-class ProfileResponse(BaseModel):
+class ProfileResponse(CamelModel):
     display_name: str | None = None
     avatar_url: str | None = None
     stamp_count: int
     checkin_count: int
 
 
-class ProfileUpdateRequest(BaseModel):
+class ProfileUpdateRequest(CamelModel):
     display_name: str | None = None
     avatar_url: str | None = None
 
@@ -70,7 +75,7 @@ class ProfileUpdateRequest(BaseModel):
     def validate_display_name(cls, v: str | None) -> str | None:
         if v is not None:
             v = v.strip()
-            if len(v) == 0:
+            if not v:
                 raise ValueError("Display name cannot be empty")
             if len(v) > 30:
                 raise ValueError("Display name must be 30 characters or less")
@@ -86,7 +91,7 @@ class ProfileUpdateRequest(BaseModel):
         return v
 
 
-class StampWithShop(BaseModel):
+class StampWithShop(CamelModel):
     id: str
     user_id: str
     shop_id: str
@@ -96,7 +101,7 @@ class StampWithShop(BaseModel):
     shop_name: str | None = None
 
 
-class CheckInWithShop(BaseModel):
+class CheckInWithShop(CamelModel):
     id: str
     user_id: str
     shop_id: str
@@ -112,14 +117,14 @@ class CheckInWithShop(BaseModel):
     created_at: datetime
 
 
-class ListSummary(BaseModel):
+class ListSummary(CamelModel):
     id: str
     name: str
     shop_count: int
     preview_photos: list[str]
 
 
-class List(BaseModel):
+class List(CamelModel):
     id: str
     user_id: str
     name: str
@@ -127,13 +132,13 @@ class List(BaseModel):
     updated_at: datetime
 
 
-class ListItem(BaseModel):
+class ListItem(CamelModel):
     list_id: str | None = None
     shop_id: str
     added_at: datetime
 
 
-class ListWithItems(BaseModel):
+class ListWithItems(CamelModel):
     id: str
     user_id: str
     name: str
@@ -142,14 +147,14 @@ class ListWithItems(BaseModel):
     items: list[ListItem] = []
 
 
-class ListPin(BaseModel):
+class ListPin(CamelModel):
     list_id: str
     shop_id: str
     lat: float
     lng: float
 
 
-class CheckIn(BaseModel):
+class CheckIn(CamelModel):
     id: str
     user_id: str
     shop_id: str
@@ -165,7 +170,7 @@ class CheckIn(BaseModel):
     @field_validator("photo_urls")
     @classmethod
     def at_least_one_photo(cls, v: list[str]) -> list[str]:
-        if len(v) < 1:
+        if not v:
             raise ValueError("At least one photo is required for check-in")
         return v
 
@@ -176,7 +181,7 @@ class CreateCheckInResponse(CheckIn):
     is_first_checkin_at_shop: bool
 
 
-class Stamp(BaseModel):
+class Stamp(CamelModel):
     id: str
     user_id: str
     shop_id: str
@@ -185,7 +190,7 @@ class Stamp(BaseModel):
     earned_at: datetime
 
 
-class ShopCheckInSummary(BaseModel):
+class ShopCheckInSummary(CamelModel):
     id: str
     user_id: str
     display_name: str | None = None
@@ -198,12 +203,12 @@ class ShopCheckInSummary(BaseModel):
     created_at: datetime
 
 
-class ShopCheckInPreview(BaseModel):
+class ShopCheckInPreview(CamelModel):
     count: int
     preview_photo_url: str | None = None
 
 
-class ShopReview(BaseModel):
+class ShopReview(CamelModel):
     """A check-in with review data for the shop reviews section."""
 
     id: str
@@ -215,26 +220,26 @@ class ShopReview(BaseModel):
     reviewed_at: datetime
 
 
-class ShopReviewsResponse(BaseModel):
+class ShopReviewsResponse(CamelModel):
     reviews: list[ShopReview]
     total_count: int
     average_rating: float
 
 
-class SearchFilters(BaseModel):
+class SearchFilters(CamelModel):
     dimensions: dict[TaxonomyDimension, list[str]] | None = None
     near_latitude: float | None = None
     near_longitude: float | None = None
     radius_km: float | None = None
 
 
-class SearchQuery(BaseModel):
+class SearchQuery(CamelModel):
     text: str
     filters: SearchFilters | None = None
     limit: int | None = None
 
 
-class SearchResult(BaseModel):
+class SearchResult(CamelModel):
     shop: Shop
     similarity_score: float
     taxonomy_boost: float

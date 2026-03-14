@@ -95,7 +95,7 @@ class TestShopsAPI:
             assert response.status_code == 200
 
     def test_get_shop_detail_includes_photo_urls(self):
-        """GET /shops/{id} response includes photo_urls extracted from nested shop_photos JOIN data."""
+        """GET /shops/{id} response includes photoUrls extracted from nested shop_photos JOIN data."""
         shop_with_photos = {
             **SHOP_ROW,
             "shop_photos": [
@@ -112,7 +112,7 @@ class TestShopsAPI:
 
         assert response.status_code == 200
         data = response.json()
-        assert data["photo_urls"] == [
+        assert data["photoUrls"] == [
             "https://example.com/p1.jpg",
             "https://example.com/p2.jpg",
         ]
@@ -130,7 +130,7 @@ class TestShopsAPI:
         assert data["slug"] == "shan-xiao-hai-ka-fei"
 
     def test_get_shop_detail_includes_mode_scores(self):
-        """GET /shops/{id} returns mode_scores dict built from mode_work/rest/social columns."""
+        """GET /shops/{id} returns modeScores dict built from mode_work/rest/social columns."""
         shop_chain = _simple_select_chain({**SHOP_ROW, "shop_photos": [], "shop_tags": []})
 
         with patch("api.shops.get_anon_client") as mock_sb:
@@ -139,7 +139,57 @@ class TestShopsAPI:
 
         assert response.status_code == 200
         data = response.json()
-        assert data["mode_scores"] == {"work": 0.8, "rest": 0.5, "social": 0.3}
+        assert data["modeScores"] == {"work": 0.8, "rest": 0.5, "social": 0.3}
+
+    def test_get_shop_detail_returns_structured_taxonomy_tags(self):
+        """GET /shops/{id} returns taxonomyTags as array of {id, dimension, label, labelZh}."""
+        shop_data = {
+            **SHOP_ROW,
+            "shop_photos": [],
+            "shop_tags": [
+                {
+                    "tag_id": "quiet",
+                    "tag_name": "quiet",
+                    "taxonomy_tags": {
+                        "id": "quiet",
+                        "dimension": "ambience",
+                        "label": "Quiet",
+                        "label_zh": "安靜",
+                    },
+                }
+            ],
+        }
+        shop_chain = _simple_select_chain(shop_data)
+
+        with patch("api.shops.get_anon_client") as mock_sb:
+            mock_sb.return_value = MagicMock(table=MagicMock(return_value=shop_chain))
+            response = client.get("/shops/shop-001")
+
+        data = response.json()
+        assert "taxonomyTags" in data
+        assert "tags" not in data
+        assert data["taxonomyTags"] == [
+            {"id": "quiet", "dimension": "ambience", "label": "Quiet", "labelZh": "安靜"}
+        ]
+
+    def test_get_shop_detail_returns_camel_case_keys(self):
+        """GET /shops/{id} response uses camelCase keys (photoUrls, modeScores, not photo_urls, mode_scores)."""
+        shop_chain = _simple_select_chain(
+            {
+                **SHOP_ROW,
+                "shop_photos": [{"photo_url": "https://example.com/p1.jpg"}],
+                "shop_tags": [],
+            }
+        )
+        with patch("api.shops.get_anon_client") as mock_sb:
+            mock_sb.return_value = MagicMock(table=MagicMock(return_value=shop_chain))
+            response = client.get("/shops/shop-001")
+
+        data = response.json()
+        assert "photoUrls" in data
+        assert "photo_urls" not in data
+        assert "modeScores" in data
+        assert "mode_scores" not in data
 
     def test_list_shops_featured_returns_live_shops_only(self):
         """GET /shops?featured=true filters to processing_status=live shops."""

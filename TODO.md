@@ -776,20 +776,56 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 - [x] `search_submitted` PostHog event
 - [x] `shop_detail_viewed` PostHog event
 - [x] `shop_url_copied` PostHog event
-- [ ] `filter_applied` PostHog event
+- [x] `filter_applied` PostHog event (wired in FilterPills + FilterSheet)
 
-**Chunk 7 — Deferred from Code Review (post-merge):**
+### Phase 2B Completion (all deferred work)
 
-- [ ] `MapDesktopCard` component — desktop map sidebar card (flagged as missing in review)
-- [ ] Shop Detail sub-components: `ShopDescription`, `MenuHighlights`, `RecentCheckinsStrip`, `ShopMapThumbnail`
-- [ ] `taxonomy_tags` JOIN in `GET /shops/{id}` — return structured `{id, dimension, label, label_zh}` instead of flat strings
-- [ ] Viewport-only pin filtering in `MapView` — only render pins within the current map bounds
-- [ ] "我附近" suggestion chip — trigger geolocation on select instead of navigating with text query
-- [ ] Analytics: add `result_count` and `mode_chip_active` props to `search_submitted` event
-- [ ] Analytics: add `referrer` and `session_search_query` props to `shop_detail_viewed` event
-- [ ] Page-level tests: rewrite to mock at HTTP boundary, not internal components (`app/page.test.tsx`, `app/map/page.test.tsx`, `app/(protected)/search/page.test.tsx`)
-- [ ] Fix dual snake_case/camelCase `Shop` type — consolidate to one casing convention
-- [ ] Test naming: rewrite test names that describe rendering to describe user outcomes
+> **Design Doc:** [docs/designs/2026-03-14-phase2b-completion-design.md](docs/designs/2026-03-14-phase2b-completion-design.md)
+> **Plan:** [docs/plans/2026-03-14-phase2b-completion-plan.md](docs/plans/2026-03-14-phase2b-completion-plan.md)
+
+**Chunk 1 — Backend camelCase (Wave 1-2):**
+
+- [x] CamelModel base class with Pydantic alias_generator (TDD)
+- [x] All API endpoints serialize as camelCase (TDD)
+
+**Chunk 2 — Structured taxonomy_tags (Wave 3):**
+
+- [x] GET /shops/{id} returns TaxonomyTag objects with dimension + labelZh (TDD)
+
+**Chunk 3 — Frontend type cleanup (Wave 4):**
+
+- [x] Remove dual-casing workarounds in AttributeChips, ShopDetailClient
+
+**Chunk 4 — New components (Wave 5):**
+
+- [x] MapDesktopCard (TDD)
+- [x] ShopDescription (TDD)
+- [x] MenuHighlights (TDD)
+- [x] RecentCheckinsStrip (TDD)
+- [x] ShopMapThumbnail (TDD)
+- [x] Viewport-only pin filtering in MapView (TDD)
+- [x] useGeolocation hook (TDD)
+
+**Chunk 5 — Integration (Wave 6):**
+
+- [x] Integrate sub-components into ShopDetailClient
+- [x] Integrate MapDesktopCard + real data into map page
+- [x] 我附近 geolocation chip wiring
+
+**Chunk 6 — Analytics (Wave 5-6):**
+
+- [x] filter_applied — verify already wired
+- [x] search_submitted — add result_count, mode_chip_active
+- [x] shop_detail_viewed — add referrer, session_search_query
+
+**Chunk 7 — Test quality (Wave 7):**
+
+- [x] Rewrite page tests to mock at HTTP boundary
+- [x] Rewrite test names to describe user outcomes
+
+**Chunk 8 — Verification (Wave 8):**
+
+- [x] Full verification (pytest, vitest, ruff, mypy, pnpm build)
 
 ### Performance (verified during implementation)
 

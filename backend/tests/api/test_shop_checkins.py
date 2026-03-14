@@ -36,9 +36,9 @@ class TestShopCheckinsAPI:
             data = response.json()
             assert isinstance(data, list)
             assert len(data) == 1
-            assert data[0]["display_name"] == "小明"
-            assert data[0]["photo_url"] == "https://example.com/p1.jpg"
-            assert "photo_urls" not in data[0]
+            assert data[0]["displayName"] == "小明"
+            assert data[0]["photoUrl"] == "https://example.com/p1.jpg"
+            assert "photoUrls" not in data[0]
         finally:
             app.dependency_overrides.clear()
 
@@ -57,7 +57,7 @@ class TestShopCheckinsAPI:
             assert response.status_code == 200
             data = response.json()
             assert data["count"] == 5
-            assert data["preview_photo_url"] == "https://example.com/latest.jpg"
+            assert data["previewPhotoUrl"] == "https://example.com/latest.jpg"
         finally:
             app.dependency_overrides.clear()
 
@@ -73,7 +73,7 @@ class TestShopCheckinsAPI:
                 )
                 response = client.get("/shops/shop-1/checkins")
             assert response.status_code == 200
-            assert response.json() == {"count": 0, "preview_photo_url": None}
+            assert response.json() == {"count": 0, "previewPhotoUrl": None}
         finally:
             app.dependency_overrides.clear()
 

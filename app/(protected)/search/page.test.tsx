@@ -14,6 +14,10 @@ vi.mock('@/lib/hooks/use-search', () => ({
   useSearch: mockUseSearch,
 }));
 
+vi.mock('@/lib/posthog/use-analytics', () => ({
+  useAnalytics: () => ({ capture: vi.fn() }),
+}));
+
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
@@ -81,5 +85,17 @@ describe('Search results page', () => {
     });
     render(<SearchPage />);
     expect(screen.getByText(/搜尋中|Loading/i)).toBeInTheDocument();
+  });
+
+  it('shows error state with suggestions when search fails', () => {
+    mockUseSearchState.mockReturnValue(defaultSearchState);
+    mockUseSearch.mockReturnValue({
+      results: [],
+      isLoading: false,
+      error: new Error('Network error'),
+    });
+    render(<SearchPage />);
+    expect(screen.getByText(/搜尋失敗/)).toBeInTheDocument();
+    expect(screen.getByTestId('suggestion-chips')).toBeInTheDocument();
   });
 });

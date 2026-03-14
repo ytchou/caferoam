@@ -1,16 +1,7 @@
-interface Tag {
-  id: string;
-  label_zh?: string;
-  labelZh?: string;
-  label?: string;
-}
+import type { TaxonomyTag } from '@/lib/types';
 
 interface AttributeChipsProps {
-  tags: Tag[];
-}
-
-function tagDisplayLabel(tag: Tag): string {
-  return tag.label_zh ?? tag.labelZh ?? tag.label ?? tag.id;
+  tags: TaxonomyTag[];
 }
 
 export function AttributeChips({ tags }: AttributeChipsProps) {
@@ -21,7 +12,7 @@ export function AttributeChips({ tags }: AttributeChipsProps) {
           key={tag.id}
           className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700"
         >
-          {tagDisplayLabel(tag)}
+          {tag.labelZh}
         </span>
       ))}
     </div>
