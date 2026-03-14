@@ -850,7 +850,7 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 **Chunk 2 — Map List-View Toggle (Wave 1-4):**
 
 - [x] MapListView component with distance sorting (TDD)
-- [ ] Map page toggle button (TDD)
+- [x] Map page toggle button (TDD)
 
 **Chunk 3 — Verification (Wave 5):**
 
