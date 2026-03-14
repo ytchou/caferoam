@@ -24,6 +24,53 @@ async def persist_scraped_data(
 
     Shared by single and batch scrape handlers.
     """
+    # Permanently closed shops: store basic data but don't enrich.
+    if data.permanently_closed:
+        reason = "Permanently closed per Google Maps"
+        logger.info("Shop is permanently closed — skipping enrichment", shop_id=shop_id)
+        db.table("shops").update(
+            {
+                "name": data.name,
+                "address": data.address,
+                "latitude": data.latitude,
+                "longitude": data.longitude,
+                "google_place_id": data.google_place_id,
+                "rating": data.rating,
+                "review_count": data.review_count,
+                "processing_status": "failed",
+                "rejection_reason": reason,
+                "updated_at": datetime.now(UTC).isoformat(),
+            }
+        ).eq("id", shop_id).execute()
+        return
+
+    # Geo-gate: reject non-Taiwan shops before spending API budget on enrichment.
+    # countryCode "TW" is the primary signal; "台灣" in the address is a fallback
+    # for any scraper that omits countryCode.
+    is_taiwan = (data.country_code == "TW") if data.country_code else ("台灣" in data.address)
+    if not is_taiwan:
+        country = data.country_code or "unknown"
+        reason = f"Out of region: country_code={country}, address={data.address[:80]}"
+        logger.info(
+            "Shop is outside Taiwan — marking out_of_region",
+            shop_id=shop_id,
+            country_code=data.country_code,
+            address=data.address[:60],
+        )
+        db.table("shops").update(
+            {
+                "name": data.name,
+                "address": data.address,
+                "latitude": data.latitude,
+                "longitude": data.longitude,
+                "google_place_id": data.google_place_id,
+                "processing_status": "out_of_region",
+                "rejection_reason": reason,
+                "updated_at": datetime.now(UTC).isoformat(),
+            }
+        ).eq("id", shop_id).execute()
+        return
+
     # Update shop with scraped data; advance status to enriching
     db.table("shops").update(
         {
@@ -38,6 +85,7 @@ async def persist_scraped_data(
             "phone": data.phone,
             "website": data.website,
             "menu_url": data.menu_url,
+            "price_range": data.price_range,
             "processing_status": "enriching",
             "updated_at": datetime.now(UTC).isoformat(),
         }

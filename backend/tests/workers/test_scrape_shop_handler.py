@@ -37,6 +37,7 @@ def scraped_data():
         google_place_id="ChIJ_test",
         rating=4.5,
         review_count=42,
+        country_code="TW",
         phone="+886-2-1234",
         website="https://test.tw",
         reviews=[

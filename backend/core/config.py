@@ -48,7 +48,7 @@ class Settings(BaseSettings):
 
     # Worker concurrency
     worker_poll_interval_seconds: int = 5
-    worker_concurrency_enrich: int = 5
+    worker_concurrency_enrich: int = 3
     worker_concurrency_embed: int = 20
     worker_concurrency_publish: int = 20
     worker_concurrency_scrape: int = 1

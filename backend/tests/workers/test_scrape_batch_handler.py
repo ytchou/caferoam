@@ -24,6 +24,7 @@ def scraped_data_a():
         google_place_id="ChIJtest_a",
         rating=4.8,
         review_count=120,
+        country_code="TW",
         reviews=[{"text": "環境舒適，咖啡香濃", "stars": 5, "published_at": "2026-01-15"}],
         photo_urls=["https://img.example.com/a.jpg"],
     )
@@ -39,6 +40,7 @@ def scraped_data_b():
         google_place_id="ChIJtest_b",
         rating=4.5,
         review_count=80,
+        country_code="TW",
         reviews=[],
         photo_urls=[],
     )
