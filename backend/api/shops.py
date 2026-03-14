@@ -65,7 +65,7 @@ async def get_shop(shop_id: str) -> Any:
         .execute()
     )
 
-    if response is None or not response.data:
+    if not response.data:
         raise HTTPException(status_code=404, detail="Shop not found")
     shop: dict[str, Any] = cast("dict[str, Any]", response.data)
 

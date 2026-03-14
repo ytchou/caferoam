@@ -57,9 +57,9 @@ vi.mock('mapbox-gl/dist/mapbox-gl.css', () => ({}));
 import { MapView } from './map-view';
 
 const SHOPS = [
-  { id: '1', name: 'In bounds', latitude: 25.033, longitude: 121.55 },
-  { id: '2', name: 'Out of bounds', latitude: 26.0, longitude: 122.0 },
-  { id: '3', name: 'Also in bounds', latitude: 25.02, longitude: 121.56 },
+  { id: '1', name: '明星咖啡館', latitude: 25.033, longitude: 121.55 },
+  { id: '2', name: '日出茶太', latitude: 26.0, longitude: 122.0 },
+  { id: '3', name: '珈琲茶館', latitude: 25.02, longitude: 121.56 },
 ];
 
 const REALISTIC_SHOPS = [
@@ -78,13 +78,13 @@ const REALISTIC_SHOPS = [
 ];
 
 describe('MapView', () => {
-  it('renders markers for all shops initially (before viewport event)', () => {
+  it('a visitor opening the map sees all shop pins before any panning occurs', () => {
     render(<MapView shops={SHOPS} onPinClick={vi.fn()} />);
     const markers = screen.getAllByTestId('marker');
     expect(markers.length).toBe(3);
   });
 
-  it('renders a map container', () => {
+  it('a visitor opening the map sees the map canvas', () => {
     render(<MapView shops={SHOPS} onPinClick={vi.fn()} />);
     expect(screen.getByTestId('map')).toBeInTheDocument();
   });
