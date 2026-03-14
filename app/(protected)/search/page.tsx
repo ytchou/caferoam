@@ -36,6 +36,13 @@ function SearchPageContent() {
           <div className="py-12 text-center text-gray-400">搜尋中…</div>
         )}
 
+        {!isLoading && error && (
+          <div className="py-12 text-center">
+            <p className="mb-4 text-gray-500">搜尋失敗，請稍後再試</p>
+            <SuggestionChips onSelect={setQuery} />
+          </div>
+        )}
+
         {!isLoading && !error && results.length === 0 && (
           <div className="py-8 text-center">
             <p className="mb-4 text-gray-500">
