@@ -25,7 +25,8 @@ def main() -> None:
         print(f"  {shop['name']} → {slug}")
 
     if updates:
-        db.table("shops").upsert(updates).execute()
+        for update in updates:
+            db.table("shops").update({"slug": update["slug"]}).eq("id", update["id"]).execute()
         print(f"Updated {len(updates)} slugs")
     else:
         print("No updates needed")

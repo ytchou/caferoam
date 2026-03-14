@@ -57,19 +57,20 @@ async def get_shop(shop_id: str) -> Any:
     response = (
         db.table("shops")
         .select(
-            f"{_SHOP_COLUMNS}, shop_photos(photo_url), "
-            "shop_tags(tag_id, tag_name, taxonomy_tags(id, dimension, label, label_zh))"
+            f"{_SHOP_COLUMNS}, shop_photos(url), "
+            "shop_tags(tag_id, taxonomy_tags(id, dimension, label, label_zh))"
         )
         .eq("id", shop_id)
-        .maybe_single()
+        .limit(1)
         .execute()
     )
 
-    if not response or not response.data:
+    rows = cast("list[dict[str, Any]]", response.data or [])
+    if not rows:
         raise HTTPException(status_code=404, detail="Shop not found")
-    shop: dict[str, Any] = cast("dict[str, Any]", response.data)
+    shop: dict[str, Any] = rows[0]
 
-    photo_urls = [row["photo_url"] for row in (shop.pop("shop_photos", None) or [])]
+    photo_urls = [row["url"] for row in (shop.pop("shop_photos", None) or [])]
     raw_tags = shop.pop("shop_tags", None) or []
     taxonomy_tags = [
         TaxonomyTag(**row["taxonomy_tags"]).model_dump(by_alias=True)
