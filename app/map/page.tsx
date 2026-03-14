@@ -72,7 +72,7 @@ export default function MapPage() {
                 if (next === 'list') {
                   setSelectedShopId(null);
                 }
-                setViewMode(next);
+                setViewMode(v => (v === 'map' ? 'list' : 'map'));
               }}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white"
               aria-label={viewMode === 'map' ? 'Switch to list view' : 'Switch to map view'}
