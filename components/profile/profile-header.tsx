@@ -21,7 +21,7 @@ export function ProfileHeader({
     <div className="flex items-center gap-4 pb-6">
       <Avatar className="h-16 w-16">
         {avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
+          // eslint-disable-next-line @next/next/no-img-element -- avatar URLs may come from OAuth providers (Google, GitHub) whose hostnames are not in next.config.ts remotePatterns
           <img
             src={avatarUrl}
             alt={name}

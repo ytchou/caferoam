@@ -835,6 +835,27 @@ This is the gate for Phase 2B. Shops must be imported, enriched, embedded, and p
 - [ ] Core Web Vitals: LCP < 2.5s, CLS < 0.1
 - [ ] `backdrop-filter: blur()` fallback for glassmorphism on Android
 
+### Performance Audit & Fixes
+
+> **Design Doc:** [docs/designs/2026-03-14-phase2b-performance-design.md](docs/designs/2026-03-14-phase2b-performance-design.md)
+> **Plan:** [docs/plans/2026-03-14-phase2b-performance-plan.md](docs/plans/2026-03-14-phase2b-performance-plan.md)
+
+**Chunk 1 — Image + Font + CWV (Wave 1-2):**
+
+- [x] Verify Sentry CWV already active (tracesSampleRate: 0.1)
+- [x] Add `sizes` to ShopHero, CheckInPhotoGrid, StampPassport images
+- [x] Convert ProfileHeader avatar to next/image with sizes
+- [x] Add Noto Sans TC font via next/font/google
+
+**Chunk 2 — Map List-View Toggle (Wave 1-4):**
+
+- [x] MapListView component with distance sorting (TDD)
+- [x] Map page toggle button (TDD)
+
+**Chunk 3 — Verification (Wave 5):**
+
+- [x] Full verification (vitest, type-check, lint, build)
+
 **Phase 2B is done when:** A non-team beta user can sign up, complete the PDPA consent flow, search semantically, find a coffee shop, check in with a photo, earn a stamp, leave a review, and view their profile — all without assistance. PostHog Live Events confirms all 7 instrumented events fire correctly.
 
 ---

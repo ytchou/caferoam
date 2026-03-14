@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Geist, Geist_Mono, Noto_Sans_TC } from 'next/font/google';
 import { PostHogProvider } from '@/lib/posthog/provider';
 import { SessionTracker } from '@/components/session-tracker';
 import { AppShell } from '@/components/navigation/app-shell';
@@ -13,6 +13,13 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+});
+
+const notoSansTC = Noto_Sans_TC({
+  variable: '--font-noto-sans-tc',
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -29,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="zh-TW">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${notoSansTC.variable} antialiased`}
       >
         <PostHogProvider>
           <SessionTracker />

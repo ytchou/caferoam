@@ -6,6 +6,12 @@ import type { StampData } from '@/lib/hooks/use-user-stamps';
 
 const SLOTS_PER_PAGE = 20;
 const COLS = 4;
+const HIDDEN_SCROLLBAR = { scrollbarWidth: 'none' as const };
+const PAGE_GRID_STYLE = {
+  display: 'grid' as const,
+  gridTemplateColumns: `repeat(${COLS}, 1fr)`,
+  gap: '0.5rem',
+};
 
 interface StampPassportProps {
   stamps: StampData[];
@@ -43,17 +49,13 @@ export function StampPassport({ stamps, onStampClick }: StampPassportProps) {
       <div
         ref={scrollRef}
         className="flex snap-x snap-mandatory gap-4 overflow-x-auto"
-        style={{ scrollbarWidth: 'none' }}
+        style={HIDDEN_SCROLLBAR}
       >
         {pages.map((slots, pageIdx) => (
           <div
             key={pageIdx}
             className="min-w-full snap-center"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: `repeat(${COLS}, 1fr)`,
-              gap: '0.5rem',
-            }}
+            style={PAGE_GRID_STYLE}
           >
             {slots.map((stamp, slotIdx) =>
               stamp ? (
@@ -69,6 +71,7 @@ export function StampPassport({ stamps, onStampClick }: StampPassportProps) {
                       alt="Stamp"
                       fill
                       className="object-contain"
+                      sizes="80px"
                     />
                   </div>
                 </div>

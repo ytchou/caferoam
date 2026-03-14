@@ -1,4 +1,3 @@
-'use client';
 import Image from 'next/image';
 
 interface ShopHeroProps {
@@ -16,6 +15,7 @@ export function ShopHero({ photoUrls, shopName }: ShopHeroProps) {
         fill
         className="object-cover"
         priority
+        sizes="100vw"
       />
     </div>
   );

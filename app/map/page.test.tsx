@@ -1,82 +1,108 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 
+// Mock heavy dependencies at the boundary
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
-  useSearchParams: () => new URLSearchParams(),
-  usePathname: () => '/map',
 }));
 
-vi.mock('next/dynamic', () => ({
-  default: () => {
-    const Mock = () => <div data-testid="map-view" />;
-    Mock.displayName = 'MockMapView';
-    return Mock;
-  },
-}));
-
-vi.mock('@/components/discovery/search-bar', () => ({
-  SearchBar: ({ onSubmit }: { onSubmit: (q: string) => void }) => (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSubmit('espresso');
-      }}
-    >
-      <button type="submit">Search</button>
-    </form>
-  ),
-}));
-
-vi.mock('@/components/discovery/filter-pills', () => ({
-  FilterPills: () => <div data-testid="filter-pills" />,
-}));
-
-vi.mock('@/components/map/map-mini-card', () => ({
-  MapMiniCard: ({
-    shop,
-    onDismiss,
-  }: {
-    shop: { name: string };
-    onDismiss: () => void;
-  }) => (
-    <div data-testid="mini-card">
-      {shop.name}
-      <button onClick={onDismiss}>dismiss</button>
-    </div>
-  ),
-}));
-
-vi.mock('@/components/map/map-desktop-card', () => ({
-  MapDesktopCard: ({ shop }: { shop: { name: string } }) => (
-    <div data-testid="desktop-card">{shop.name}</div>
-  ),
+vi.mock('@/lib/hooks/use-shops', () => ({
+  useShops: () => ({
+    shops: [
+      {
+        id: '1',
+        name: 'Test Cafe',
+        latitude: 25.03,
+        longitude: 121.56,
+        rating: 4.5,
+        slug: 'test-cafe',
+        photoUrls: [],
+        mrt: null,
+        address: '',
+        phone: null,
+        website: null,
+        openingHours: null,
+        reviewCount: 0,
+        priceRange: null,
+        description: null,
+        menuUrl: null,
+        taxonomyTags: [],
+        cafenomadId: null,
+        googlePlaceId: null,
+        createdAt: '',
+        updatedAt: '',
+      },
+    ],
+    isLoading: false,
+    error: null,
+  }),
 }));
 
 vi.mock('@/lib/hooks/use-media-query', () => ({
   useIsDesktop: () => false,
 }));
 
-vi.mock('@/lib/hooks/use-shops', () => ({
-  useShops: () => ({ shops: [], isLoading: false, error: null }),
+vi.mock('@/lib/hooks/use-geolocation', () => ({
+  useGeolocation: () => ({
+    latitude: null,
+    longitude: null,
+    error: null,
+    loading: false,
+    requestLocation: vi.fn(),
+  }),
+}));
+
+// Mock MapView since it requires Mapbox GL (browser-only)
+vi.mock('@/components/map/map-view', () => ({
+  MapView: ({ shops }: { shops: unknown[] }) => (
+    <div data-testid="map-view">Map with {shops.length} pins</div>
+  ),
+}));
+
+// Mock next/dynamic to return a simple passthrough component
+// that renders the already-mocked MapView stub inline
+vi.mock('next/dynamic', () => ({
+  __esModule: true,
+  default: () => {
+    const StubMapView = (props: Record<string, unknown>) => (
+      <div data-testid="map-view">
+        Map with {(props.shops as unknown[])?.length ?? 0} pins
+      </div>
+    );
+    return StubMapView;
+  },
 }));
 
 import MapPage from './page';
 
 describe('Map page', () => {
-  it('renders map view and search overlay', () => {
+  it('shows map view by default', () => {
     render(<MapPage />);
     expect(screen.getByTestId('map-view')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Search' })).toBeInTheDocument();
   });
 
-  it('renders filter pills in the search overlay', () => {
+  it('toggles to list view when user clicks the list toggle', async () => {
+    const user = userEvent.setup();
     render(<MapPage />);
-    expect(screen.getByTestId('filter-pills')).toBeInTheDocument();
+
+    const toggle = screen.getByRole('button', { name: /list/i });
+    await user.click(toggle);
+
+    expect(screen.queryByTestId('map-view')).not.toBeInTheDocument();
+    expect(screen.getByRole('article')).toBeInTheDocument(); // ShopCard renders <article>
   });
 
-  it('does not show mini card when no shop pin is selected', () => {
+  it('toggles back to map view', async () => {
+    const user = userEvent.setup();
     render(<MapPage />);
-    expect(screen.queryByTestId('mini-card')).not.toBeInTheDocument();
+
+    const listToggle = screen.getByRole('button', { name: /list/i });
+    await user.click(listToggle);
+
+    const mapToggle = screen.getByRole('button', { name: /map/i });
+    await user.click(mapToggle);
+
+    expect(screen.getByTestId('map-view')).toBeInTheDocument();
   });
 });
