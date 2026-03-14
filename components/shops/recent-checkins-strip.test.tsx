@@ -1,9 +1,11 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 
-const mockGetUser = vi.fn();
-const mockOnAuthStateChange = vi.fn(() => ({
-  data: { subscription: { unsubscribe: vi.fn() } },
+const { mockGetUser, mockOnAuthStateChange } = vi.hoisted(() => ({
+  mockGetUser: vi.fn(),
+  mockOnAuthStateChange: vi.fn(() => ({
+    data: { subscription: { unsubscribe: vi.fn() } },
+  })),
 }));
 
 vi.mock('@/lib/supabase/client', () => ({
