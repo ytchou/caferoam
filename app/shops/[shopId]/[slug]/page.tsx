@@ -25,7 +25,7 @@ export async function generateMetadata({
   const shop = await fetchShop(params.shopId);
   if (!shop) return { title: 'Shop not found' };
 
-  const photo = shop.photo_urls?.[0];
+  const photo = shop.photoUrls?.[0];
   return {
     title: `${shop.name} — 啡遊`,
     description: shop.description ?? `探索 ${shop.name}，台灣精品咖啡廳。`,
