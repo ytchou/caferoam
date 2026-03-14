@@ -66,7 +66,9 @@ vi.mock('next/dynamic', () => ({
   __esModule: true,
   default: () => {
     const StubMapView = (props: Record<string, unknown>) => (
-      <div data-testid="map-view">Map with {(props.shops as unknown[])?.length ?? 0} pins</div>
+      <div data-testid="map-view">
+        Map with {(props.shops as unknown[])?.length ?? 0} pins
+      </div>
     );
     return StubMapView;
   },

@@ -15,6 +15,7 @@
 **Tech Stack:** Next.js 16, Tailwind CSS v4, @sentry/nextjs, next/font/google, Vitest + Testing Library
 
 **Acceptance Criteria:**
+
 - [ ] A user on the map page can toggle between map view and list view
 - [ ] All `next/image` fill-mode components have `sizes` attributes for optimal image loading
 - [ ] Noto Sans TC renders consistently across iOS and Android for Traditional Chinese text
@@ -25,6 +26,7 @@
 ### Task 1: Verify Sentry CWV — No Code Change
 
 **Files:**
+
 - Read: `sentry.client.config.ts`
 
 `tracesSampleRate: 0.1` is already set at `sentry.client.config.ts:6`. Sentry's `@sentry/nextjs` SDK automatically captures LCP, CLS, FID, INP, and TTFB when tracing is active. No code change needed.
@@ -36,6 +38,7 @@ Read `sentry.client.config.ts` and confirm `tracesSampleRate` is set to a non-ze
 **Step 2: Document target thresholds**
 
 No test needed — config-only verification. Target thresholds (for reference, not runtime-enforced):
+
 - LCP < 2.5s
 - CLS < 0.1
 - INP < 200ms
@@ -45,6 +48,7 @@ No test needed — config-only verification. Target thresholds (for reference, n
 ### Task 2: Add `sizes` to ShopHero Image
 
 **Files:**
+
 - Modify: `components/shops/shop-hero.tsx:13-19`
 
 No test needed — static attribute addition.
@@ -75,6 +79,7 @@ Expected: Build succeeds with no warnings about missing sizes.
 ### Task 3: Add `sizes` to CheckInPhotoGrid Images
 
 **Files:**
+
 - Modify: `components/checkins/checkin-photo-grid.tsx:67-72` (authenticated grid)
 - Modify: `components/checkins/checkin-photo-grid.tsx:89-94` (preview image)
 
@@ -115,6 +120,7 @@ The preview blurred image is full-width within a container (`max-w-lg` = 512px o
 ### Task 4: Add `sizes` to StampPassport Images
 
 **Files:**
+
 - Modify: `components/stamps/stamp-passport.tsx:67-70`
 
 No test needed — static attribute addition.
@@ -139,6 +145,7 @@ Stamp slots are fixed-size squares in a 4-column grid. Each stamp image is rough
 ### Task 5: Convert ProfileHeader Avatar to next/image
 
 **Files:**
+
 - Modify: `components/profile/profile-header.tsx:23-29`
 
 No test needed — static attribute swap.
@@ -156,13 +163,7 @@ import Image from 'next/image';
 // eslint-disable-next-line @next/next/no-img-element
 // <img src={avatarUrl} alt={name} className="aspect-square size-full object-cover" />
 // New:
-<Image
-  src={avatarUrl}
-  alt={name}
-  fill
-  className="object-cover"
-  sizes="64px"
-/>
+<Image src={avatarUrl} alt={name} fill className="object-cover" sizes="64px" />;
 ```
 
 Remove the `// eslint-disable-next-line @next/next/no-img-element` comment since it's no longer needed.
@@ -190,6 +191,7 @@ profile avatar from raw <img> to next/image."
 ### Task 7: Add Noto Sans TC Font
 
 **Files:**
+
 - Modify: `app/layout.tsx:2,8-16,30-32`
 - Modify: `app/globals.css:10`
 
@@ -226,7 +228,8 @@ const notoSansTC = Noto_Sans_TC({
 
 ```css
 /* app/globals.css:10 — update --font-sans */
---font-sans: var(--font-geist-sans), var(--font-noto-sans-tc), system-ui, sans-serif;
+--font-sans:
+  var(--font-geist-sans), var(--font-noto-sans-tc), system-ui, sans-serif;
 ```
 
 **Step 4: Commit**
@@ -244,6 +247,7 @@ display: swap. Font stack: Geist Sans → Noto Sans TC → system-ui."
 ### Task 8: Write MapListView Test
 
 **Files:**
+
 - Create: `components/map/map-list-view.test.tsx`
 
 **Step 1: Write the failing test**
@@ -260,8 +264,52 @@ vi.mock('next/navigation', () => ({
 }));
 
 const shops = [
-  { id: '1', name: 'Alpha Cafe', latitude: 25.03, longitude: 121.56, rating: 4.5, slug: 'alpha-cafe', photoUrls: [], mrt: 'Zhongxiao', address: '', phone: null, website: null, openingHours: null, reviewCount: 0, priceRange: null, description: null, menuUrl: null, taxonomyTags: [], cafenomadId: null, googlePlaceId: null, createdAt: '', updatedAt: '' },
-  { id: '2', name: 'Beta Brew', latitude: 25.04, longitude: 121.57, rating: 4.2, slug: 'beta-brew', photoUrls: [], mrt: 'Daan', address: '', phone: null, website: null, openingHours: null, reviewCount: 0, priceRange: null, description: null, menuUrl: null, taxonomyTags: [], cafenomadId: null, googlePlaceId: null, createdAt: '', updatedAt: '' },
+  {
+    id: '1',
+    name: 'Alpha Cafe',
+    latitude: 25.03,
+    longitude: 121.56,
+    rating: 4.5,
+    slug: 'alpha-cafe',
+    photoUrls: [],
+    mrt: 'Zhongxiao',
+    address: '',
+    phone: null,
+    website: null,
+    openingHours: null,
+    reviewCount: 0,
+    priceRange: null,
+    description: null,
+    menuUrl: null,
+    taxonomyTags: [],
+    cafenomadId: null,
+    googlePlaceId: null,
+    createdAt: '',
+    updatedAt: '',
+  },
+  {
+    id: '2',
+    name: 'Beta Brew',
+    latitude: 25.04,
+    longitude: 121.57,
+    rating: 4.2,
+    slug: 'beta-brew',
+    photoUrls: [],
+    mrt: 'Daan',
+    address: '',
+    phone: null,
+    website: null,
+    openingHours: null,
+    reviewCount: 0,
+    priceRange: null,
+    description: null,
+    menuUrl: null,
+    taxonomyTags: [],
+    cafenomadId: null,
+    googlePlaceId: null,
+    createdAt: '',
+    updatedAt: '',
+  },
 ];
 
 describe('MapListView', () => {
@@ -298,6 +346,7 @@ Expected: FAIL — `MapListView` module not found.
 ### Task 9: Implement MapListView
 
 **Files:**
+
 - Create: `components/map/map-list-view.tsx`
 
 **Step 1: Implement MapListView component**
@@ -315,8 +364,10 @@ interface MapListViewProps {
 }
 
 function haversineDistance(
-  lat1: number, lng1: number,
-  lat2: number, lng2: number,
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number
 ): number {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -324,8 +375,8 @@ function haversineDistance(
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos((lat1 * Math.PI) / 180) *
-    Math.cos((lat2 * Math.PI) / 180) *
-    Math.sin(dLng / 2) ** 2;
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
@@ -335,7 +386,7 @@ export function MapListView({ shops, userLat, userLng }: MapListViewProps) {
       return [...shops].sort(
         (a, b) =>
           haversineDistance(userLat, userLng, a.latitude, a.longitude) -
-          haversineDistance(userLat, userLng, b.latitude, b.longitude),
+          haversineDistance(userLat, userLng, b.latitude, b.longitude)
       );
     }
     return [...shops].sort((a, b) => a.name.localeCompare(b.name));
@@ -378,6 +429,7 @@ git commit -m "feat: add MapListView component with distance sorting (TDD)"
 ### Task 10: Write Map Page Toggle Test
 
 **Files:**
+
 - Create: `app/map/page.test.tsx`
 
 **Step 1: Write the failing test**
@@ -396,7 +448,29 @@ vi.mock('next/navigation', () => ({
 vi.mock('@/lib/hooks/use-shops', () => ({
   useShops: () => ({
     shops: [
-      { id: '1', name: 'Test Cafe', latitude: 25.03, longitude: 121.56, rating: 4.5, slug: 'test-cafe', photoUrls: [], mrt: null, address: '', phone: null, website: null, openingHours: null, reviewCount: 0, priceRange: null, description: null, menuUrl: null, taxonomyTags: [], cafenomadId: null, googlePlaceId: null, createdAt: '', updatedAt: '' },
+      {
+        id: '1',
+        name: 'Test Cafe',
+        latitude: 25.03,
+        longitude: 121.56,
+        rating: 4.5,
+        slug: 'test-cafe',
+        photoUrls: [],
+        mrt: null,
+        address: '',
+        phone: null,
+        website: null,
+        openingHours: null,
+        reviewCount: 0,
+        priceRange: null,
+        description: null,
+        menuUrl: null,
+        taxonomyTags: [],
+        cafenomadId: null,
+        googlePlaceId: null,
+        createdAt: '',
+        updatedAt: '',
+      },
     ],
     isLoading: false,
     error: null,
@@ -408,7 +482,13 @@ vi.mock('@/lib/hooks/use-media-query', () => ({
 }));
 
 vi.mock('@/lib/hooks/use-geolocation', () => ({
-  useGeolocation: () => ({ latitude: null, longitude: null, error: null, loading: false, requestLocation: vi.fn() }),
+  useGeolocation: () => ({
+    latitude: null,
+    longitude: null,
+    error: null,
+    loading: false,
+    requestLocation: vi.fn(),
+  }),
 }));
 
 // Mock MapView since it requires Mapbox GL (browser-only)
@@ -475,6 +555,7 @@ Expected: FAIL — no button with name "list" found (toggle doesn't exist yet).
 ### Task 11: Add Toggle to Map Page
 
 **Files:**
+
 - Modify: `app/map/page.tsx`
 
 **Step 1: Add view toggle and MapListView to map page**
@@ -551,7 +632,11 @@ export default function MapPage() {
             <button
               onClick={() => setViewMode(viewMode === 'map' ? 'list' : 'map')}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white"
-              aria-label={viewMode === 'map' ? 'Switch to list view' : 'Switch to map view'}
+              aria-label={
+                viewMode === 'map'
+                  ? 'Switch to list view'
+                  : 'Switch to map view'
+              }
             >
               {viewMode === 'map' ? (
                 <List className="h-5 w-5 text-gray-600" />
@@ -669,6 +754,7 @@ graph TD
 ```
 
 **Wave 1** (parallel — no dependencies):
+
 - Task 1: Verify Sentry CWV
 - Task 2: ShopHero sizes
 - Task 3: CheckInPhotoGrid sizes
@@ -678,16 +764,20 @@ graph TD
 - Task 8: MapListView test (write failing test)
 
 **Wave 2** (parallel — depends on Wave 1):
+
 - Task 6: Commit image changes ← Tasks 2-5
 - Task 9: Implement MapListView ← Task 8
 
 **Wave 3** (depends on Wave 2):
+
 - Task 10: Map page toggle test ← Task 9
 
 **Wave 4** (depends on Wave 3):
+
 - Task 11: Add toggle to map page ← Task 10
 
 **Wave 5** (depends on all):
+
 - Task 12: Full verification ← all tasks
 
 ---
