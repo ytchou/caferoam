@@ -16,6 +16,7 @@ export function ShopHero({ photoUrls, shopName }: ShopHeroProps) {
         fill
         className="object-cover"
         priority
+        sizes="100vw"
       />
     </div>
   );

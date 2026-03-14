@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
@@ -21,11 +22,12 @@ export function ProfileHeader({
     <div className="flex items-center gap-4 pb-6">
       <Avatar className="h-16 w-16">
         {avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={avatarUrl}
             alt={name}
-            className="aspect-square size-full object-cover"
+            fill
+            className="object-cover"
+            sizes="64px"
           />
         ) : (
           <AvatarFallback className="text-lg font-medium">

@@ -68,6 +68,7 @@ export function CheckInPhotoGrid({
                 src={checkin.photo_url}
                 alt={`Check-in by ${checkin.display_name ?? 'user'}`}
                 fill
+                sizes="33vw"
                 className="rounded object-cover"
               />
             </div>
@@ -90,6 +91,7 @@ export function CheckInPhotoGrid({
             src={preview.preview_photo_url}
             alt="Recent check-in"
             fill
+            sizes="(min-width: 1024px) 512px, 100vw"
             className="object-cover blur-sm brightness-75"
           />
         )}

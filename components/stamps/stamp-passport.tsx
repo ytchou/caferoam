@@ -69,6 +69,7 @@ export function StampPassport({ stamps, onStampClick }: StampPassportProps) {
                       alt="Stamp"
                       fill
                       className="object-contain"
+                      sizes="80px"
                     />
                   </div>
                 </div>
