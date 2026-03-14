@@ -57,7 +57,7 @@ warn_return_any = true
 warn_unused_configs = true
 
 [[tool.mypy.overrides]]
-module = ["tests.*"]
+module = ["tests.*", "scripts.*"]
 disallow_untyped_defs = false
 disallow_any_generics = false
 disallow_untyped_calls = false
