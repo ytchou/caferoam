@@ -246,4 +246,27 @@ make doctor    # Run preflight check — shows exactly what's wrong and how to f
 
 ---
 
+## Stale Worktree Process Squatting a Port
+
+**Symptom:** `pnpm dev:all` (or `uvicorn`) reports "Address already in use" on port 8000. Backend appears to start (health check passes), but API calls return wrong responses — e.g., 401 "Invalid or expired token" on valid JWTs, 500 on public endpoints, or schema errors from an older codebase.
+
+**Root cause:** A uvicorn process from an old git worktree (`caferoam/.worktrees/<branch>/backend/`) keeps running after the worktree is removed or the terminal is closed. The new backend process fails to bind port 8000 and exits silently. All API traffic continues to hit the stale process with stale code, stale config, and potentially a stale DB schema.
+
+**Fix:**
+
+```bash
+# Find and kill the stale process
+lsof -ti:8000 | xargs kill -9 2>/dev/null
+# Then restart the backend
+cd backend && uv run uvicorn main:app --reload --port 8000
+```
+
+**Prevention:**
+
+- `make dev-all` now automatically clears port 8000 before starting — always use `make dev-all` rather than running uvicorn directly
+- When removing a worktree, kill its backend process first: `lsof -ti:8000 | xargs kill -9 2>/dev/null`
+- If API calls return unexpected 401s or 500s, run `ps aux | grep uvicorn` to confirm only one backend is running and it's from the correct directory
+
+---
+
 _Add entries here as you discover them._

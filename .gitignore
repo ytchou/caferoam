@@ -78,3 +78,10 @@ data/
 
 # Mutation testing reports
 reports/mutation/
+
+# E2E auth tokens (never commit)
+e2e/.auth/
+
+# Playwright MCP logs and *.log files
+.playwright-mcp/
+*.log

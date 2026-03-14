@@ -1,5 +1,7 @@
 'use client';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { SearchBar } from '@/components/discovery/search-bar';
 
 interface HeaderNavProps {
@@ -8,6 +10,21 @@ interface HeaderNavProps {
 }
 
 export function HeaderNav({ onSearch, variant = 'solid' }: HeaderNavProps) {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(!!session);
+    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   const bgClass =
     variant === 'glass'
       ? 'bg-white/80 backdrop-blur-md supports-[not(backdrop-filter)]:bg-white/90'
@@ -38,12 +55,21 @@ export function HeaderNav({ onSearch, variant = 'solid' }: HeaderNavProps) {
           >
             收藏
           </Link>
-          <Link
-            href="/login"
-            className="rounded-full bg-[#E06B3F] px-4 py-2 text-sm text-white transition-colors hover:bg-[#d05a2e]"
-          >
-            登入
-          </Link>
+          {isLoggedIn ? (
+            <Link
+              href="/profile"
+              className="rounded-full bg-[#E06B3F] px-4 py-2 text-sm text-white transition-colors hover:bg-[#d05a2e]"
+            >
+              我的
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="rounded-full bg-[#E06B3F] px-4 py-2 text-sm text-white transition-colors hover:bg-[#d05a2e]"
+            >
+              登入
+            </Link>
+          )}
         </nav>
       </div>
     </header>

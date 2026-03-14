@@ -99,12 +99,12 @@ class TestShopsAPI:
         shop_with_photos = {
             **SHOP_ROW,
             "shop_photos": [
-                {"photo_url": "https://example.com/p1.jpg"},
-                {"photo_url": "https://example.com/p2.jpg"},
+                {"url": "https://example.com/p1.jpg"},
+                {"url": "https://example.com/p2.jpg"},
             ],
             "shop_tags": [],
         }
-        shop_chain = _simple_select_chain(shop_with_photos)
+        shop_chain = _simple_select_chain([shop_with_photos])
 
         with patch("api.shops.get_anon_client") as mock_sb:
             mock_sb.return_value = MagicMock(table=MagicMock(return_value=shop_chain))
@@ -119,7 +119,7 @@ class TestShopsAPI:
 
     def test_get_shop_detail_returns_slug_from_db(self):
         """GET /shops/{id} returns the slug stored in the DB (set by backfill script)."""
-        shop_chain = _simple_select_chain({**SHOP_ROW, "shop_photos": [], "shop_tags": []})
+        shop_chain = _simple_select_chain([{**SHOP_ROW, "shop_photos": [], "shop_tags": []}])
 
         with patch("api.shops.get_anon_client") as mock_sb:
             mock_sb.return_value = MagicMock(table=MagicMock(return_value=shop_chain))
@@ -131,7 +131,7 @@ class TestShopsAPI:
 
     def test_get_shop_detail_includes_mode_scores(self):
         """GET /shops/{id} returns modeScores dict built from mode_work/rest/social columns."""
-        shop_chain = _simple_select_chain({**SHOP_ROW, "shop_photos": [], "shop_tags": []})
+        shop_chain = _simple_select_chain([{**SHOP_ROW, "shop_photos": [], "shop_tags": []}])
 
         with patch("api.shops.get_anon_client") as mock_sb:
             mock_sb.return_value = MagicMock(table=MagicMock(return_value=shop_chain))
@@ -159,7 +159,7 @@ class TestShopsAPI:
                 }
             ],
         }
-        shop_chain = _simple_select_chain(shop_data)
+        shop_chain = _simple_select_chain([shop_data])
 
         with patch("api.shops.get_anon_client") as mock_sb:
             mock_sb.return_value = MagicMock(table=MagicMock(return_value=shop_chain))
@@ -175,11 +175,13 @@ class TestShopsAPI:
     def test_get_shop_detail_returns_camel_case_keys(self):
         """GET /shops/{id} response uses camelCase keys (photoUrls, modeScores, not photo_urls, mode_scores)."""
         shop_chain = _simple_select_chain(
-            {
-                **SHOP_ROW,
-                "shop_photos": [{"photo_url": "https://example.com/p1.jpg"}],
-                "shop_tags": [],
-            }
+            [
+                {
+                    **SHOP_ROW,
+                    "shop_photos": [{"url": "https://example.com/p1.jpg"}],
+                    "shop_tags": [],
+                }
+            ]
         )
         with patch("api.shops.get_anon_client") as mock_sb:
             mock_sb.return_value = MagicMock(table=MagicMock(return_value=shop_chain))

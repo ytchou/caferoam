@@ -20,9 +20,10 @@ async function fetchShop(shopId: string) {
 export async function generateMetadata({
   params,
 }: {
-  params: Params;
+  params: Promise<Params>;
 }): Promise<Metadata> {
-  const shop = await fetchShop(params.shopId);
+  const { shopId } = await params;
+  const shop = await fetchShop(shopId);
   if (!shop) return { title: 'Shop not found' };
 
   const photo = shop.photoUrls?.[0];
@@ -37,16 +38,21 @@ export async function generateMetadata({
   };
 }
 
-export default async function ShopDetailPage({ params }: { params: Params }) {
-  const shop = await fetchShop(params.shopId);
+export default async function ShopDetailPage({
+  params,
+}: {
+  params: Promise<Params>;
+}) {
+  const { shopId, slug } = await params;
+  const shop = await fetchShop(shopId);
 
   if (!shop) {
     notFound();
   }
 
   // Canonical slug redirect — if URL slug doesn't match the stored slug, redirect
-  if (shop.slug && params.slug !== shop.slug) {
-    redirect(`/shops/${params.shopId}/${shop.slug}`);
+  if (shop.slug && slug !== shop.slug) {
+    redirect(`/shops/${shopId}/${shop.slug}`);
   }
 
   return <ShopDetailClient shop={shop} />;
