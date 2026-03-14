@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from db.supabase_client import get_service_role_client
 from scripts.eval_utils import (
+    fetch_live_shops,
     print_table,
     print_threshold,
     save_results,
@@ -36,22 +37,18 @@ _DIMENSION_MIN_PCT = 50.0
 _LOW_CONFIDENCE_MAX = 0.5
 
 
-def _fetch_live_shops(db) -> list[dict]:
-    return (
-        db.table("shops")
-        .select("id,name,description")
-        .eq("processing_status", "live")
-        .execute()
-        .data
-    )
-
-
 def _fetch_taxonomy_tags(db) -> list[dict]:
     return db.table("taxonomy_tags").select("id,dimension,label,label_zh,aliases").execute().data
 
 
-def _fetch_shop_tags(db) -> list[dict]:
-    return db.table("shop_tags").select("shop_id,tag_id,confidence").execute().data
+def _fetch_shop_tags(db, live_shop_ids: list[str]) -> list[dict]:
+    return (
+        db.table("shop_tags")
+        .select("shop_id,tag_id,confidence")
+        .in_("shop_id", live_shop_ids)
+        .execute()
+        .data
+    )
 
 
 def _fetch_reviews_for_shops(db, shop_ids: list[str]) -> dict[str, list[str]]:
@@ -109,19 +106,16 @@ def _tag_frequency(shop_tags: list[dict], tag_map: dict[str, dict], total_shops:
 def _dimension_coverage(
     shop_tags: list[dict],
     tag_map: dict[str, dict],
-    live_shop_ids: set[str],
+    total: int,
 ) -> dict[str, dict]:
     tag_dim: dict[str, str] = {t["id"]: t.get("dimension", "") for t in tag_map.values()}
     dim_shops: dict[str, set[str]] = {}
 
     for st in shop_tags:
-        if st["shop_id"] not in live_shop_ids:
-            continue
         dim = tag_dim.get(st["tag_id"], "")
         if dim:
             dim_shops.setdefault(dim, set()).add(st["shop_id"])
 
-    total = len(live_shop_ids)
     dims = sorted({t.get("dimension", "") for t in tag_map.values()} - {""})
     result: dict[str, dict] = {}
     for dim in dims:
@@ -243,7 +237,7 @@ async def main(sample_size: int, output_dir: Path | None, json_only: bool) -> No
         print("\n=== CafeRoam Tag Audit ===\n")
         print("Fetching data…", end=" ", flush=True)
 
-    shops = _fetch_live_shops(db)
+    shops = fetch_live_shops(db)
     total = len(shops)
     if total == 0:
         warn("No live shops found.")
@@ -255,13 +249,13 @@ async def main(sample_size: int, output_dir: Path | None, json_only: bool) -> No
     taxonomy_tags = _fetch_taxonomy_tags(db)
     tag_map = {t["id"]: t for t in taxonomy_tags}
 
-    shop_tags = _fetch_shop_tags(db)
+    shop_tags = _fetch_shop_tags(db, list(live_shop_ids))
 
     if not json_only:
         print(f"done ({total} shops, {len(taxonomy_tags)} tags, {len(shop_tags)} assignments)\n")
 
     freq = _tag_frequency(shop_tags, tag_map, total)
-    dim_coverage = _dimension_coverage(shop_tags, tag_map, live_shop_ids)
+    dim_coverage = _dimension_coverage(shop_tags, tag_map, total)
     conf_dist = _confidence_distribution(shop_tags)
     low_conf_shops = _low_confidence_shops(shop_tags, shop_map)
 

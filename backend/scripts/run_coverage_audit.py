@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from db.supabase_client import get_service_role_client
 from scripts.eval_utils import (
+    fetch_live_shops,
     print_table,
     print_threshold,
     save_results,
@@ -63,16 +64,6 @@ def _quality_score(photos: int, reviews: int, tags: int, has_desc: bool, has_emb
         + (100 if has_emb else 0) * _WEIGHTS["embedding"]
     )
     return raw / sum(_WEIGHTS.values())
-
-
-def _fetch_live_shops(db) -> list[dict]:
-    rows = (
-        db.table("shops")
-        .select("id,name,description,embedding,mode_work")
-        .eq("processing_status", "live")
-        .execute()
-    )
-    return rows.data
 
 
 def _fetch_photo_counts(db, shop_ids: list[str]) -> dict[str, int]:
@@ -166,7 +157,7 @@ async def main(output_dir: Path | None, json_only: bool) -> None:
         print("\n=== CafeRoam Coverage Audit ===\n")
         print("Fetching live shops…", end=" ", flush=True)
 
-    shops = _fetch_live_shops(db)
+    shops = fetch_live_shops(db, "id,name,description,embedding,mode_work")
     total = len(shops)
     if total == 0:
         warn("No live shops found. Run the pipeline first.")

@@ -2,6 +2,12 @@
 
 Costs: ~$0.001 embeddings + ~$0.15-0.20 Claude judge calls.
 
+Note: This script evaluates embedding retrieval quality via the search_shops RPC.
+The production SearchService also applies a taxonomy boost (0.7*similarity + 0.3*boost)
+when dimension filters are active. The standard query set does not use dimension filters,
+so ranking order is equivalent to production for these queries. If dimension-filtered
+queries are added, switch to using SearchService directly to capture the full reranking.
+
 Usage (run from backend/):
     uv run python scripts/run_search_eval.py \
         [--queries-file PATH] [--match-count 5] [--output-dir PATH] [--json-only]
@@ -189,7 +195,27 @@ async def main(
         if not json_only:
             print(f"  [{qid}] {query_text[:60]}", end=" ... ", flush=True)
 
-        embedding = await embeddings.embed(query_text)
+        try:
+            embedding = await embeddings.embed(query_text)
+        except Exception as exc:
+            warn(f"Embedding failed for {qid}: {exc}")
+            query_results.append(
+                {
+                    "id": qid,
+                    "query": query_text,
+                    "category": category,
+                    "expected_traits": expected_traits,
+                    "results": [],
+                    "ndcg5": 0.0,
+                    "mrr": 0.0,
+                    "top1_relevant": False,
+                    "error": str(exc),
+                }
+            )
+            if not json_only:
+                print("EMBED ERROR")
+            continue
+
         raw_results = _search(db, embedding, match_count)
         shop_ids = [r["id"] for r in raw_results]
         details = _load_shop_details(db, shop_ids)
@@ -236,7 +262,8 @@ async def main(
         judge_scores = []
         for i, res in enumerate(enriched_results):
             rating = ratings_by_rank.get(i + 1, {"score": 0, "reason": ""})
-            res["judge_score"] = rating.get("score", 0)
+            raw_score = rating.get("score", 0)
+            res["judge_score"] = max(0, min(2, int(raw_score)))
             res["reason"] = rating.get("reason", "")
             judge_scores.append(float(res["judge_score"]))
 
@@ -338,7 +365,7 @@ async def main(
                 q["query"][:35],
                 f"{q['ndcg5']:.2f}",
                 f"{q['mrr']:.2f}",
-                "✓" if q["top1_relevant"] else "✗",
+                "Y" if q["top1_relevant"] else "N",
             ]
             for q in query_results
         ],

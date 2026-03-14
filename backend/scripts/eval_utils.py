@@ -18,6 +18,11 @@ _YELLOW = "\033[33m"
 _RESET = "\033[0m"
 
 
+def fetch_live_shops(db, columns: str = "id,name,description") -> list[dict]:
+    """Fetch all shops with processing_status='live'."""
+    return db.table("shops").select(columns).eq("processing_status", "live").execute().data
+
+
 def get_output_dir(base: Path | None = None) -> Path:
     """Return (and create) eval_outputs/YYYY-MM-DD/ directory."""
     root = base or _DEFAULT_OUTPUT_BASE
@@ -65,4 +70,4 @@ def print_table(rows: list[list[Any]], headers: list[str], col_width: int = 20) 
 
 
 def warn(msg: str) -> None:
-    print(f"  {_YELLOW}⚠{_RESET}  {msg}", file=sys.stderr)
+    print(f"  {_YELLOW}WARN{_RESET}  {msg}", file=sys.stderr)
