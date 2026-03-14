@@ -75,7 +75,7 @@ class ProfileUpdateRequest(CamelModel):
     def validate_display_name(cls, v: str | None) -> str | None:
         if v is not None:
             v = v.strip()
-            if len(v) == 0:
+            if not v:
                 raise ValueError("Display name cannot be empty")
             if len(v) > 30:
                 raise ValueError("Display name must be 30 characters or less")
@@ -170,7 +170,7 @@ class CheckIn(CamelModel):
     @field_validator("photo_urls")
     @classmethod
     def at_least_one_photo(cls, v: list[str]) -> list[str]:
-        if len(v) < 1:
+        if not v:
             raise ValueError("At least one photo is required for check-in")
         return v
 

@@ -18,7 +18,7 @@ function SearchPageContent() {
       capture('search_submitted', {
         query_text: query,
         result_count: results.length,
-        mode_chip_active: mode ?? null,
+        mode_chip_active: mode,
       });
       lastFiredQuery.current = query;
       sessionStorage.setItem('last_search_query', query);

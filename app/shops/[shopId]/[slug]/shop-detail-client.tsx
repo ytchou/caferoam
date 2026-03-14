@@ -42,6 +42,7 @@ export function ShopDetailClient({ shop }: ShopDetailClientProps) {
   const { capture } = useAnalytics();
   const photos = shop.photoUrls ?? [];
   const tags = shop.taxonomyTags ?? [];
+  const shopPath = `/shops/${shop.id}/${shop.slug ?? shop.id}`;
 
   useEffect(() => {
     const referrer = typeof document !== 'undefined' ? document.referrer : '';
@@ -58,8 +59,8 @@ export function ShopDetailClient({ shop }: ShopDetailClientProps) {
 
   const shareUrl =
     typeof window !== 'undefined'
-      ? `${window.location.origin}/shops/${shop.id}/${shop.slug ?? shop.id}`
-      : `/shops/${shop.id}/${shop.slug ?? shop.id}`;
+      ? `${window.location.origin}${shopPath}`
+      : shopPath;
 
   return (
     <div className="min-h-screen bg-white pb-20">
@@ -91,7 +92,7 @@ export function ShopDetailClient({ shop }: ShopDetailClientProps) {
       </div>
       <StickyCheckinBar
         shopId={shop.id}
-        returnTo={`/shops/${shop.id}/${shop.slug ?? shop.id}`}
+        returnTo={shopPath}
       />
     </div>
   );

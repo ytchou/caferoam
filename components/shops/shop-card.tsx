@@ -17,15 +17,12 @@ interface ShopCardProps {
 export function ShopCard({ shop }: ShopCardProps) {
   const router = useRouter();
 
-  const handleClick = () => {
-    const slug = shop.slug ?? shop.id;
-    router.push(`/shops/${shop.id}/${slug}`);
-  };
+  function handleClick() {
+    router.push(`/shops/${shop.id}/${shop.slug ?? shop.id}`);
+  }
 
   const locationLabel = shop.mrt ?? '';
-
-  const photoUrl =
-    (shop.photo_urls ?? shop.photoUrls)?.[0] ?? '/placeholder-cafe.jpg';
+  const photoUrl = (shop.photo_urls ?? shop.photoUrls)?.[0] ?? '/placeholder-cafe.jpg';
 
   return (
     <article

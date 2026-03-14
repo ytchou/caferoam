@@ -46,7 +46,7 @@ async def list_shops(
         query = query.eq("processing_status", "live")
     query = query.limit(limit)
     response = query.execute()
-    rows = cast(list[dict[str, Any]], response.data or [])
+    rows = cast("list[dict[str, Any]]", response.data or [])
     return [{to_camel(k): v for k, v in row.items()} for row in rows]
 
 
@@ -71,12 +71,11 @@ async def get_shop(shop_id: str) -> Any:
 
     photo_urls = [row["photo_url"] for row in (shop.pop("shop_photos", None) or [])]
     raw_tags = shop.pop("shop_tags", None) or []
-    taxonomy_tags = []
-    for row in raw_tags:
-        nested = row.get("taxonomy_tags")
-        if nested:
-            tag = TaxonomyTag(**nested)
-            taxonomy_tags.append(tag.model_dump(by_alias=True))
+    taxonomy_tags = [
+        TaxonomyTag(**row["taxonomy_tags"]).model_dump(by_alias=True)
+        for row in raw_tags
+        if row.get("taxonomy_tags")
+    ]
     mode_scores = {
         "work": shop.pop("mode_work", None),
         "rest": shop.pop("mode_rest", None),

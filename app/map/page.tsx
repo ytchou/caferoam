@@ -31,9 +31,9 @@ export default function MapPage() {
     ? (shopById.get(selectedShopId) ?? null)
     : null;
 
-  const handleSearch = (query: string) => {
+  function handleSearch(query: string) {
     router.push(`/map?q=${encodeURIComponent(query)}`);
-  };
+  }
 
   return (
     <div className="relative h-screen w-full overflow-hidden">

@@ -20,14 +20,14 @@ export default function HomePage() {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
-  const handleSearch = (query: string) => {
+  function handleSearch(query: string) {
     const params = new URLSearchParams({ q: query });
     if (mode) params.set('mode', mode);
     if (activeFilters.length) params.set('filters', activeFilters.join(','));
     router.push(`/map?${params.toString()}`);
-  };
+  }
 
-  const handleNearMe = async () => {
+  async function handleNearMe() {
     await requestLocation();
     if (latitude && longitude) {
       const params = new URLSearchParams({ lat: String(latitude), lng: String(longitude), radius: '5' });
@@ -37,15 +37,15 @@ export default function HomePage() {
       toast('無法取得位置，改用文字搜尋');
       handleSearch('我附近');
     }
-  };
+  }
 
-  const handleToggleFilter = (filter: string) => {
+  function handleToggleFilter(filter: string) {
     setActiveFilters((prev) =>
       prev.includes(filter)
         ? prev.filter((x) => x !== filter)
         : [...prev, filter]
     );
-  };
+  }
 
   return (
     <div className="min-h-screen bg-[#FAF7F4]">
