@@ -76,7 +76,7 @@ def get_current_user(token: str = Depends(_get_bearer_token)) -> dict[str, Any]:
             .single()
             .execute()
         )
-        if profile.data and profile.data.get("deletion_requested_at") is not None:
+        if isinstance(profile.data, dict) and profile.data.get("deletion_requested_at") is not None:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Account is pending deletion",
