@@ -323,7 +323,9 @@ class TestListsService:
                                                             "created_at": now,
                                                             "updated_at": now,
                                                             "shop_photos": [
-                                                                {"url": "https://example.com/photo.jpg"}
+                                                                {
+                                                                    "url": "https://example.com/photo.jpg"
+                                                                }
                                                             ],
                                                             "shop_tags": [],
                                                         },

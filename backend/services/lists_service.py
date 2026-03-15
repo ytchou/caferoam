@@ -139,9 +139,7 @@ class ListsService:
             photo_urls = [p["url"] for p in (shop_data.pop("shop_photos", None) or [])]
             raw_tags = shop_data.pop("shop_tags", None) or []
             taxonomy_tags = [
-                TaxonomyTag(**row["taxonomy_tags"])
-                for row in raw_tags
-                if row.get("taxonomy_tags")
+                TaxonomyTag(**row["taxonomy_tags"]) for row in raw_tags if row.get("taxonomy_tags")
             ]
             shops.append(Shop(**shop_data, photo_urls=photo_urls, taxonomy_tags=taxonomy_tags))
         return shops

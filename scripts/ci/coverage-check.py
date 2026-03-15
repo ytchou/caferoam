@@ -50,7 +50,9 @@ def parse_pytest_coverage(xml_path: str) -> dict[str, dict[str, float]]:
                 if not lines:
                     continue
 
-                covered = len([line for line in lines if int(line.get("hits", "0")) > 0])
+                covered = len(
+                    [line for line in lines if int(line.get("hits", "0")) > 0]
+                )
                 total = len(lines)
                 coverage_pct = (covered / total * 100) if total > 0 else 0
 
@@ -172,7 +174,9 @@ def classify_file(filepath: str, rules: dict) -> tuple[str, int]:
     return "default", stack_rules.get("default_threshold", 50)
 
 
-def check_coverage(file_coverage: dict[str, dict[str, float]], rules: dict) -> tuple[dict, int]:
+def check_coverage(
+    file_coverage: dict[str, dict[str, float]], rules: dict
+) -> tuple[dict, int]:
     """
     Check coverage against rules and categorize results.
 
@@ -203,7 +207,9 @@ def check_coverage(file_coverage: dict[str, dict[str, float]], rules: dict) -> t
             else:
                 results["default_passing"].append((filepath, cov_data, threshold))
 
-    has_failures = len(results["critical_failures"]) > 0 or len(results["default_failures"]) > 0
+    has_failures = (
+        len(results["critical_failures"]) > 0 or len(results["default_failures"]) > 0
+    )
     exit_code = 1 if has_failures else 0
 
     return results, exit_code
@@ -246,7 +252,9 @@ def generate_markdown_summary(
     3. Table of files that fail (only failures, not all files)
     4. Overall coverage per stack (only for non-empty stacks)
     """
-    critical_total = len(results["critical_failures"]) + len(results["critical_passing"])
+    critical_total = len(results["critical_failures"]) + len(
+        results["critical_passing"]
+    )
     critical_failed = len(results["critical_failures"])
 
     default_total = len(results["default_failures"]) + len(results["default_passing"])
@@ -261,7 +269,9 @@ def generate_markdown_summary(
         backend_total_lines = sum(f["total"] for f in backend_coverage.values())
         backend_covered_lines = sum(f["covered"] for f in backend_coverage.values())
         backend_pct = (
-            (backend_covered_lines / backend_total_lines * 100) if backend_total_lines > 0 else 0
+            (backend_covered_lines / backend_total_lines * 100)
+            if backend_total_lines > 0
+            else 0
         )
         stack_summaries.append(f"Backend {backend_pct:.1f}%")
 
@@ -280,9 +290,7 @@ def generate_markdown_summary(
     status_emoji = "&#x274C;" if has_failures else "&#x2705;"
 
     # Derive threshold labels from rules (use first stack's values as representative)
-    first_stack = next(
-        (v for v in rules.values() if isinstance(v, dict)), {}
-    )
+    first_stack = next((v for v in rules.values() if isinstance(v, dict)), {})
     critical_threshold = first_stack.get("critical_threshold", 89)
     default_threshold = first_stack.get("default_threshold", 45)
 
@@ -325,7 +333,9 @@ def generate_markdown_summary(
         lines.append("")
         lines.append("---")
         lines.append("")
-        lines.append("**This PR is blocked.** All files must meet their coverage threshold.")
+        lines.append(
+            "**This PR is blocked.** All files must meet their coverage threshold."
+        )
     else:
         lines.append("All files meet coverage thresholds.")
 
@@ -334,10 +344,18 @@ def generate_markdown_summary(
 
 def main():
     parser = argparse.ArgumentParser(description="Check test coverage against rules")
-    parser.add_argument("--backend", help="Path to backend coverage XML file (Cobertura format)")
-    parser.add_argument("--frontend", help="Path to frontend coverage JSON file (v8 format)")
-    parser.add_argument("--rules", required=True, help="Path to coverage rules JSON file")
-    parser.add_argument("--output", required=True, help="Path to output markdown summary file")
+    parser.add_argument(
+        "--backend", help="Path to backend coverage XML file (Cobertura format)"
+    )
+    parser.add_argument(
+        "--frontend", help="Path to frontend coverage JSON file (v8 format)"
+    )
+    parser.add_argument(
+        "--rules", required=True, help="Path to coverage rules JSON file"
+    )
+    parser.add_argument(
+        "--output", required=True, help="Path to output markdown summary file"
+    )
 
     args = parser.parse_args()
 
@@ -377,7 +395,9 @@ def main():
     print(f"\nChecking {len(all_coverage)} files against coverage rules...")
     results, exit_code = check_coverage(all_coverage, rules)
 
-    summary = generate_markdown_summary(results, backend_coverage, frontend_coverage, rules)
+    summary = generate_markdown_summary(
+        results, backend_coverage, frontend_coverage, rules
+    )
 
     with open(args.output, "w") as f:
         f.write(summary)
