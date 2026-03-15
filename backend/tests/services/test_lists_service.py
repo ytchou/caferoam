@@ -348,6 +348,67 @@ class TestListsService:
         assert results[0].photo_urls == ["https://example.com/photo.jpg"]
         assert results[0].taxonomy_tags == []
 
+    async def test_get_list_shops_returns_shops_with_null_coordinates(
+        self, lists_service, mock_supabase
+    ):
+        """Shops without geocoded coordinates must not cause a validation error.
+        86% of shops in production have null lat/lng — this is the common case."""
+        now = datetime.now().isoformat()
+        mock_supabase.table = MagicMock(
+            return_value=MagicMock(
+                select=MagicMock(
+                    return_value=MagicMock(
+                        eq=MagicMock(
+                            return_value=MagicMock(
+                                execute=MagicMock(
+                                    return_value=MagicMock(
+                                        data=[
+                                            {
+                                                "id": LIST_ID,
+                                                "list_items": [
+                                                    {
+                                                        "shop_id": SHOP_ID_1,
+                                                        "added_at": now,
+                                                        "shops": {
+                                                            "id": SHOP_ID_1,
+                                                            "name": "未知地點咖啡",
+                                                            "address": "台北市某區某街1號",
+                                                            "latitude": None,
+                                                            "longitude": None,
+                                                            "mrt": None,
+                                                            "phone": None,
+                                                            "website": None,
+                                                            "opening_hours": None,
+                                                            "rating": None,
+                                                            "review_count": 0,
+                                                            "price_range": None,
+                                                            "description": None,
+                                                            "menu_url": None,
+                                                            "cafenomad_id": None,
+                                                            "google_place_id": None,
+                                                            "created_at": now,
+                                                            "updated_at": now,
+                                                            "shop_photos": [],
+                                                            "shop_tags": [],
+                                                        },
+                                                    }
+                                                ],
+                                            }
+                                        ]
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+        results = await lists_service.get_list_shops(list_id=LIST_ID)
+        assert len(results) == 1
+        assert results[0].name == "未知地點咖啡"
+        assert results[0].latitude is None
+        assert results[0].longitude is None
+
     async def test_get_list_shops_raises_when_user_does_not_own_list(
         self, lists_service, mock_supabase
     ):

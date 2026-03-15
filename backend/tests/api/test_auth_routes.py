@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from fastapi.testclient import TestClient
 
@@ -102,6 +102,52 @@ class TestDeleteAccountRoute:
             assert data["deletion_requested_at"] == original_ts
         finally:
             _clear_overrides()
+
+
+class TestSoftDeleteGate:
+    def test_given_user_pending_deletion_when_making_authenticated_request_then_403(self):
+        """Any authenticated request from a soft-deleted user must return 403.
+        Gate uses DB lookup, not JWT claims — JWT claims are unreliable for this field."""
+        mock_profile_response = MagicMock()
+        mock_profile_response.data = {"deletion_requested_at": "2026-03-15T16:00:00+00:00"}
+
+        mock_service_db = MagicMock()
+        (
+            mock_service_db.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value
+        ) = mock_profile_response
+
+        with (
+            patch("api.deps.pyjwt.decode", return_value={"sub": "user-being-deleted"}),
+            patch("api.deps._jwks_client") as mock_jwks,
+            patch("api.deps.get_service_role_client", return_value=mock_service_db),
+        ):
+            mock_jwks.get_signing_key_from_jwt.return_value = MagicMock()
+            response = client.get("/profile", headers={"Authorization": "Bearer fake-jwt"})
+
+        assert response.status_code == 403
+        assert "pending deletion" in response.json()["detail"]
+
+    def test_given_user_not_pending_deletion_when_calling_get_current_user_then_returns_user(self):
+        """Users with no pending deletion pass through the auth gate and get their user dict."""
+        mock_profile_response = MagicMock()
+        mock_profile_response.data = {"deletion_requested_at": None}
+
+        mock_service_db = MagicMock()
+        (
+            mock_service_db.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value
+        ) = mock_profile_response
+
+        with (
+            patch("api.deps.pyjwt.decode", return_value={"sub": "active-user"}),
+            patch("api.deps._jwks_client") as mock_jwks,
+            patch("api.deps.get_service_role_client", return_value=mock_service_db),
+        ):
+            mock_jwks.get_signing_key_from_jwt.return_value = MagicMock()
+            from api.deps import get_current_user
+
+            result = get_current_user("fake-jwt")
+
+        assert result == {"id": "active-user"}
 
 
 class TestCancelDeletionRoute:

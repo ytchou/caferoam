@@ -65,8 +65,18 @@ def get_current_user(token: str = Depends(_get_bearer_token)) -> dict[str, Any]:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token: missing user ID",
             )
-        app_metadata = payload.get("app_metadata", {})
-        if app_metadata.get("deletion_requested") is True:
+        # Check deletion status from DB — JWT app_metadata.deletion_requested is
+        # unreliable (local Supabase injects False defaults; prod claims can be stale).
+        # DB check also blocks mid-session access, not just new logins.
+        service_db = get_service_role_client()
+        profile = (
+            service_db.table("profiles")
+            .select("deletion_requested_at")
+            .eq("id", user_id)
+            .single()
+            .execute()
+        )
+        if isinstance(profile.data, dict) and profile.data.get("deletion_requested_at") is not None:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Account is pending deletion",

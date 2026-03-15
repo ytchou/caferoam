@@ -29,8 +29,8 @@ class Shop(CamelModel):
     id: str
     name: str
     address: str
-    latitude: float
-    longitude: float
+    latitude: float | None = None
+    longitude: float | None = None
     mrt: str | None = None
     phone: str | None = None
     website: str | None = None
